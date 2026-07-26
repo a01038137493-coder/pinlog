@@ -523,8 +523,21 @@
           a.textContent = "내 핀로그 열기";
           a.setAttribute("href", "/app");
         });
+        // 로그인 버튼 → 로그아웃 (모달 열기 리스너는 노드 교체로 제거)
         const login = document.querySelector(".nav__login");
-        if (login) login.remove();
+        if (login) {
+          const out = login.cloneNode(true);
+          out.textContent = "로그아웃";
+          out.setAttribute("href", "#");
+          out.addEventListener("click", async (e) => {
+            e.preventDefault();
+            out.textContent = "로그아웃 중...";
+            try { localStorage.removeItem("dt_profile_cache"); } catch (err) {}
+            try { await supabaseClient.auth.signOut(); } catch (err) {}
+            window.location.reload();
+          });
+          login.replaceWith(out);
+        }
         return;
       }
       // 노션식 우상단 로그인 팝업 — 닫으면 이 세션에선 다시 안 띄움
