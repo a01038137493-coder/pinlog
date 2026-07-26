@@ -52,7 +52,13 @@
     .otp-actions { display: flex; justify-content: space-between; margin-top: 14px; font-size: 0.84rem; }
     .otp-actions button { border: none; background: none; font: inherit; font-size: 0.84rem; font-weight: 600; color: #787774; cursor: pointer; padding: 0; }
     .otp-actions button:hover { color: #37352f; text-decoration: underline; }
-    #otp-code { letter-spacing: 8px; font-size: 1.25rem; font-weight: 700; text-align: center; }
+    .otp-boxes { display: flex; gap: 9px; justify-content: center; margin-bottom: 14px; }
+    .otp-d {
+      width: 52px; height: 62px; text-align: center;
+      font: inherit; font-size: 1.5rem; font-weight: 800; color: #191919;
+      border: 1px solid #dcdcda; border-radius: 12px; background: #fff;
+    }
+    .otp-d:focus { outline: 2px solid #ffd9d4; border-color: #f04438; }
 
     .nlogin__div { display: flex; align-items: center; gap: 12px; width: 100%; margin: 26px 0 20px; color: #9b9a97; font-size: 0.84rem; }
     .nlogin__div::before, .nlogin__div::after { content: ""; flex: 1; height: 1px; background: #ededec; }
@@ -95,7 +101,14 @@
       <!-- 2단계: 인증 코드 -->
       <form id="su-otp-form" hidden>
         <p class="otp-note"><b id="otp-email"></b> 으로 보낸<br />6자리 인증 코드를 입력해주세요.</p>
-        <input type="text" id="otp-code" class="linput" inputmode="numeric" maxlength="6" placeholder="······" autocomplete="one-time-code" />
+        <div class="otp-boxes" id="otp-boxes">
+          <input type="text" class="otp-d" inputmode="numeric" maxlength="1" autocomplete="one-time-code" />
+          <input type="text" class="otp-d" inputmode="numeric" maxlength="1" />
+          <input type="text" class="otp-d" inputmode="numeric" maxlength="1" />
+          <input type="text" class="otp-d" inputmode="numeric" maxlength="1" />
+          <input type="text" class="otp-d" inputmode="numeric" maxlength="1" />
+          <input type="text" class="otp-d" inputmode="numeric" maxlength="1" />
+        </div>
         <button type="submit" class="nlogin__go" id="otp-go">가입 완료</button>
         <div class="otp-actions">
           <button type="button" id="otp-edit">이메일 수정</button>
@@ -144,6 +157,27 @@
       const err = document.getElementById("su-error");
       const goBtn = document.getElementById("su-go");
       const otpBtn = document.getElementById("otp-go");
+      const otpBoxes = [...document.querySelectorAll(".otp-d")];
+
+      // 6칸 박스: 자동 이동 · 백스페이스 뒤로 · 붙여넣기 분배 · 6자리 완성 시 자동 제출
+      otpBoxes.forEach((box, i) => {
+        box.addEventListener("input", () => {
+          box.value = box.value.replace(/\D/g, "").slice(0, 1);
+          if (box.value && i < 5) otpBoxes[i + 1].focus();
+          if (otpBoxes.every((b) => b.value)) otpForm.requestSubmit();
+        });
+        box.addEventListener("keydown", (e) => {
+          if (e.key === "Backspace" && !box.value && i > 0) otpBoxes[i - 1].focus();
+        });
+        box.addEventListener("paste", (e) => {
+          e.preventDefault();
+          const digits = (e.clipboardData.getData("text") || "").replace(/\D/g, "").slice(0, 6).split("");
+          digits.forEach((d, j) => { if (otpBoxes[j]) otpBoxes[j].value = d; });
+          const last = Math.min(digits.length, 6) - 1;
+          if (last >= 0) otpBoxes[last].focus();
+          if (digits.length === 6) otpForm.requestSubmit();
+        });
+      });
       let email = "";
       let cooldown = 0;
 
@@ -172,7 +206,7 @@
           document.getElementById("otp-email").textContent = email;
           emailForm.hidden = true;
           otpForm.hidden = false;
-          document.getElementById("otp-code").focus();
+          otpBoxes[0].focus();
           cooldown = Date.now() + 60000;
         } catch (e2) {
           err.textContent = "인증 코드를 보내지 못했어요. 잠시 후 다시 시도해주세요.";
@@ -184,13 +218,15 @@
       otpForm.addEventListener("submit", async (e) => {
         e.preventDefault();
         err.textContent = "";
-        const token = document.getElementById("otp-code").value.trim();
+        const token = otpBoxes.map((b) => b.value).join("");
         if (token.length !== 6) { err.textContent = "6자리 코드를 입력해주세요."; return; }
         otpBtn.disabled = true; otpBtn.textContent = "확인 중...";
         const { error } = await supabaseClient.auth.verifyOtp({ email, token, type: "email" });
         if (error) {
           err.textContent = "코드가 올바르지 않거나 만료됐어요. 다시 확인해주세요.";
           otpBtn.disabled = false; otpBtn.textContent = "가입 완료";
+          otpBoxes.forEach((b) => { b.value = ""; });
+          otpBoxes[0].focus();
           return;
         }
         window.location.href = "/app";
