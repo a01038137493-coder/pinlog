@@ -228,6 +228,7 @@
 
     /* ---------- 로그인 모달 ---------- */
     .lmodal { position: fixed; inset: 0; z-index: 90; display: flex; align-items: center; justify-content: center; }
+    .lmodal[hidden] { display: none; }
     .lmodal__bg { position: absolute; inset: 0; background: rgba(25, 25, 25, 0.4); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); }
     .lmodal__card {
       position: relative; width: min(380px, calc(100vw - 40px));
