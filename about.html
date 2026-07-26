@@ -142,30 +142,52 @@
     .loginpop__mail:hover { color: var(--text); text-decoration: underline; }
     @media (max-width: 640px) { .loginpop { display: none; } }
 
-    /* ---------- 제품 샷 (브라우저 프레임) ---------- */
+    /* ---------- 제품 샷 — 디바이스 전환 ---------- */
     .product { padding: 26px 0 30px; }
-    .browser {
-      max-width: 980px; margin: 0 auto;
-      border: 1px solid var(--line); border-radius: 16px; overflow: hidden;
-      box-shadow: 0 30px 70px rgba(25, 25, 25, 0.13);
-      background: #fff;
+    .devtabs { display: flex; justify-content: center; gap: 6px; margin-bottom: 26px; }
+    .devtabs button {
+      border: 1px solid var(--line); background: #fff; border-radius: 99px;
+      padding: 9px 20px; font: inherit; font-size: 0.9rem; font-weight: 700;
+      color: var(--muted); cursor: pointer; transition: all 0.15s ease;
     }
-    .browser__bar { display: flex; align-items: center; gap: 8px; padding: 11px 16px; border-bottom: 1px solid var(--line); background: #fafafa; }
-    .browser__bar i { width: 11px; height: 11px; border-radius: 50%; }
+    .devtabs button:hover { background: var(--bg-soft); color: var(--text); }
+    .devtabs button.is-on { background: var(--ink); border-color: var(--ink); color: #fff; }
+    .devstage { display: flex; justify-content: center; }
+    .devcap { text-align: center; margin-top: 26px; font-size: 0.92rem; font-weight: 600; color: var(--muted); }
+    .browser {
+      max-width: 940px; width: 100%;
+      border: 1px solid var(--line); border-radius: 14px; overflow: hidden;
+      box-shadow: 0 26px 64px rgba(25, 25, 25, 0.12);
+      background: #fff;
+      animation: dev-in 0.3s ease;
+    }
+    .browser__bar { display: flex; align-items: center; gap: 7px; padding: 9px 14px; border-bottom: 1px solid var(--line); background: #fafafa; }
+    .browser__bar i { width: 10px; height: 10px; border-radius: 50%; }
     .browser__bar i:nth-child(1) { background: #ff5f57; }
     .browser__bar i:nth-child(2) { background: #febc2e; }
     .browser__bar i:nth-child(3) { background: #28c840; }
     .browser__url {
-      flex: 1; max-width: 380px; margin: 0 auto; text-align: center;
-      background: #efefee; border-radius: 7px; padding: 4px 14px;
-      font-size: 0.76rem; font-weight: 600; color: var(--muted);
+      flex: 1; max-width: 340px; margin: 0 auto; text-align: center;
+      background: #efefee; border-radius: 6px; padding: 3px 14px;
+      font-size: 0.74rem; font-weight: 600; color: var(--muted);
     }
-
-    /* ---------- 기기 배지 밴드 ---------- */
-    .band { padding: 34px 0 10px; }
-    .band__in { display: flex; justify-content: center; align-items: center; gap: 10px 26px; flex-wrap: wrap; color: var(--muted); font-size: 0.95rem; font-weight: 700; }
-    .band__in span { display: inline-flex; align-items: center; gap: 8px; }
-    .band__dot { width: 4px; height: 4px; border-radius: 50%; background: #d4d4d2; }
+    .padframe {
+      max-width: 880px; width: 100%;
+      border-radius: 22px; overflow: hidden;
+      border: 5px solid #202227; background: #202227;
+      box-shadow: 0 26px 64px rgba(25, 25, 25, 0.16);
+      animation: dev-in 0.3s ease;
+    }
+    .padframe img { border-radius: 17px; }
+    .phframe {
+      width: 302px;
+      border-radius: 40px; overflow: hidden;
+      border: 5px solid #202227; background: #202227;
+      box-shadow: 0 26px 64px rgba(25, 25, 25, 0.16);
+      animation: dev-in 0.3s ease;
+    }
+    .phframe img { border-radius: 35px; }
+    @keyframes dev-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 
     /* ---------- 섹션 공통 ---------- */
     section { padding: 84px 0; }
@@ -202,7 +224,36 @@
     .shots { display: flex; gap: 18px; margin-top: 46px; overflow-x: auto; padding-bottom: 10px; -webkit-overflow-scrolling: touch; scrollbar-width: none; justify-content: center; }
     .shots::-webkit-scrollbar { display: none; }
     .shots figure { flex: none; width: 224px; }
-    .shots img { width: 100%; border-radius: 28px; border: 7px solid #17181c; background: #17181c; box-shadow: 0 20px 44px rgba(25, 25, 25, 0.16); }
+    .shots img { width: 100%; border-radius: 26px; border: 4px solid #202227; background: #202227; box-shadow: 0 18px 40px rgba(25, 25, 25, 0.14); }
+
+    /* ---------- 로그인 모달 ---------- */
+    .lmodal { position: fixed; inset: 0; z-index: 90; display: flex; align-items: center; justify-content: center; }
+    .lmodal__bg { position: absolute; inset: 0; background: rgba(25, 25, 25, 0.4); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); }
+    .lmodal__card {
+      position: relative; width: min(380px, calc(100vw - 40px));
+      background: #fff; border-radius: 18px; padding: 30px 28px 26px;
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.25);
+      animation: pop-in 0.25s ease;
+    }
+    .lmodal__x { position: absolute; top: 14px; right: 16px; border: none; background: none; font-size: 0.95rem; color: #b9b9b6; cursor: pointer; padding: 4px; }
+    .lmodal__x:hover { color: var(--text); }
+    .lmodal__card > img { width: 44px; height: 44px; border-radius: 11px; margin: 0 auto 12px; }
+    .lmodal__card h3 { text-align: center; font-size: 1.2rem; font-weight: 800; color: var(--ink); margin-bottom: 20px; letter-spacing: -0.02em; }
+    .lmodal__div { display: flex; align-items: center; gap: 10px; margin: 16px 0; color: #c9c9c6; font-size: 0.76rem; }
+    .lmodal__div::before, .lmodal__div::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+    .lmodal__input {
+      width: 100%; border: 1px solid #dcdcda; border-radius: 10px;
+      padding: 12px 14px; margin-bottom: 9px; font: inherit; font-size: 0.92rem;
+    }
+    .lmodal__input:focus { outline: 2px solid var(--red-soft); border-color: var(--red); }
+    .lmodal__submit {
+      width: 100%; border: none; border-radius: 10px; background: var(--red); color: #fff;
+      padding: 13px 0; font: inherit; font-size: 0.95rem; font-weight: 800; cursor: pointer; margin-top: 3px;
+    }
+    .lmodal__submit:hover { filter: brightness(1.07); }
+    .lmodal__err { color: var(--red); font-size: 0.8rem; min-height: 1.2em; margin: 8px 2px 0; }
+    .lmodal__foot { text-align: center; font-size: 0.84rem; color: var(--muted); margin-top: 14px; }
+    .lmodal__foot a { color: var(--red); font-weight: 700; }
     .shots figcaption { text-align: center; margin-top: 12px; font-size: 0.86rem; font-weight: 700; color: var(--muted); }
 
     /* ---------- 마지막 CTA ---------- */
@@ -242,7 +293,7 @@
         <a href="/support.html">지원</a>
       </nav>
       <span class="nav__sp"></span>
-      <a class="nav__login" href="/login.html">로그인</a>
+      <a class="nav__login" href="/login.html" id="nav-login">로그인</a>
       <a class="nav__cta" href="/signup.html">핀로그 무료로 사용하기</a>
     </div>
   </header>
@@ -288,21 +339,52 @@
     <a class="loginpop__mail" href="/signup.html">이메일로 가입하기</a>
   </div>
 
-  <!-- 제품 샷 (브라우저 프레임) -->
-  <div class="wrap product">
-    <div class="browser">
-      <div class="browser__bar"><i></i><i></i><i></i><span class="browser__url">pinlog — 나의 하루</span></div>
-      <img src="/assets/landing/shot-ipad.png" alt="핀로그 타임박스 화면" />
+  <!-- 로그인 모달 -->
+  <div class="lmodal" id="lmodal" hidden>
+    <div class="lmodal__bg" data-lm-close></div>
+    <div class="lmodal__card">
+      <button type="button" class="lmodal__x" data-lm-close aria-label="닫기">✕</button>
+      <img src="/assets/logo.png" alt="" />
+      <h3>핀로그에 로그인</h3>
+      <button type="button" class="loginpop__btn" onclick="signInWithProvider('google')">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M23.5 12.27c0-.85-.08-1.66-.22-2.45H12v4.64h6.45a5.52 5.52 0 0 1-2.4 3.62v3h3.88c2.27-2.1 3.57-5.17 3.57-8.81Z"/><path fill="#34A853" d="M12 24c3.24 0 5.96-1.07 7.94-2.91l-3.88-3c-1.08.72-2.45 1.14-4.06 1.14-3.13 0-5.78-2.11-6.72-4.95H1.28v3.1A12 12 0 0 0 12 24Z"/><path fill="#FBBC05" d="M5.28 14.28a7.2 7.2 0 0 1 0-4.56v-3.1H1.28a12 12 0 0 0 0 10.76l4-3.1Z"/><path fill="#EA4335" d="M12 4.77c1.76 0 3.35.61 4.6 1.8l3.44-3.44A11.97 11.97 0 0 0 12 0 12 12 0 0 0 1.28 6.62l4 3.1C6.22 6.88 8.87 4.77 12 4.77Z"/></svg>
+        구글로 계속하기
+      </button>
+      <button type="button" class="loginpop__btn loginpop__btn--kakao" onclick="signInWithProvider('kakao')">
+        <svg viewBox="0 0 24 24" fill="#191919" aria-hidden="true"><path d="M12 3C6.48 3 2 6.46 2 10.7c0 2.72 1.83 5.1 4.58 6.47l-.93 3.42c-.08.3.26.55.53.38l4.1-2.7c.56.07 1.13.11 1.72.11 5.52 0 10-3.45 10-7.68C22 6.46 17.52 3 12 3Z"/></svg>
+        카카오로 계속하기
+      </button>
+      <div class="lmodal__div">또는 이메일로</div>
+      <form id="lm-form">
+        <input type="email" id="lm-email" class="lmodal__input" placeholder="이메일" autocomplete="email" required />
+        <input type="password" id="lm-pw" class="lmodal__input" placeholder="비밀번호" autocomplete="current-password" required />
+        <button type="submit" class="lmodal__submit" id="lm-submit">로그인</button>
+        <p class="lmodal__err" id="lm-err"></p>
+      </form>
+      <p class="lmodal__foot">계정이 없나요? <a href="/signup.html">가입하기</a></p>
     </div>
-    <div class="band">
-      <div class="band__in">
-        <span>🖥️ 웹</span><i class="band__dot"></i>
-        <span>📱 아이폰</span><i class="band__dot"></i>
-        <span>📲 아이패드</span><i class="band__dot"></i>
-        <span>실시간 동기화</span><i class="band__dot"></i>
-        <span>App Store 심사 진행 중</span>
+  </div>
+
+  <!-- 제품 샷 — 같은 화면, 다른 디바이스 -->
+  <div class="wrap product">
+    <div class="devtabs" id="devtabs">
+      <button type="button" class="is-on" data-dev="web">🖥️ 웹</button>
+      <button type="button" data-dev="ipad">아이패드</button>
+      <button type="button" data-dev="iphone">아이폰</button>
+    </div>
+    <div class="devstage">
+      <div class="browser" data-frame="web">
+        <div class="browser__bar"><i></i><i></i><i></i><span class="browser__url">pinlog.kr — 나의 하루</span></div>
+        <img src="/assets/landing/shot-ipad-clean.png" alt="핀로그 타임박스 — 웹" />
+      </div>
+      <div class="padframe" data-frame="ipad" hidden>
+        <img src="/assets/landing/shot-ipad-clean.png" alt="핀로그 타임박스 — 아이패드" />
+      </div>
+      <div class="phframe" data-frame="iphone" hidden>
+        <img src="/assets/landing/shot-06-clean.png" alt="핀로그 타임박스 — 아이폰" />
       </div>
     </div>
+    <p class="devcap">같은 화면이 웹 · 아이폰 · 아이패드에서 실시간으로 이어집니다</p>
   </div>
 
   <!-- 기능 -->
@@ -412,6 +494,41 @@
           try { sessionStorage.setItem("ld_loginpop_closed", "1"); } catch (e) {}
         });
       }
+    })();
+
+    // 디바이스 전환: 같은 화면을 웹/아이패드/아이폰 프레임으로
+    document.getElementById("devtabs").addEventListener("click", (e) => {
+      const btn = e.target.closest("button[data-dev]");
+      if (!btn) return;
+      document.querySelectorAll("#devtabs button").forEach((b) => b.classList.toggle("is-on", b === btn));
+      document.querySelectorAll(".devstage [data-frame]").forEach((f) => { f.hidden = f.dataset.frame !== btn.dataset.dev; });
+    });
+
+    // 로그인 모달
+    (() => {
+      const modal = document.getElementById("lmodal");
+      const open = (e) => { e.preventDefault(); modal.hidden = false; document.getElementById("lm-email").focus(); };
+      document.getElementById("nav-login").addEventListener("click", open);
+      modal.querySelectorAll("[data-lm-close]").forEach((el) => el.addEventListener("click", () => { modal.hidden = true; }));
+      document.addEventListener("keydown", (e) => { if (e.key === "Escape") modal.hidden = true; });
+
+      document.getElementById("lm-form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const err = document.getElementById("lm-err");
+        const btn = document.getElementById("lm-submit");
+        err.textContent = "";
+        btn.disabled = true; btn.textContent = "로그인 중...";
+        const { error } = await supabaseClient.auth.signInWithPassword({
+          email: document.getElementById("lm-email").value.trim(),
+          password: document.getElementById("lm-pw").value,
+        });
+        if (error) {
+          err.textContent = "이메일 또는 비밀번호가 올바르지 않아요.";
+          btn.disabled = false; btn.textContent = "로그인";
+          return;
+        }
+        window.location.href = "/?app=1";
+      });
     })();
   </script>
 </body>

@@ -249,6 +249,12 @@
   <script src="/js/vendor/supabase.js"></script>
   <script src="/js/supabaseClient.js?v=mock16"></script>
   <script>
+    // Apple 로그인은 iOS 전용 — Android 앱에서는 버튼 숨김
+    if (window.Capacitor && window.Capacitor.getPlatform && window.Capacitor.getPlatform() === "android") {
+      document.querySelector(".btn--apple").hidden = true;
+    }
+  </script>
+  <script>
     (function () {
       const tour = document.getElementById("tour");
       const dotsEl = document.getElementById("tour-dots");
