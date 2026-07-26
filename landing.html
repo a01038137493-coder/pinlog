@@ -10,6 +10,12 @@
   <meta name="theme-color" content="#ffffff" />
   <script>document.documentElement.classList.add(window.Capacitor ? "dt-app" : "dt-web");</script>
   <script>
+    // 소셜 로그인 실패로 돌아온 경우(#error=...) → 로그인 화면에 사유 표시
+    if (location.hash && location.hash.indexOf("error") !== -1) {
+      const h = new URLSearchParams(location.hash.slice(1));
+      const msg = h.get("error_description") || h.get("error") || "알 수 없는 오류";
+      location.replace("/login.html?err=" + encodeURIComponent(msg));
+    }
     // 네이티브 앱·설치형(PWA)에서는 랜딩 대신 바로 웹앱으로
     if (window.Capacitor) {
       window.location.replace("/index.html");
@@ -454,7 +460,7 @@
   </footer>
 
   <script src="/js/vendor/supabase.js"></script>
-  <script src="/js/supabaseClient.js?v=mock17"></script>
+  <script src="/js/supabaseClient.js?v=mock18"></script>
   <script>
     // 로그인 상태면 CTA를 "내 핀로그 열기"로, 비로그인이면 우상단 로그인 팝업 표시
     (async () => {

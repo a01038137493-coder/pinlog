@@ -488,5 +488,6 @@ async function signInWithProvider(provider) {
     if (!code) return;
     const { error } = await supabaseClient.auth.exchangeCodeForSession(code);
     if (!error) window.location.href = "/index.html";
+    else alert("로그인 처리에 실패했어요.\n" + (error.message || String(error)));
   });
 })();

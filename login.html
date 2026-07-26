@@ -142,7 +142,7 @@
   </main>
 
   <script src="/js/vendor/supabase.js"></script>
-  <script src="/js/supabaseClient.js?v=mock17"></script>
+  <script src="/js/supabaseClient.js?v=mock18"></script>
   <script>
     // Apple 로그인 버튼은 iOS 앱에서만 노출 (심사 요건: 소셜 로그인 제공 시 필수. Android는 미제공)
     if (window.Capacitor && window.Capacitor.getPlatform && window.Capacitor.getPlatform() === "ios") {
@@ -157,6 +157,8 @@
       const dest = nextParam && nextParam.startsWith("/") && !nextParam.startsWith("//") ? nextParam : appHome;
       try { if (await getCurrentUser()) { window.location.href = dest; return; } } catch (e) {}
 
+      const errParam = new URLSearchParams(location.search).get("err");
+      if (errParam) document.getElementById("login-error").textContent = "소셜 로그인 실패: " + errParam;
       const emailForm = document.getElementById("li-email-form");
       const otpForm = document.getElementById("li-otp-form");
       const err = document.getElementById("login-error");
