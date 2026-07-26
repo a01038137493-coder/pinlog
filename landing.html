@@ -82,7 +82,7 @@
     .hero__doodles i:nth-child(5) { background: #f3e9ff; border-color: #9068e8; }
     .hero__doodles i:nth-child(6) { background: #fde8f4; border-color: #d8589f; }
     .hero h1 {
-      font-size: clamp(1.9rem, 4.2vw, 3.4rem); font-weight: 900; color: var(--ink);
+      font-size: clamp(2.2rem, 4.9vw, 3.8rem); font-weight: 900; color: var(--ink);
       letter-spacing: -0.04em; line-height: 1.22; word-break: keep-all; white-space: nowrap;
     }
     @media (max-width: 900px) { .hero h1 { white-space: normal; } }
@@ -92,11 +92,20 @@
       background: var(--red-soft); border-radius: 0.42em; padding: 0 0.22em 0.04em;
     }
     .hl .hl__pin {
-      position: absolute; top: -0.34em; left: -0.3em; width: 0.72em; height: 0.72em;
-      transform: rotate(-8deg); pointer-events: none;
+      position: absolute; top: -0.42em; left: 50%; width: 0.72em; height: 0.72em;
+      transform: translateX(-50%) rotate(-8deg); pointer-events: none;
     }
     .hero__sub { margin: 26px auto 0; font-size: 1.16rem; color: var(--muted); max-width: 34em; word-break: keep-all; }
-    .hero__btns { display: flex; justify-content: center; gap: 12px; margin-top: 34px; flex-wrap: wrap; }
+    .plats { display: flex; justify-content: center; gap: 26px; margin-top: 30px; flex-wrap: wrap; }
+    .plats span { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .plats i {
+      font-style: normal; width: 56px; height: 56px; border-radius: 16px;
+      background: #fff; border: 1px solid var(--line);
+      box-shadow: 0 6px 16px rgba(25, 25, 25, 0.06);
+      display: flex; align-items: center; justify-content: center; font-size: 1.5rem;
+    }
+    .plats em { font-style: normal; font-size: 0.8rem; font-weight: 700; color: var(--muted); }
+    .hero__btns { display: flex; justify-content: center; gap: 12px; margin-top: 30px; flex-wrap: wrap; }
     .btn-primary {
       display: inline-flex; align-items: center; gap: 8px;
       padding: 15px 26px; border-radius: 11px;
@@ -349,6 +358,12 @@
   <div class="wrap hero">
     <h1>하루의 계획과 기록이 <span class="hl"><img class="hl__pin" src="/assets/logo.png" alt="" />한곳</span>에 모이는 곳</h1>
     <p class="hero__sub">할 일 · 일정 · 메모를 핀로그 하나로</p>
+    <div class="plats">
+      <span><i>📱</i><em>모바일</em></span>
+      <span><i>🖥️</i><em>데스크톱 앱</em></span>
+      <span><i>🌐</i><em>웹</em></span>
+      <span><i>📲</i><em>태블릿</em></span>
+    </div>
     <div class="hero__btns">
       <a class="btn-primary" href="#" id="pwa-install">데스크톱 앱 설치</a>
       <a class="btn-soft" href="/app">웹앱에서 사용하기</a>
@@ -461,30 +476,6 @@
             <li>기록 통계 · 주간 목표와 회고</li>
           </ul>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- 그리고 이런 것들 -->
-  <section>
-    <div class="wrap">
-      <h2 class="sec-h">그리고, 이런 것까지</h2>
-      <div class="fgrid" style="grid-template-columns: repeat(3, 1fr);">
-        <div class="fcard"><i>🔔</i><h3>알림</h3><p>아침·저녁 일정 브리핑과 일정 알림, 기상·취침 리마인더까지.</p></div>
-        <div class="fcard"><i>🔄</i><h3>실시간 동기화</h3><p>웹·아이폰·아이패드 어디서 적어도 같은 계정이면 똑같이.</p></div>
-        <div class="fcard"><i>📸</i><h3>캡처로 일정 등록</h3><p>카톡 스크린샷을 공유하면 날짜·시간을 읽어 일정을 채워줘요.</p></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- 마지막 CTA -->
-  <section class="final">
-    <div class="wrap">
-      <h2 class="sec-h">오늘부터, 하루를 핀로그에</h2>
-      <p class="sec-sub">웹에서 바로 시작할 수 있어요. iPhone·iPad 앱은 App Store 심사 진행 중입니다.</p>
-      <div class="hero__btns">
-        <a class="btn-primary" href="/signup">핀로그 무료로 사용하기</a>
-        <a class="btn-soft" href="/login">로그인</a>
       </div>
     </div>
   </section>
