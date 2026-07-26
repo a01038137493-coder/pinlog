@@ -142,18 +142,16 @@
     .loginpop__mail:hover { color: var(--text); text-decoration: underline; }
     @media (max-width: 640px) { .loginpop { display: none; } }
 
-    /* ---------- 제품 샷 — 디바이스 전환 ---------- */
+    /* ---------- 제품 샷 — 브라우저 + 아이폰 콤포지션 ---------- */
     .product { padding: 26px 0 30px; }
-    .devtabs { display: flex; justify-content: center; gap: 6px; margin-bottom: 26px; }
-    .devtabs button {
-      border: 1px solid var(--line); background: #fff; border-radius: 99px;
-      padding: 9px 20px; font: inherit; font-size: 0.9rem; font-weight: 700;
-      color: var(--muted); cursor: pointer; transition: all 0.15s ease;
+    .heroshot { position: relative; max-width: 920px; margin: 0 auto; padding-right: 40px; }
+    .heroshot .phframe { position: absolute; right: -6px; bottom: -48px; width: 208px; z-index: 2; }
+    .devcap { text-align: center; margin-top: 78px; font-size: 0.92rem; font-weight: 600; color: var(--muted); }
+    @media (max-width: 720px) {
+      .heroshot { padding-right: 0; }
+      .heroshot .phframe { width: 132px; right: 6px; bottom: -34px; }
+      .devcap { margin-top: 56px; }
     }
-    .devtabs button:hover { background: var(--bg-soft); color: var(--text); }
-    .devtabs button.is-on { background: var(--ink); border-color: var(--ink); color: #fff; }
-    .devstage { display: flex; justify-content: center; }
-    .devcap { text-align: center; margin-top: 26px; font-size: 0.92rem; font-weight: 600; color: var(--muted); }
     .browser {
       max-width: 940px; width: 100%;
       border: 1px solid var(--line); border-radius: 14px; overflow: hidden;
@@ -360,26 +358,18 @@
     </div>
   </div>
 
-  <!-- 제품 샷 — 같은 화면, 다른 디바이스 -->
+  <!-- 제품 샷 — 브라우저 + 아이폰 콤포지션 -->
   <div class="wrap product">
-    <div class="devtabs" id="devtabs">
-      <button type="button" class="is-on" data-dev="web">🖥️ 웹</button>
-      <button type="button" data-dev="ipad">아이패드</button>
-      <button type="button" data-dev="iphone">아이폰</button>
-    </div>
-    <div class="devstage">
-      <div class="browser" data-frame="web">
+    <div class="heroshot">
+      <div class="browser">
         <div class="browser__bar"><i></i><i></i><i></i><span class="browser__url">pinlog.kr — 나의 하루</span></div>
         <img src="/assets/landing/shot-ipad-clean.png" alt="핀로그 타임박스 — 웹" />
       </div>
-      <div class="padframe" data-frame="ipad" hidden>
-        <img src="/assets/landing/shot-ipad-clean.png" alt="핀로그 타임박스 — 아이패드" />
-      </div>
-      <div class="phframe" data-frame="iphone" hidden>
+      <div class="phframe">
         <img src="/assets/landing/shot-06-clean.png" alt="핀로그 타임박스 — 아이폰" />
       </div>
     </div>
-    <p class="devcap">같은 화면이 웹 · 아이폰 · 아이패드에서 실시간으로 이어집니다</p>
+    <p class="devcap">웹 · 아이폰 · 아이패드, 같은 하루가 실시간으로 이어집니다</p>
   </div>
 
   <!-- 기능 스토리 (교차 배치) -->
@@ -550,14 +540,6 @@
         });
       }
     })();
-
-    // 디바이스 전환: 같은 화면을 웹/아이패드/아이폰 프레임으로
-    document.getElementById("devtabs").addEventListener("click", (e) => {
-      const btn = e.target.closest("button[data-dev]");
-      if (!btn) return;
-      document.querySelectorAll("#devtabs button").forEach((b) => b.classList.toggle("is-on", b === btn));
-      document.querySelectorAll(".devstage [data-frame]").forEach((f) => { f.hidden = f.dataset.frame !== btn.dataset.dev; });
-    });
 
     // 로그인 모달
     (() => {
