@@ -11,8 +11,9 @@
   <script>document.documentElement.classList.add(window.Capacitor ? "dt-app" : "dt-web");</script>
   <script>
     // 네이티브 앱·설치형(PWA)에서는 랜딩 대신 바로 웹앱으로
-    if (window.Capacitor ||
-        (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches)) {
+    if (window.Capacitor) {
+      window.location.replace("/index.html");
+    } else if (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) {
       window.location.replace("/app");
     }
   </script>

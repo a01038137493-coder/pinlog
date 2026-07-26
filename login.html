@@ -136,8 +136,8 @@
         </button>
       </div>
 
-      <p class="nlogin__alt">신규 사용자이신가요? <a href="/signup">가입하기</a></p>
-      <p class="nlogin__terms">계속 진행하면 핀로그의 <a href="/privacy">개인정보처리방침</a>을<br />이해했으며 이에 동의하는 것으로 간주됩니다.</p>
+      <p class="nlogin__alt">신규 사용자이신가요? <a href="/signup.html">가입하기</a></p>
+      <p class="nlogin__terms">계속 진행하면 핀로그의 <a href="/privacy.html">개인정보처리방침</a>을<br />이해했으며 이에 동의하는 것으로 간주됩니다.</p>
     </div>
   </main>
 
@@ -153,7 +153,8 @@
     document.addEventListener("DOMContentLoaded", async () => {
       // 이미 로그인돼 있으면 목적지로
       const nextParam = new URLSearchParams(location.search).get("next");
-      const dest = nextParam && nextParam.startsWith("/") && !nextParam.startsWith("//") ? nextParam : "/app";
+      const appHome = window.Capacitor ? "/index.html" : "/app";
+      const dest = nextParam && nextParam.startsWith("/") && !nextParam.startsWith("//") ? nextParam : appHome;
       try { if (await getCurrentUser()) { window.location.href = dest; return; } } catch (e) {}
 
       const emailForm = document.getElementById("li-email-form");
@@ -202,7 +203,7 @@
         try {
           const { data: exists } = await supabaseClient.rpc("email_exists", { p_email: email });
           if (!exists) {
-            err.innerHTML = '가입되지 않은 이메일이에요. <a href="/signup">가입하기</a>';
+            err.innerHTML = '가입되지 않은 이메일이에요. <a href="/signup.html">가입하기</a>';
             return;
           }
           goBtn.textContent = "코드 전송 중...";

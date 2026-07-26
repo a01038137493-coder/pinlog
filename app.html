@@ -35,7 +35,7 @@
         }
       }
       const profile = await getCurrentProfile();
-      if (!profile) { window.location.href = "/login"; return; }
+      if (!profile) { window.location.href = "/login.html"; return; }
       if (!profile.onboarded) { window.location.href = "/onboarding.html"; return; }
       if (sessionStorage.getItem("dt_shared_shot")) { window.location.href = "/calendar.html"; return; }
       if (profile.role === "student") window.location.href = "/student.html";
