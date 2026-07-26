@@ -3275,3 +3275,9 @@ html { background: #fff; }
 #mw-body ul, #mw-body ol {
   padding-left: 24px; margin: 6px 0;
 }
+
+/* [실측 검증됨] 메모: 목록 상단 여백은 기존 고특이성 규칙을 확실히 이기도록, 글머리는 bare li 대응 */
+html.dt-web body.memo-page main.container #memo-list,
+html.dt-app body.memo-page main.container #memo-list { padding-top: 16px !important; }
+#mw-body li, .memoedit__body li { margin-left: 24px; }
+#mw-body li + li, .memoedit__body li + li { margin-top: 4px; }
