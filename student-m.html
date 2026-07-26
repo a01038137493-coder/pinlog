@@ -9,7 +9,7 @@
   <link rel="manifest" href="/manifest.json" />
   <meta name="theme-color" content="#f04438" />
   <script>document.documentElement.classList.add(window.Capacitor ? "dt-app" : "dt-web");</script>
-  <link rel="stylesheet" href="/css/style.css?v=245" />
+  <link rel="stylesheet" href="/css/style.css?v=246" />
 </head>
 <body class="app-bg has-tabbar">
   <script>
@@ -32,6 +32,7 @@
     <!-- 헤더: 날짜(좌) + D-Day(우) -->
     <div class="mhead">
       <span class="mhead__date" id="m-date">오늘</span>
+      <p class="mgreet" id="m-greet" hidden></p>
       <span class="mhead__dday">수능 <b id="m-dday">D-—</b></span>
     </div>
 
@@ -116,8 +117,8 @@
 
   <script src="/js/vendor/supabase.js"></script>
   <script src="/js/supabaseClient.js?v=mock19"></script>
-  <script src="/js/utils.js?v=42"></script>
+  <script src="/js/utils.js?v=43"></script>
   <script src="/js/notify.js?v=5"></script>
-  <script src="/js/mhome.js?v=99"></script>
+  <script src="/js/mhome.js?v=100"></script>
 </body>
 </html>

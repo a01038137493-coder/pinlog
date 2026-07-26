@@ -3281,3 +3281,6 @@ html.dt-web body.memo-page main.container #memo-list,
 html.dt-app body.memo-page main.container #memo-list { padding-top: 16px !important; }
 #mw-body li, .memoedit__body li { margin-left: 24px; }
 #mw-body li + li, .memoedit__body li + li { margin-top: 4px; }
+
+/* 모바일 홈: 날짜 아래 시간대별 인사말 */
+.mgreet { width: 100%; margin: 3px 0 0; font-size: 0.92rem; font-weight: 600; color: var(--muted); word-break: keep-all; }

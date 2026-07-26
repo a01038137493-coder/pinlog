@@ -711,3 +711,20 @@ function dtSkeleton(el, rows) {
     if (location.pathname === "/timebox.html") a.classList.add("is-active");
   } catch (e) {}
 })();
+
+
+/* 시간대별 친근한 인사말 (모바일 홈 헤더용) */
+function dtGreeting(name) {
+  const h = new Date().getHours();
+  let msg;
+  if (h >= 1 && h < 5) msg = "새벽까지 수고하십니다.. 무리하지 마세요!";
+  else if (h >= 5 && h < 8) msg = "일찍 시작하는 하루네요! 오늘도 화이팅 ☀️";
+  else if (h >= 8 && h < 11) msg = "좋은 아침이에요! 가볍게 시작해봐요";
+  else if (h >= 11 && h < 13) msg = "오늘 점심 메뉴는 뭐예요? ㅎㅎ";
+  else if (h >= 13 && h < 17) msg = "나른한 오후네요, 잠깐 스트레칭 어때요?";
+  else if (h >= 17 && h < 19) msg = "오늘 하루도 수고 많았어요!";
+  else if (h >= 19 && h < 22) msg = "하루 마무리 잘 하고 있나요? 🌙";
+  else msg = "슬슬 잘 준비 해볼까요? 😴";
+  const who = name ? String(name).trim() : "";
+  return (who ? who + "님, " : "") + msg;
+}

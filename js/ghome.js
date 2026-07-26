@@ -19,9 +19,14 @@
 
   document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("g-date").textContent = formatKoreanDate();
+    try {
+      const greetEl = document.getElementById("g-greet");
+      if (greetEl) { greetEl.textContent = dtGreeting(null); greetEl.hidden = false; }
+    } catch (e) {}
 
     const profile = await requireRole(["student"]);
     if (!profile) return;
+    try { document.getElementById("g-greet").textContent = dtGreeting(profile.name); } catch (e) {}
     if (!profile.onboarded) { window.location.replace("/onboarding.html"); return; }
     // 수험생이 잘못 들어오면 수험생 홈으로
     if (profile.user_type !== "general") { window.location.replace("/student-m.html"); return; }
