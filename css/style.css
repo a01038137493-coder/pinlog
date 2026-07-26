@@ -3284,3 +3284,27 @@ html.dt-app body.memo-page main.container #memo-list { padding-top: 16px !import
 
 /* 모바일 홈: 날짜 아래 시간대별 인사말 */
 .mgreet { width: 100%; margin: 3px 0 0; font-size: 0.92rem; font-weight: 600; color: var(--muted); word-break: keep-all; }
+
+/* 모바일 홈 상단 요약 블록 + 헤더 아이콘 */
+.mhead { position: relative; }
+.mhead__icons { position: absolute; top: 0; right: 0; display: flex; gap: 4px; }
+.mico { width: 36px; height: 36px; border-radius: 11px; display: flex; align-items: center; justify-content: center; color: var(--text); }
+.mico svg { width: 21px; height: 21px; }
+.mico:active { background: rgba(0, 0, 0, 0.06); }
+.msum { display: flex; gap: 16px; align-items: center; padding: 16px; }
+.msum__ring { position: relative; width: 94px; height: 94px; flex: none; }
+.msum__ring svg { width: 100%; height: 100%; display: block; }
+#g-sum-arc { transition: stroke-dashoffset 0.5s ease; }
+.msum__ring-txt { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; }
+.msum__ring-label { font-size: 0.55rem; font-weight: 700; color: var(--muted-soft); }
+.msum__ring-txt b { font-size: 1.08rem; font-weight: 800; color: #f04438; line-height: 1.1; }
+.msum__ring-done { font-size: 0.64rem; font-weight: 800; color: #f04438; }
+.msum__body { flex: 1; min-width: 0; }
+.msum__title { font-size: 0.95rem; font-weight: 800; color: var(--text); }
+.msum__title em { font-style: normal; color: #f04438; }
+.msum__sub { font-size: 0.78rem; color: var(--muted); margin: 2px 0 10px; }
+.msum__stats { display: flex; gap: 8px; }
+.msum__stats span { flex: 1; background: #faf9f7; border: 1px solid var(--line); border-radius: 11px; padding: 9px 4px 8px; display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 0; }
+.msum__stats svg { width: 16px; height: 16px; color: #f04438; }
+.msum__stats em { font-style: normal; font-size: 0.62rem; color: var(--muted); font-weight: 600; white-space: nowrap; }
+.msum__stats b { font-size: 0.92rem; font-weight: 800; color: var(--text); }

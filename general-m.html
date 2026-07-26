@@ -9,7 +9,7 @@
   <link rel="manifest" href="/manifest.json" />
   <meta name="theme-color" content="#f04438" />
   <script>document.documentElement.classList.add(window.Capacitor ? "dt-app" : "dt-web");</script>
-  <link rel="stylesheet" href="/css/style.css?v=246" />
+  <link rel="stylesheet" href="/css/style.css?v=247" />
 </head>
 <body class="app-bg has-tabbar" data-kbresize="none">
   <!-- 일반 사용자 전용 모바일 홈 (수험생은 student-m.html) -->
@@ -22,9 +22,43 @@
     <!-- 헤더: 날짜(좌) + 목표 D-Day(우, 설정 시에만) -->
     <div class="mhead">
       <span class="mhead__date" id="g-date">오늘</span>
+      <div class="mhead__icons">
+        <a href="/notifications.html" class="mico" aria-label="알림">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+        </a>
+        <a href="/mypage.html" class="mico" aria-label="마이페이지">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.5"/><circle cx="12" cy="10" r="3.2"/><path d="M5.8 19a7.5 7.5 0 0 1 12.4 0"/></svg>
+        </a>
+      </div>
       <p class="mgreet" id="g-greet" hidden></p>
       <span class="mhead__dday" id="g-dday" hidden></span>
     </div>
+
+    <!-- 상단 요약 블록: 진행률 링 + 통계 -->
+    <section class="card msum" id="g-summary" hidden>
+      <div class="msum__ring">
+        <svg viewBox="0 0 84 84">
+          <circle cx="42" cy="42" r="34" fill="none" stroke="#f3e4e2" stroke-width="7"/>
+          <circle id="g-sum-arc" cx="42" cy="42" r="34" fill="none" stroke="#f04438" stroke-width="7"
+                  stroke-linecap="round" stroke-dasharray="213.6" stroke-dashoffset="213.6"
+                  transform="rotate(-90 42 42)"/>
+        </svg>
+        <div class="msum__ring-txt">
+          <span class="msum__ring-label">오늘의 진행률</span>
+          <b id="g-sum-frac">0/0</b>
+          <span class="msum__ring-done">완료</span>
+        </div>
+      </div>
+      <div class="msum__body">
+        <p class="msum__title">오늘 할 일 <em id="g-sum-done">0개</em> 완료했어요</p>
+        <p class="msum__sub" id="g-sum-sub">작은 시작이 큰 변화를 만듭니다</p>
+        <div class="msum__stats">
+          <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h13M8 12h13M8 18h13"/><circle cx="3.5" cy="6" r="1" fill="currentColor"/><circle cx="3.5" cy="12" r="1" fill="currentColor"/><circle cx="3.5" cy="18" r="1" fill="currentColor"/></svg><em>남은 할 일</em><b id="g-sum-left">0</b></span>
+          <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.7 5.6 6.1.8-4.5 4.2 1.1 6L12 16.7 6.6 19.6l1.1-6L3.2 9.4l6.1-.8z"/></svg><em>우선순위</em><b id="g-sum-imp">0</b></span>
+          <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg><em>오늘 일정</em><b id="g-sum-ev">0</b></span>
+        </div>
+      </div>
+    </section>
 
     <!-- 오늘 할 일 -->
     <section class="card gtodo">
@@ -140,6 +174,6 @@
   <script src="/js/supabaseClient.js?v=mock19"></script>
   <script src="/js/utils.js?v=43"></script>
   <script src="/js/notify.js?v=5"></script>
-  <script src="/js/ghome.js?v=10"></script>
+  <script src="/js/ghome.js?v=11"></script>
 </body>
 </html>

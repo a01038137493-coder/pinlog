@@ -112,7 +112,26 @@
       upListEl.querySelectorAll(".gtodo__row").forEach(wireRow);
     }
 
-    function renderAll() { render(); renderUpcoming(); }
+    function updateSummary() {
+      const box = document.getElementById("g-summary");
+      if (!box) return;
+      const n = todos.length;
+      const done = todos.filter((t) => t.done).length;
+      const C = 213.6;
+      const pct = n ? done / n : 0;
+      document.getElementById("g-sum-frac").textContent = done + "/" + n;
+      document.getElementById("g-sum-done").textContent = done + "개";
+      document.getElementById("g-sum-left").textContent = n - done;
+      document.getElementById("g-sum-imp").textContent = todos.filter((t) => t.important && !t.done).length;
+      document.getElementById("g-sum-arc").style.strokeDashoffset = (C * (1 - pct)).toFixed(1);
+      document.getElementById("g-sum-sub").textContent =
+        n && pct >= 1 ? "오늘 할 일을 전부 끝냈어요! 🎉"
+        : pct >= 0.5 ? "절반 넘게 왔어요, 이 흐름 그대로!"
+        : "작은 시작이 큰 변화를 만듭니다";
+      box.hidden = false;
+    }
+
+    function renderAll() { render(); renderUpcoming(); updateSummary(); }
 
     /* 행 하나: 탭=완료 토글, 좌측 스와이프=중요·삭제 */
     let openRow = null;
@@ -346,5 +365,17 @@
 
     /* ---------- 일정 블록: 오늘 + 다가오는 7일 ---------- */
     renderHomeSchedule(document.getElementById("g-events"), document.getElementById("g-events-list"));
+    (async () => {
+      try {
+        const s0 = new Date(); s0.setHours(0, 0, 0, 0);
+        const e0 = new Date(s0.getTime() + 86400000);
+        const { count } = await supabaseClient.from("events")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", profile.id)
+          .gte("start_at", s0.toISOString()).lt("start_at", e0.toISOString());
+        const el = document.getElementById("g-sum-ev");
+        if (el) el.textContent = count || 0;
+      } catch (e) {}
+    })();
   });
 })();
