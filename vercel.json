@@ -1,9 +1,14 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "cleanUrls": false,
+  "cleanUrls": true,
   "trailingSlash": false,
   "redirects": [
-    { "source": "/", "missing": [{ "type": "query", "key": "app" }], "destination": "/about.html", "permanent": false }
+    { "source": "/", "missing": [{ "type": "query", "key": "app" }], "destination": "/landing", "permanent": false },
+    { "source": "/about", "destination": "/landing", "permanent": false },
+    { "source": "/about.html", "destination": "/landing", "permanent": false }
+  ],
+  "rewrites": [
+    { "source": "/app", "destination": "/index.html" }
   ],
   "headers": [
     {

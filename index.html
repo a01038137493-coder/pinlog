@@ -21,15 +21,16 @@
   </div>
 
   <script src="/js/vendor/supabase.js"></script>
-  <script src="/js/supabaseClient.js?v=mock16"></script>
+  <script src="/js/supabaseClient.js?v=mock17"></script>
   <script>
     // 로그인 여부 / role 에 따라 적절한 페이지로 자동 이동
     (async () => {
-      // 웹 루트는 항상 랜딩(소개) 페이지. 앱 진입은 ?app=1 (랜딩의 '내 핀로그 열기'가 사용)
+      // 웹 루트는 항상 랜딩(소개) 페이지. 앱 진입은 /app (vercel rewrite) 또는 ?app=1
       {
         const nativeEntry = window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform();
-        if (!nativeEntry && !new URLSearchParams(location.search).has("app")) {
-          window.location.replace("/about.html");
+        const appEntry = location.pathname === "/app" || new URLSearchParams(location.search).has("app");
+        if (!nativeEntry && !appEntry) {
+          window.location.replace("/landing");
           return;
         }
       }
