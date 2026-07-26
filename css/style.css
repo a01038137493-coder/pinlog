@@ -3262,3 +3262,16 @@ html.dt-web .widget--weather:hover .weather__region { display: flex; }
 /* 다크모드에서도 항상 라이트로 렌더 (상태바 뒤 검은 배경 방지) */
 :root { color-scheme: light; }
 html { background: #fff; }
+
+/* 웹 메모: 검색바가 목록 위층에 오도록 (카드가 밑줄 위로 겹쳐 보이는 문제) + 목록 상단 여백 */
+@media (min-width: 1100px) {
+  :is(html.dt-web, html.dt-app) body.memo-page .memo-search { position: relative; z-index: 3; }
+  :is(html.dt-web, html.dt-app) body.memo-page .mw-new { z-index: 4; }
+  :is(html.dt-web, html.dt-app) body.memo-page #memo-list { padding-top: 16px; overflow-y: auto; }
+}
+
+/* 메모 본문 글머리 목록: 좌측 여백 (모바일 편집기·웹 편집기 공통) */
+.memoedit__body ul, .memoedit__body ol,
+#mw-body ul, #mw-body ol {
+  padding-left: 24px; margin: 6px 0;
+}
