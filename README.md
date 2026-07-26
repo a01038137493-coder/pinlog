@@ -57,7 +57,7 @@ values
 정적 파일이라 어떤 정적 서버로도 열 수 있습니다. (절대 경로 `/student.html` 사용 때문에 `file://` 직접 열기보다 서버 권장)
 
 ```bash
-cd studylog
+cd pinlog
 python3 -m http.server 5500
 # 브라우저에서 http://localhost:5500 접속
 ```
@@ -67,7 +67,7 @@ python3 -m http.server 5500
 ## 4. Vercel 배포
 
 ```bash
-cd studylog
+cd pinlog
 npx vercel        # 미리보기 배포
 npx vercel --prod # 프로덕션 배포
 ```
@@ -121,7 +121,7 @@ npm run ios:open     # (맥 전용) Xcode 열기
 ```
 
 - 네이티브 프로젝트: `ios/App/App.xcodeproj` (Swift Package Manager 기반, CocoaPods 불필요)
-- 앱 ID: `com.studylog.app` / 표시 이름: 로그 (`capacitor.config.json`)
+- 앱 ID: `com.pinlog.app` / 표시 이름: 핀로그 (`capacitor.config.json`)
 - supabase-js 는 CDN 대신 `js/vendor/supabase.js` 로컬 번들 사용 (앱 오프라인 셸 대응)
 - 노치/홈바 대응: 모든 HTML 에 `viewport-fit=cover` + `css/style.css` 하단 safe-area 패딩
 - 빌드 검증: GitHub Actions → **iOS build (unsigned)** 워크플로 (맥 없이 컴파일 확인)
@@ -135,7 +135,7 @@ npm run ios:open     # (맥 전용) Xcode 열기
 ## 9. 파일 구조
 
 ```
-studylog/
+pinlog/
   index.html              # 로그인 여부에 따라 자동 분기
   login.html
   student.html  checkin.html  checkout.html

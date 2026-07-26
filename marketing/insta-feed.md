@@ -24,12 +24,12 @@
 - 윗줄(작게, 옐로): `재수, 다시 시작`
 - 헤드라인(크게): `출석은 매일 했는데 / 성적은 왜 그대로일까?` — ‘성적’에 코랄 밑줄
 - 서브: `문제는 노력의 양이 아니라 관리입니다` — ‘관리’ 옐로
-- 푸터: `studylog.vercel.app`
+- 푸터: `pinlog.vercel.app`
 
 **비주얼 컨셉**: 텍스트 중심 포스터. 배경에 ‘쭉 평평하다가 끝에서 솟구치는’ 그래프 라인 희미하게.
 
 **AI 프롬프트**
-> [BRAND STYLE] Bold typographic poster, text-forward. Faint background motif: a flat heart-rate-style line that suddenly rises at the end. Render this exact Korean text large and centered: headline **"출석은 매일 했는데 성적은 왜 그대로일까?"** with the word **"성적"** marked by a hand-drawn coral underline; small yellow eyebrow top **"재수, 다시 시작"**; subtext **"문제는 노력의 양이 아니라 관리입니다"** with **"관리"** in mustard-yellow; tiny footer **"studylog.vercel.app"**. Mood: confrontational, motivating. `--ar 1:1 --style raw`
+> [BRAND STYLE] Bold typographic poster, text-forward. Faint background motif: a flat heart-rate-style line that suddenly rises at the end. Render this exact Korean text large and centered: headline **"출석은 매일 했는데 성적은 왜 그대로일까?"** with the word **"성적"** marked by a hand-drawn coral underline; small yellow eyebrow top **"재수, 다시 시작"**; subtext **"문제는 노력의 양이 아니라 관리입니다"** with **"관리"** in mustard-yellow; tiny footer **"pinlog.vercel.app"**. Mood: confrontational, motivating. `--ar 1:1 --style raw`
 
 **캡션**
 ```
@@ -81,12 +81,12 @@
 - 윗줄(코랄): `2026 수능`
 - 임팩트 숫자(초대형, 코랄): `D-150`
 - 서브: `남은 시간, 감으로 보낼래 데이터로 채울래?` — ‘데이터’ 강조
-- 푸터: `매일 자동 카운트다운 · studylog`
+- 푸터: `매일 자동 카운트다운 · pinlog`
 
 **비주얼 컨셉**: 더 어두운 플럼-네이비 그라데이션, 거대한 숫자 중심, 모래시계/달력 모티프 희미하게.
 
 **AI 프롬프트**
-> [BRAND STYLE] but darker dramatic gradient (deep plum-navy #2a1430 → #0c0a1f). Giant impact number **"D-150"** in coral filling the center, faint hourglass/calendar motif behind it. Eyebrow **"2026 수능"** in coral. Subtext under the number: **"남은 시간, 감으로 보낼래 데이터로 채울래?"** with **"데이터"** emphasized. Footer **"매일 자동 카운트다운 · studylog"**. Mood: urgent, cinematic, high tension. `--ar 1:1 --style raw`
+> [BRAND STYLE] but darker dramatic gradient (deep plum-navy #2a1430 → #0c0a1f). Giant impact number **"D-150"** in coral filling the center, faint hourglass/calendar motif behind it. Eyebrow **"2026 수능"** in coral. Subtext under the number: **"남은 시간, 감으로 보낼래 데이터로 채울래?"** with **"데이터"** emphasized. Footer **"매일 자동 카운트다운 · pinlog"**. Mood: urgent, cinematic, high tension. `--ar 1:1 --style raw`
 
 **캡션**
 ```
@@ -110,12 +110,12 @@
 - 윗줄(옐로): `학생도, 학부모도`
 - 헤드라인: `오늘 뭐 했는지 / 숫자로 보입니다` — ‘숫자’ 코랄 밑줄
 - 서브: `달성률·컨디션·주간 회고까지 한눈에, 막연한 불안 대신 데이터로`
-- 푸터: `studylog.vercel.app`
+- 푸터: `pinlog.vercel.app`
 
 **비주얼 컨셉**: 차분·신뢰. 배경에 상승하는 진행 링 + 미니 막대 차트 은은하게.
 
 **AI 프롬프트**
-> [BRAND STYLE] Calm, trustworthy. Background motif: a rising progress ring and a small clean bar chart, softly glowing. Render exact Korean text: eyebrow **"학생도, 학부모도"** (yellow); headline **"오늘 뭐 했는지 숫자로 보입니다"** with **"숫자"** underlined in coral; subtext **"달성률·컨디션·주간 회고까지 한눈에, 막연한 불안 대신 데이터로"**; footer **"studylog.vercel.app"**. Mood: reassuring, professional, warm. `--ar 1:1 --style raw`
+> [BRAND STYLE] Calm, trustworthy. Background motif: a rising progress ring and a small clean bar chart, softly glowing. Render exact Korean text: eyebrow **"학생도, 학부모도"** (yellow); headline **"오늘 뭐 했는지 숫자로 보입니다"** with **"숫자"** underlined in coral; subtext **"달성률·컨디션·주간 회고까지 한눈에, 막연한 불안 대신 데이터로"**; footer **"pinlog.vercel.app"**. Mood: reassuring, professional, warm. `--ar 1:1 --style raw`
 
 **캡션**
 ```
@@ -138,12 +138,12 @@
 - 윗줄(흰색): `지금 바로`
 - 헤드라인(흰색, 초대형): `계정 없이 둘러보기`
 - 서브: `가입·결제 없이 클릭 한 번이면 데모가 열려요`
-- 버튼/URL: `체험하기 →` · `studylog.vercel.app`
+- 버튼/URL: `체험하기 →` · `pinlog.vercel.app`
 
 **비주얼 컨셉**: 코랄-레드 그라데이션(다른 컷과 대비), 탭하는 손가락/커서 아이콘, 흰색 알약 버튼.
 
 **AI 프롬프트**
-> Vivid coral-red gradient background (#ff5a4d → #8f1f2a) — contrast against the navy posts. Small white wordmark "● 로그" top-left. Eyebrow **"지금 바로"** (white). Huge white bold Korean headline **"계정 없이 둘러보기"**; a tapping finger / mouse-cursor click icon; subtext **"가입·결제 없이 클릭 한 번이면 데모가 열려요"**; a white rounded pill button reading **"체험하기 →"** in coral text; large url **"studylog.vercel.app"**. Energetic, action-driving. 1:1 square, bold flat premium style. `--ar 1:1 --style raw`
+> Vivid coral-red gradient background (#ff5a4d → #8f1f2a) — contrast against the navy posts. Small white wordmark "● 로그" top-left. Eyebrow **"지금 바로"** (white). Huge white bold Korean headline **"계정 없이 둘러보기"**; a tapping finger / mouse-cursor click icon; subtext **"가입·결제 없이 클릭 한 번이면 데모가 열려요"**; a white rounded pill button reading **"체험하기 →"** in coral text; large url **"pinlog.vercel.app"**. Energetic, action-driving. 1:1 square, bold flat premium style. `--ar 1:1 --style raw`
 
 **캡션**
 ```
@@ -152,7 +152,7 @@
 링크 들어가서 ‘학생으로 둘러보기’만 누르면, 실제 데모가 바로 열립니다. (가입 X)
 체크인부터 대시보드 위젯, 달성률까지 직접 만져보세요. 👆
 
-👉 studylog.vercel.app
+👉 pinlog.vercel.app
 프로필 링크에서도 바로 연결돼요!
 ```
 **해시태그**
