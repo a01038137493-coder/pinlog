@@ -257,11 +257,23 @@
     .mode li::before { content: "✓"; color: var(--red); font-weight: 800; }
     .mode--exam li::before { color: #ff8a80; }
 
-    /* ---------- 실제 화면 ---------- */
-    .shots { display: flex; gap: 18px; margin-top: 46px; overflow-x: auto; padding-bottom: 10px; -webkit-overflow-scrolling: touch; scrollbar-width: none; justify-content: center; }
-    .shots::-webkit-scrollbar { display: none; }
-    .shots figure { flex: none; width: 224px; }
-    .shots img { width: 100%; border-radius: 26px; border: 4px solid #202227; background: #202227; box-shadow: 0 18px 40px rgba(25, 25, 25, 0.14); }
+    /* ---------- 히어로 3폰 팬 ---------- */
+    .fan { position: relative; height: 648px; max-width: 900px; margin: 56px auto 0; }
+    .fan__ph {
+      position: absolute; border-radius: 34px; border: 5px solid #202227;
+      background: #202227; overflow: hidden;
+      box-shadow: 0 24px 55px rgba(25, 25, 25, 0.18);
+    }
+    .fan__ph img { display: block; width: 100%; border-radius: 29px; }
+    .fan__ph--l { left: 70px; top: 60px; width: 250px; transform: rotate(-9deg); opacity: 0.92; }
+    .fan__ph--r { right: 70px; top: 60px; width: 250px; transform: rotate(9deg); opacity: 0.92; }
+    .fan__ph--c { left: 50%; transform: translateX(-50%); top: 0; width: 290px; z-index: 2; box-shadow: 0 34px 70px rgba(25, 25, 25, 0.28); }
+    @media (max-width: 720px) {
+      .fan { height: 470px; max-width: 100%; }
+      .fan__ph--l { left: 4px; top: 44px; width: 168px; }
+      .fan__ph--r { right: 4px; top: 44px; width: 168px; }
+      .fan__ph--c { width: 205px; }
+    }
 
     /* ---------- 로그인 모달 ---------- */
     .lmodal { position: fixed; inset: 0; z-index: 90; display: flex; align-items: center; justify-content: center; }
@@ -354,11 +366,10 @@
       <a class="btn-primary" href="#" id="pwa-install">데스크톱 앱 설치</a>
       <a class="btn-soft" href="/app">웹앱에서 사용하기</a>
     </div>
-    <div class="shots shots--hero">
-      <figure><div class="scr"><img src="/assets/landing/shot-01.png" alt="홈 — 오늘 할 일과 일정" /></div><figcaption>홈</figcaption></figure>
-      <figure><div class="scr"><img src="/assets/landing/shot-02.png" alt="캘린더" /></div><figcaption>캘린더</figcaption></figure>
-      <figure><div class="scr"><img src="/assets/landing/shot-05.png" alt="수험생 홈 — D-Day와 오늘 플랜" /></div><figcaption>수험생 홈</figcaption></figure>
-      <figure><div class="scr"><img src="/assets/landing/shot-06.png" alt="타임박스 시간표" /></div><figcaption>타임박스</figcaption></figure>
+    <div class="fan">
+      <div class="fan__ph fan__ph--l"><img src="/assets/landing/shot-02.png" alt="캘린더" /></div>
+      <div class="fan__ph fan__ph--c"><img src="/assets/landing/shot-01.png" alt="홈 — 오늘 할 일과 일정" /></div>
+      <div class="fan__ph fan__ph--r"><img src="/assets/landing/shot-06.png" alt="타임박스 시간표" /></div>
     </div>
   </div>
 
