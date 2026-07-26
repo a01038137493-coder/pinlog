@@ -294,13 +294,6 @@
     .lmodal__foot a { color: var(--red); font-weight: 700; }
     .shots figcaption { text-align: center; margin-top: 12px; font-size: 0.86rem; font-weight: 700; color: var(--muted); }
     .shots--hero { margin-top: 52px; }
-    /* 폰 프레임(뷰포트) — 안에서 화면이 실제 스크롤되는 것처럼 움직인다 */
-    .shots--hero figure { animation: shot-rise 0.7s ease both; }
-    .shots--hero figure:nth-child(1) { animation-delay: 0.05s; }
-    .shots--hero figure:nth-child(2) { animation-delay: 0.15s; }
-    .shots--hero figure:nth-child(3) { animation-delay: 0.25s; }
-    .shots--hero figure:nth-child(4) { animation-delay: 0.35s; }
-    @keyframes shot-rise { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: none; } }
     .shots--hero .scr {
       height: 400px; overflow: hidden;
       border-radius: 26px; border: 4px solid #202227; background: #202227;
@@ -308,19 +301,6 @@
     }
     .shots--hero .scr img {
       border: none; border-radius: 22px; box-shadow: none; width: 100%;
-      animation: scr-roll 12s ease-in-out infinite;
-    }
-    .shots--hero figure:nth-child(1) .scr img { animation-delay: 0s; }
-    .shots--hero figure:nth-child(2) .scr img { animation-delay: 3s; }
-    .shots--hero figure:nth-child(3) .scr img { animation-delay: 6s; }
-    .shots--hero figure:nth-child(4) .scr img { animation-delay: 9s; }
-    @keyframes scr-roll {
-      0%, 14% { transform: translateY(0); }
-      38%, 60% { transform: translateY(calc(-100% + 392px)); }
-      84%, 100% { transform: translateY(0); }
-    }
-    @media (prefers-reduced-motion: reduce) {
-      .shots--hero .scr img, .shots--hero figure { animation: none; }
     }
 
     /* ---------- 마지막 CTA ---------- */
