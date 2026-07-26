@@ -21,13 +21,13 @@
   </div>
 
   <script src="/js/vendor/supabase.js"></script>
-  <script src="/js/supabaseClient.js?v=mock18"></script>
+  <script src="/js/supabaseClient.js?v=mock19"></script>
   <script>
     // 로그인 여부 / role 에 따라 적절한 페이지로 자동 이동
     (async () => {
       // 웹 루트는 항상 랜딩(소개) 페이지. 앱 진입은 /app (vercel rewrite) 또는 ?app=1
       {
-        const nativeEntry = window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform();
+        const nativeEntry = location.protocol === "capacitor:" || (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
         const appEntry = location.pathname === "/app" || new URLSearchParams(location.search).has("app");
         if (!nativeEntry && !appEntry) {
           window.location.replace("/landing");

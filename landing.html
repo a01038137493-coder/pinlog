@@ -20,7 +20,7 @@
       if (msg) location.replace("/login.html?err=" + encodeURIComponent(msg));
     })();
     // 네이티브 앱·설치형(PWA)에서는 랜딩 대신 바로 웹앱으로
-    if (window.Capacitor) {
+    if (location.protocol === "capacitor:" || window.Capacitor) {
       window.location.replace("/index.html");
     } else if (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) {
       window.location.replace("/app");
@@ -463,7 +463,7 @@
   </footer>
 
   <script src="/js/vendor/supabase.js"></script>
-  <script src="/js/supabaseClient.js?v=mock18"></script>
+  <script src="/js/supabaseClient.js?v=mock19"></script>
   <script>
     // 로그인 상태면 CTA를 "내 핀로그 열기"로, 비로그인이면 우상단 로그인 팝업 표시
     (async () => {

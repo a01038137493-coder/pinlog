@@ -487,6 +487,7 @@ async function signInWithProvider(provider) {
     try { code = new URL(url.replace("dittonlog://", "https://dt/")).searchParams.get("code"); } catch (e) {}
     if (!code) return;
     const { error } = await supabaseClient.auth.exchangeCodeForSession(code);
+    try { await window.Capacitor.Plugins.Browser.close(); } catch (e) {}   // 인증 시트 닫기
     if (!error) window.location.href = "/index.html";
     else alert("로그인 처리에 실패했어요.\n" + (error.message || String(error)));
   });
