@@ -9,7 +9,7 @@
   <link rel="manifest" href="/manifest.json" />
   <meta name="theme-color" content="#f04438" />
   <script>document.documentElement.classList.add(window.Capacitor ? "dt-app" : "dt-web");</script>
-  <link rel="stylesheet" href="/css/style.css?v=240" />
+  <link rel="stylesheet" href="/css/style.css?v=241" />
 </head>
 <body class="app-bg has-tabbar memo-page">
   <header class="topbar">
@@ -37,6 +37,7 @@
           <span class="fmtbar__sep"></span>
           <button type="button" data-cmd="insertUnorderedList" aria-label="글머리 기호">• 목록</button>
         </div>
+        <button type="button" class="mw-cat" id="mw-cat" hidden>📁 미분류</button>
         <span id="mw-status"></span>
       </div>
       <div id="mw-body" class="memoedit__body" contenteditable="true" spellcheck="false"
@@ -365,9 +366,51 @@
         mwBody.innerHTML = m ? MemoFmt.toHtml(m.content || "") : "";
         mwSaved = MemoFmt.clean(mwBody.innerHTML);
         mwStatus.textContent = "";
+        mwPaintCat();
         renderList();
         if (!m) mwBody.focus();
       }
+
+      /* ---------- 웹 편집기: 폴더 이동 ---------- */
+      const mwCatBtn = document.getElementById("mw-cat");
+      const mwCatName = (cid) => {
+        const c = categories.find((x) => x.id === cid);
+        return c ? c.name : "미분류";
+      };
+      function mwPaintCat() {
+        const m = memos.find((x) => x.id === mwId);
+        mwCatBtn.hidden = !m;
+        if (m) mwCatBtn.textContent = "📁 " + mwCatName(m.category_id);
+      }
+      mwCatBtn.addEventListener("click", () => {
+        const old = document.getElementById("mwcat-menu");
+        if (old) { old.remove(); return; }
+        const menu = document.createElement("div");
+        menu.id = "mwcat-menu";
+        menu.className = "mwcat-menu";
+        const cur = (memos.find((x) => x.id === mwId) || {}).category_id || null;
+        menu.innerHTML =
+          `<button type="button" data-cid="" class="${cur ? "" : "is-on"}">미분류</button>` +
+          categories.map((c) =>
+            `<button type="button" data-cid="${c.id}" class="${cur === c.id ? "is-on" : ""}">${esc(c.name)}</button>`).join("");
+        document.body.appendChild(menu);
+        const r = mwCatBtn.getBoundingClientRect();
+        menu.style.left = Math.max(8, Math.min(window.innerWidth - 190, r.right - 180)) + "px";
+        menu.style.top = (r.bottom + 6) + "px";
+        const close = () => { menu.remove(); document.removeEventListener("pointerdown", onDoc, true); };
+        const onDoc = (ev) => { if (!menu.contains(ev.target)) close(); };
+        document.addEventListener("pointerdown", onDoc, true);
+        menu.addEventListener("click", async (ev) => {
+          const b = ev.target.closest("button[data-cid]");
+          if (!b || !mwId) return;
+          const cid = b.dataset.cid || null;
+          close();
+          await supabaseClient.from("memos").update({ category_id: cid }).eq("id", mwId);
+          const m = memos.find((x) => x.id === mwId);
+          if (m) m.category_id = cid;
+          renderCats(); renderList(); mwPaintCat();
+        });
+      });
 
       async function mwSave() {
         const content = MemoFmt.clean(mwBody.innerHTML);
