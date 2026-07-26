@@ -75,14 +75,19 @@
     .hero__doodles i:nth-child(5) { background: #f3e9ff; border-color: #9068e8; }
     .hero__doodles i:nth-child(6) { background: #fde8f4; border-color: #d8589f; }
     .hero h1 {
-      font-size: clamp(2.4rem, 6.4vw, 4.4rem); font-weight: 900; color: var(--ink);
-      letter-spacing: -0.04em; line-height: 1.18; word-break: keep-all;
+      font-size: clamp(1.9rem, 4.2vw, 3.4rem); font-weight: 900; color: var(--ink);
+      letter-spacing: -0.04em; line-height: 1.22; word-break: keep-all; white-space: nowrap;
     }
+    @media (max-width: 900px) { .hero h1 { white-space: normal; } }
+    /* 하이라이트 필 — 텍스트와 같은 베이스라인, 핀이 좌상단에 꽂힌 모양 */
     .hl {
-      display: inline-flex; align-items: center; gap: 0.22em;
-      background: var(--red-soft); border-radius: 0.45em; padding: 0.02em 0.24em 0.06em;
+      position: relative; display: inline-block;
+      background: var(--red-soft); border-radius: 0.42em; padding: 0 0.22em 0.04em;
     }
-    .hl i { font-style: normal; width: 0.34em; height: 0.34em; border-radius: 50%; background: var(--red); }
+    .hl .hl__pin {
+      position: absolute; top: -0.34em; left: -0.3em; width: 0.72em; height: 0.72em;
+      transform: rotate(-8deg); pointer-events: none;
+    }
     .hero__sub { margin: 26px auto 0; font-size: 1.16rem; color: var(--muted); max-width: 34em; word-break: keep-all; }
     .hero__btns { display: flex; justify-content: center; gap: 12px; margin-top: 34px; flex-wrap: wrap; }
     .btn-primary {
@@ -311,7 +316,7 @@
 
   <!-- 히어로 -->
   <div class="wrap hero">
-    <h1>하루의 계획과 기록이<br /><span class="hl"><i></i>한곳</span>에 모이는 곳</h1>
+    <h1>하루의 계획과 기록이 <span class="hl"><img class="hl__pin" src="/assets/logo.png" alt="" />한곳</span>에 모이는 곳</h1>
     <p class="hero__sub">할 일 · 일정 · 메모를 핀로그 하나로</p>
     <div class="shots shots--hero">
       <figure><img src="/assets/landing/shot-01.png" alt="홈 — 오늘 할 일과 일정" /><figcaption>홈</figcaption></figure>
