@@ -50,6 +50,7 @@
       border-bottom: 1px solid var(--line);
     }
     .nav { display: flex; align-items: center; height: 62px; gap: 8px; }
+    .nav--edge { padding: 0 20px; }   /* 로고는 왼쪽 끝, 로그인·CTA는 오른쪽 끝 */
     .brand { display: flex; align-items: center; gap: 10px; margin-right: 26px; }
     .brand img { width: 30px; height: 30px; border-radius: 7px; }
     .brand b { font-size: 1.16rem; font-weight: 800; letter-spacing: -0.02em; color: var(--ink); }
@@ -207,19 +208,43 @@
     .sec-h em { font-style: normal; color: var(--red); }
     .sec-sub { margin: 14px auto 0; text-align: center; color: var(--muted); max-width: 36em; word-break: keep-all; }
 
-    /* ---------- 기능 스토리 (교차 배치) ---------- */
+    /* ---------- 기능 벤토 그리드 ---------- */
     .features { background: var(--bg-soft); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
-    .frow { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; margin-top: 74px; }
-    .frow--rev .frow__txt { order: 2; }
-    .frow--rev .frow__ph { order: 1; }
-    .frow__label { display: inline-block; background: #fff; border: 1px solid var(--line); border-radius: 99px; padding: 7px 15px; font-size: 0.82rem; font-weight: 800; color: var(--text); margin-bottom: 18px; }
-    .frow__txt h3 { font-size: clamp(1.4rem, 2.8vw, 1.9rem); font-weight: 900; color: var(--ink); letter-spacing: -0.025em; line-height: 1.32; margin-bottom: 13px; }
-    .frow__txt p { color: var(--muted); word-break: keep-all; margin-bottom: 16px; }
-    .frow__txt ul { list-style: none; }
-    .frow__txt li { display: flex; gap: 9px; padding: 5px 0; font-size: 0.92rem; font-weight: 600; }
-    .frow__txt li::before { content: "✓"; color: var(--red); font-weight: 800; }
-    .frow__ph { width: 264px; margin: 0 auto; border-radius: 36px; overflow: hidden; border: 5px solid #202227; background: #202227; box-shadow: 0 22px 50px rgba(25, 25, 25, 0.16); }
-    .frow__ph img { border-radius: 31px; }
+    .bgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 46px; }
+    .bento {
+      position: relative; overflow: hidden;
+      background: var(--tint, #fff); border: 1px solid rgba(25, 25, 25, 0.06);
+      border-radius: 20px; padding: 26px 24px 0;
+      display: flex; flex-direction: column; min-height: 320px;
+    }
+    .bento i { font-style: normal; font-size: 1.6rem; margin-bottom: 10px; }
+    .bento h3 { font-size: 1.12rem; font-weight: 800; color: var(--ink); margin-bottom: 6px; letter-spacing: -0.01em; }
+    .bento p { font-size: 0.88rem; color: var(--muted); word-break: keep-all; margin-bottom: 18px; }
+    .bento__shot { margin-top: auto; padding: 0 12px; }
+    .bento__shot img {
+      display: block; width: 100%; max-width: 250px; margin: 0 auto;
+      border: 4px solid #202227; border-bottom: none; background: #202227;
+      border-radius: 24px 24px 0 0; box-shadow: 0 -8px 30px rgba(25, 25, 25, 0.1);
+    }
+    .bento--big { grid-row: span 2; min-height: 0; }
+    .bento--big .bento__shot img { max-width: 300px; }
+    .bento--plain { min-height: 0; padding-bottom: 26px; }
+    .bento__emojis { margin-top: auto; display: flex; gap: 10px; flex-wrap: wrap; }
+    .bento__emojis span {
+      width: 52px; height: 52px; border-radius: 14px; background: #fff;
+      border: 1px solid rgba(25, 25, 25, 0.07); display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem; box-shadow: 0 4px 12px rgba(25, 25, 25, 0.05);
+    }
+    .bento--wide {
+      grid-column: 1 / -1; flex-direction: row; align-items: center; gap: 30px;
+      padding: 30px 34px; min-height: 0;
+    }
+    .bento--wide h3, .bento--wide i { color: #fff; }
+    .bento--wide h3 { font-size: 1.3rem; }
+    .bento--wide p { color: rgba(255, 255, 255, 0.66); margin-bottom: 0; }
+    .bento__wtxt { flex: 0 0 240px; }
+    .bento__wshot { flex: 1; min-width: 0; }
+    .bento__wshot img { display: block; width: 100%; border-radius: 12px; }
 
     /* ---------- 작은 기능 그리드 ---------- */
     .fgrid { margin-top: 46px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
@@ -303,16 +328,16 @@
       .modes { grid-template-columns: 1fr; }
       .shots { justify-content: flex-start; }
       section { padding: 60px 0; }
-      .frow { grid-template-columns: 1fr; gap: 34px; margin-top: 56px; text-align: center; }
-      .frow--rev .frow__txt { order: 1; }
-      .frow--rev .frow__ph { order: 2; }
-      .frow__txt ul { display: inline-block; text-align: left; }
+      .bgrid { grid-template-columns: 1fr; }
+      .bento--big { grid-row: auto; }
+      .bento--wide { flex-direction: column; align-items: flex-start; gap: 18px; }
+      .bento__wtxt { flex: none; }
     }
   </style>
 </head>
 <body>
   <header>
-    <div class="wrap nav">
+    <div class="nav nav--edge">
       <a class="brand" href="/landing"><img src="/assets/logo.png" alt="핀로그 로고" /><b>핀로그</b></a>
       <span class="nav__sp"></span>
       <a class="nav__login" href="/login" id="nav-login">로그인</a>
@@ -367,46 +392,45 @@
     <div class="wrap">
       <h2 class="sec-h">기록에 필요한 모든 것,<br />꼭 필요한 만큼만</h2>
 
-      <div class="frow">
-        <div class="frow__txt">
-          <span class="frow__label">✅ 오늘 할 일</span>
-          <h3>하루는 가볍게,<br />체크는 확실하게</h3>
-          <p>오늘·내일·날짜별 할 일에 중요 표시와 색상 태그까지. 어제 못 끝낸 일은 한 번에 가져와요.</p>
-          <ul>
-            <li>중요 표시 · 색상 태그</li>
-            <li>미완료 이월 한 번에</li>
-            <li>다가오는 일정과 한 화면에</li>
-          </ul>
+      <div class="bgrid">
+        <div class="bento bento--big" style="--tint:#fff1ee;">
+          <i>✅</i>
+          <h3>오늘 할 일</h3>
+          <p>중요 표시와 색상 태그, 미완료 이월까지 — 하루를 가볍게 정리해요.</p>
+          <div class="bento__shot"><img src="/assets/landing/shot-01-clean.png" alt="오늘 할 일 화면" loading="lazy" /></div>
         </div>
-        <div class="frow__ph"><img src="/assets/landing/shot-01.png" alt="핀로그 홈 — 오늘 할 일" loading="lazy" /></div>
-      </div>
-
-      <div class="frow frow--rev">
-        <div class="frow__txt">
-          <span class="frow__label">⏱️ 타임박스</span>
-          <h3>내 시간을<br />색깔 블록으로 칠한다</h3>
-          <p>요일별 반복 시간표를 만들어두면, 지금 해야 할 일이 바로 보여요. 블록 시작 알림까지.</p>
-          <ul>
-            <li>과목·일과별 색깔 블록</li>
-            <li>주간 배분이 한눈에</li>
-            <li>지금/다음 블록 표시</li>
-          </ul>
+        <div class="bento" style="--tint:#eef4ff;">
+          <i>📅</i>
+          <h3>캘린더</h3>
+          <p>월간 달력과 일정 알림, 아침·저녁 브리핑</p>
+          <div class="bento__shot"><img src="/assets/landing/shot-02.png" alt="캘린더 화면" loading="lazy" /></div>
         </div>
-        <div class="frow__ph"><img src="/assets/landing/shot-06.png" alt="핀로그 타임박스" loading="lazy" /></div>
-      </div>
-
-      <div class="frow">
-        <div class="frow__txt">
-          <span class="frow__label">📝 메모 · 📁 파일</span>
-          <h3>생각도 자료도<br />한곳에 모아두기</h3>
-          <p>서식 있는 메모를 폴더로 정리하고, 사진과 PDF는 파일함에. 어느 기기서든 바로 열립니다.</p>
-          <ul>
-            <li>제목·목록·강조 서식</li>
-            <li>폴더 정리 + 고정 메모</li>
-            <li>공유 시트로 바로 저장</li>
-          </ul>
+        <div class="bento" style="--tint:#ecf8f1;">
+          <i>📝</i>
+          <h3>메모</h3>
+          <p>서식 있는 메모를 폴더로 정리하고 고정까지</p>
+          <div class="bento__shot"><img src="/assets/landing/shot-03.png" alt="메모 화면" loading="lazy" /></div>
         </div>
-        <div class="frow__ph"><img src="/assets/landing/shot-03.png" alt="핀로그 메모" loading="lazy" /></div>
+        <div class="bento" style="--tint:#fff7e2;">
+          <i>📁</i>
+          <h3>파일함</h3>
+          <p>사진과 PDF를 폴더째 보관하고 바로 열람</p>
+          <div class="bento__shot"><img src="/assets/landing/shot-04.png" alt="파일함 화면" loading="lazy" /></div>
+        </div>
+        <div class="bento bento--plain" style="--tint:#f3efff;">
+          <i>🧩</i>
+          <h3>홈 위젯 편집</h3>
+          <p>시계 · 날씨 · 달력 · 타이머 · 오늘 과제 위젯을 원하는 자리에 자유롭게 배치해요.</p>
+          <div class="bento__emojis"><span>🕐</span><span>🌤️</span><span>📅</span><span>⏱️</span><span>✅</span></div>
+        </div>
+        <div class="bento bento--wide" style="--tint:#1b1e24;">
+          <div class="bento__wtxt">
+            <i>⏱️</i>
+            <h3>타임박스</h3>
+            <p>요일별 반복 시간표를 색깔 블록으로. 지금 해야 할 일이 바로 보이고, 블록 시작 알림까지 옵니다.</p>
+          </div>
+          <div class="bento__wshot"><img src="/assets/landing/shot-ipad-clean.png" alt="타임박스 주간 시간표" loading="lazy" /></div>
+        </div>
       </div>
     </div>
   </section>
@@ -445,9 +469,8 @@
   <section>
     <div class="wrap">
       <h2 class="sec-h">그리고, 이런 것까지</h2>
-      <div class="fgrid">
+      <div class="fgrid" style="grid-template-columns: repeat(3, 1fr);">
         <div class="fcard"><i>🔔</i><h3>알림</h3><p>아침·저녁 일정 브리핑과 일정 알림, 기상·취침 리마인더까지.</p></div>
-        <div class="fcard"><i>🧩</i><h3>홈 위젯 편집</h3><p>시계·날씨·달력·타이머 위젯을 원하는 자리에 자유 배치.</p></div>
         <div class="fcard"><i>🔄</i><h3>실시간 동기화</h3><p>웹·아이폰·아이패드 어디서 적어도 같은 계정이면 똑같이.</p></div>
         <div class="fcard"><i>📸</i><h3>캡처로 일정 등록</h3><p>카톡 스크린샷을 공유하면 날짜·시간을 읽어 일정을 채워줘요.</p></div>
       </div>
