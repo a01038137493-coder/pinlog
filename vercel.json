@@ -8,7 +8,7 @@
     { "source": "/about.html", "destination": "/landing", "permanent": false }
   ],
   "rewrites": [
-    { "source": "/app", "destination": "/index.html" }
+    { "source": "/app", "destination": "/index" }
   ],
   "headers": [
     {
