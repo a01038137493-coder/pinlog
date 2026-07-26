@@ -318,6 +318,10 @@
   <div class="wrap hero">
     <h1>하루의 계획과 기록이 <span class="hl"><img class="hl__pin" src="/assets/logo.png" alt="" />한곳</span>에 모이는 곳</h1>
     <p class="hero__sub">할 일 · 일정 · 메모를 핀로그 하나로</p>
+    <div class="hero__btns">
+      <a class="btn-primary" href="#" id="pwa-install">데스크톱 앱 설치</a>
+      <a class="btn-soft" href="/app">웹앱에서 사용하기</a>
+    </div>
     <div class="shots shots--hero">
       <figure><img src="/assets/landing/shot-01.png" alt="홈 — 오늘 할 일과 일정" /><figcaption>홈</figcaption></figure>
       <figure><img src="/assets/landing/shot-02.png" alt="캘린더" /><figcaption>캘린더</figcaption></figure>
@@ -476,7 +480,7 @@
       let user = null;
       try { user = await getCurrentUser(); } catch (e) {}
       if (user) {
-        document.querySelectorAll(".nav__cta, .btn-primary").forEach((a) => {
+        document.querySelectorAll(".nav__cta, .btn-primary:not(#pwa-install)").forEach((a) => {
           a.textContent = "내 핀로그 열기";
           a.setAttribute("href", "/app");
         });
@@ -498,6 +502,16 @@
         return;
       }
     })();
+
+    // 데스크톱 앱(PWA) 설치 버튼 — 크롬 설치 프롬프트, 미지원 브라우저는 안내
+    let dPrompt = null;
+    window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); dPrompt = e; });
+    document.getElementById("pwa-install").addEventListener("click", async (e) => {
+      e.preventDefault();
+      if (dPrompt) { dPrompt.prompt(); try { await dPrompt.userChoice; } catch (err) {} dPrompt = null; return; }
+      if (window.matchMedia("(display-mode: standalone)").matches) { window.location.href = "/app"; return; }
+      alert("크롬 주소창 오른쪽의 설치 아이콘 또는 브라우저 메뉴의 '핀로그 설치'를 누르면 데스크톱 앱처럼 쓸 수 있어요.\n(아이폰 사파리는 공유 → 홈 화면에 추가)");
+    });
 
     // 로그인 모달
     (() => {

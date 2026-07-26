@@ -2,7 +2,7 @@
   "name": "핀로그",
   "short_name": "핀로그",
   "description": "계획하고, 기록하는 가장 빠른 방법",
-  "start_url": "/index.html?app=1",
+  "start_url": "/app",
   "display": "standalone",
   "background_color": "#f4f4f5",
   "theme_color": "#f04438",
