@@ -3258,3 +3258,7 @@ html.dt-web .widget--weather:hover .weather__region { display: flex; }
   :is(html.dt-web, html.dt-app) body.memo-page .mw-new:hover { filter: brightness(1.07); }
   :is(html.dt-web, html.dt-app) body.memo-page .fab { display: none; }
 }
+
+/* 다크모드에서도 항상 라이트로 렌더 (상태바 뒤 검은 배경 방지) */
+:root { color-scheme: light; }
+html { background: #fff; }
