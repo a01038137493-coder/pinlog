@@ -198,13 +198,26 @@
     .sec-h em { font-style: normal; color: var(--red); }
     .sec-sub { margin: 14px auto 0; text-align: center; color: var(--muted); max-width: 36em; word-break: keep-all; }
 
-    /* ---------- 기능 그리드 ---------- */
+    /* ---------- 기능 스토리 (교차 배치) ---------- */
     .features { background: var(--bg-soft); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
-    .fgrid { margin-top: 46px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
-    .fcard { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 26px 24px; }
-    .fcard i { font-style: normal; display: block; font-size: 1.7rem; margin-bottom: 14px; }
-    .fcard h3 { font-size: 1.04rem; font-weight: 800; color: var(--ink); margin-bottom: 7px; }
-    .fcard p { font-size: 0.9rem; color: var(--muted); word-break: keep-all; }
+    .frow { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; margin-top: 74px; }
+    .frow--rev .frow__txt { order: 2; }
+    .frow--rev .frow__ph { order: 1; }
+    .frow__label { display: inline-block; background: #fff; border: 1px solid var(--line); border-radius: 99px; padding: 7px 15px; font-size: 0.82rem; font-weight: 800; color: var(--text); margin-bottom: 18px; }
+    .frow__txt h3 { font-size: clamp(1.4rem, 2.8vw, 1.9rem); font-weight: 900; color: var(--ink); letter-spacing: -0.025em; line-height: 1.32; margin-bottom: 13px; }
+    .frow__txt p { color: var(--muted); word-break: keep-all; margin-bottom: 16px; }
+    .frow__txt ul { list-style: none; }
+    .frow__txt li { display: flex; gap: 9px; padding: 5px 0; font-size: 0.92rem; font-weight: 600; }
+    .frow__txt li::before { content: "✓"; color: var(--red); font-weight: 800; }
+    .frow__ph { width: 264px; margin: 0 auto; border-radius: 36px; overflow: hidden; border: 5px solid #202227; background: #202227; box-shadow: 0 22px 50px rgba(25, 25, 25, 0.16); }
+    .frow__ph img { border-radius: 31px; }
+
+    /* ---------- 작은 기능 그리드 ---------- */
+    .fgrid { margin-top: 46px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+    .fcard { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 24px 22px; }
+    .fcard i { font-style: normal; display: block; font-size: 1.6rem; margin-bottom: 12px; }
+    .fcard h3 { font-size: 1rem; font-weight: 800; color: var(--ink); margin-bottom: 6px; }
+    .fcard p { font-size: 0.87rem; color: var(--muted); word-break: keep-all; }
 
     /* ---------- 수험생 모드 ---------- */
     .modes { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 46px; }
@@ -276,10 +289,14 @@
       .nav__links, .nav__login { display: none; }
       .hero { padding: 60px 0 40px; }
       .hero__doodles i { width: 50px; height: 50px; font-size: 1.35rem; }
-      .fgrid { grid-template-columns: 1fr; }
+      .fgrid { grid-template-columns: 1fr 1fr; }
       .modes { grid-template-columns: 1fr; }
       .shots { justify-content: flex-start; }
       section { padding: 60px 0; }
+      .frow { grid-template-columns: 1fr; gap: 34px; margin-top: 56px; text-align: center; }
+      .frow--rev .frow__txt { order: 1; }
+      .frow--rev .frow__ph { order: 2; }
+      .frow__txt ul { display: inline-block; text-align: left; }
     }
   </style>
 </head>
@@ -382,17 +399,51 @@
     <p class="devcap">같은 화면이 웹 · 아이폰 · 아이패드에서 실시간으로 이어집니다</p>
   </div>
 
-  <!-- 기능 -->
+  <!-- 기능 스토리 (교차 배치) -->
   <section class="features" id="features">
     <div class="wrap">
       <h2 class="sec-h">기록에 필요한 모든 것,<br />꼭 필요한 만큼만</h2>
-      <div class="fgrid">
-        <div class="fcard"><i>✅</i><h3>오늘 할 일</h3><p>오늘·내일·날짜별 할 일에 중요 표시와 색상 태그까지. 어제 못 끝낸 일은 한 번에 가져와요.</p></div>
-        <div class="fcard"><i>📅</i><h3>캘린더</h3><p>월간 달력과 일정 알림, 아침·저녁 일정 브리핑. 어디서 만들어도 같은 계정이면 똑같이 보입니다.</p></div>
-        <div class="fcard"><i>⏱️</i><h3>타임박스</h3><p>요일별 반복 시간표를 색깔 블록으로. 지금 해야 할 일이 바로 보여요.</p></div>
-        <div class="fcard"><i>📝</i><h3>메모</h3><p>서식 있는 메모를 폴더로 정리하세요. 공유 시트에서 바로 저장할 수 있어요.</p></div>
-        <div class="fcard"><i>📁</i><h3>파일함</h3><p>사진과 PDF를 폴더로 보관하고 어느 기기서든 바로 열람해요.</p></div>
-        <div class="fcard"><i>🧩</i><h3>홈 위젯 편집</h3><p>시계·날씨·달력·타이머·오늘 과제 위젯을 원하는 자리에 자유롭게 배치합니다.</p></div>
+
+      <div class="frow">
+        <div class="frow__txt">
+          <span class="frow__label">✅ 오늘 할 일</span>
+          <h3>하루는 가볍게,<br />체크는 확실하게</h3>
+          <p>오늘·내일·날짜별 할 일에 중요 표시와 색상 태그까지. 어제 못 끝낸 일은 한 번에 가져와요.</p>
+          <ul>
+            <li>중요 표시 · 색상 태그</li>
+            <li>미완료 이월 한 번에</li>
+            <li>다가오는 일정과 한 화면에</li>
+          </ul>
+        </div>
+        <div class="frow__ph"><img src="/assets/landing/shot-01.png" alt="핀로그 홈 — 오늘 할 일" loading="lazy" /></div>
+      </div>
+
+      <div class="frow frow--rev">
+        <div class="frow__txt">
+          <span class="frow__label">⏱️ 타임박스</span>
+          <h3>내 시간을<br />색깔 블록으로 칠한다</h3>
+          <p>요일별 반복 시간표를 만들어두면, 지금 해야 할 일이 바로 보여요. 블록 시작 알림까지.</p>
+          <ul>
+            <li>과목·일과별 색깔 블록</li>
+            <li>주간 배분이 한눈에</li>
+            <li>지금/다음 블록 표시</li>
+          </ul>
+        </div>
+        <div class="frow__ph"><img src="/assets/landing/shot-06.png" alt="핀로그 타임박스" loading="lazy" /></div>
+      </div>
+
+      <div class="frow">
+        <div class="frow__txt">
+          <span class="frow__label">📝 메모 · 📁 파일</span>
+          <h3>생각도 자료도<br />한곳에 모아두기</h3>
+          <p>서식 있는 메모를 폴더로 정리하고, 사진과 PDF는 파일함에. 어느 기기서든 바로 열립니다.</p>
+          <ul>
+            <li>제목·목록·강조 서식</li>
+            <li>폴더 정리 + 고정 메모</li>
+            <li>공유 시트로 바로 저장</li>
+          </ul>
+        </div>
+        <div class="frow__ph"><img src="/assets/landing/shot-03.png" alt="핀로그 메모" loading="lazy" /></div>
       </div>
     </div>
   </section>
@@ -423,6 +474,19 @@
             <li>기록 통계 · 주간 목표와 회고</li>
           </ul>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 그리고 이런 것들 -->
+  <section>
+    <div class="wrap">
+      <h2 class="sec-h">그리고, 이런 것까지</h2>
+      <div class="fgrid">
+        <div class="fcard"><i>🔔</i><h3>알림</h3><p>아침·저녁 일정 브리핑과 일정 알림, 기상·취침 리마인더까지.</p></div>
+        <div class="fcard"><i>🧩</i><h3>홈 위젯 편집</h3><p>시계·날씨·달력·타이머 위젯을 원하는 자리에 자유 배치.</p></div>
+        <div class="fcard"><i>🔄</i><h3>실시간 동기화</h3><p>웹·아이폰·아이패드 어디서 적어도 같은 계정이면 똑같이.</p></div>
+        <div class="fcard"><i>📸</i><h3>캡처로 일정 등록</h3><p>카톡 스크린샷을 공유하면 날짜·시간을 읽어 일정을 채워줘요.</p></div>
       </div>
     </div>
   </section>
