@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
-  <title>핀로그 · Goal Tracker</title>
+  <title>핀로그</title>
   <link rel="icon" type="image/png" href="/assets/logo.png" />
   <link rel="apple-touch-icon" href="/assets/logo.png" />
   <link rel="manifest" href="/manifest.json" />
@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="/css/style.css?v=240" />
 </head>
 <body class="center-screen">
-  <!-- 앱 로더와 동일한 미니멀 스플래시 (라우팅 판단 동안만 잠깐 표시) -->
+  <!-- 웹앱 진입점(/app) — 로그인 여부/역할에 따라 홈으로 라우팅 -->
   <div class="app-loader" style="position: fixed; inset: 0;">
     <div class="app-loader__inner">
       <div class="app-loader__brand">핀로그</div>
@@ -23,26 +23,10 @@
   <script src="/js/vendor/supabase.js"></script>
   <script src="/js/supabaseClient.js?v=mock17"></script>
   <script>
-    // 로그인 여부 / role 에 따라 적절한 페이지로 자동 이동
     (async () => {
-      // 웹 루트는 항상 랜딩(소개) 페이지. 앱 진입은 /app (vercel rewrite) 또는 ?app=1
-      {
-        const nativeEntry = window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform();
-        const appEntry = location.pathname === "/app" || new URLSearchParams(location.search).has("app");
-        if (!nativeEntry && !appEntry) {
-          window.location.replace("/landing");
-          return;
-        }
-      }
       const profile = await getCurrentProfile();
-      if (!profile) {
-        // 앱: 웰컴 투어 / 웹: 랜딩(소개) 페이지가 메인
-        const native = window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform();
-        window.location.href = native ? "/welcome.html" : "/landing";
-        return;
-      }
+      if (!profile) { window.location.href = "/login"; return; }
       if (!profile.onboarded) { window.location.href = "/onboarding.html"; return; }
-      // 공유 시트로 받은 스크린샷이 있으면 홈 대신 캘린더로 (일정 인식 이어가기)
       if (sessionStorage.getItem("dt_shared_shot")) { window.location.href = "/calendar.html"; return; }
       if (profile.role === "student") window.location.href = "/student.html";
       else window.location.href = "/admin.html";
