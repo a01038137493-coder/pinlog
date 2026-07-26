@@ -570,7 +570,7 @@
           .select("*").eq("student_id", profile.id).gt("date", today).eq("done", false)
           .order("date").order("created_at").limit(30),
         supabaseClient.from("todos")
-          .select("*").eq("student_id", profile.id).eq("date", yesterday).eq("done", false),
+          .select("*").eq("student_id", profile.id).lt("date", today).eq("done", false),
         supabaseClient.from("todo_tags")
           .select("*").eq("student_id", profile.id).order("sort").order("created_at"),
       ]);
@@ -584,7 +584,7 @@
       const box = document.getElementById("g-carry");
       if (carryover.length) {
         document.getElementById("g-carry-text").textContent =
-          `어제 못 끝낸 할 일 ${carryover.length}개가 있어요`;
+          `밀린 할 일 ${carryover.length}개가 있어요`;
         box.hidden = false;
       } else {
         box.hidden = true;

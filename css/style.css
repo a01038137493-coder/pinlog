@@ -3242,3 +3242,19 @@ html.dt-web .widget--weather:hover .weather__region { display: flex; }
 }
 .mwcat-menu button:hover { background: rgba(15, 23, 42, 0.05); }
 .mwcat-menu button.is-on { background: #ffece9; color: #f04438; font-weight: 800; }
+
+/* 웹/태블릿 메모: 목록 여백 + 검색창 옆 새 메모 버튼 (FAB 대체) */
+.mw-new { display: none; }
+@media (min-width: 1100px) {
+  :is(html.dt-web, html.dt-app) body.memo-page #memo-list { padding: 12px 14px 20px; box-sizing: border-box; }
+  :is(html.dt-web, html.dt-app) body.memo-page .memo-search { padding-right: 56px; }
+  :is(html.dt-web, html.dt-app) body.memo-page .mw-new {
+    display: flex; grid-area: search; justify-self: end; align-self: center;
+    margin: 0 12px 0 0; width: 32px; height: 32px; border-radius: 10px; border: none;
+    background: var(--primary, #f04438); color: #fff; font-size: 1.2rem; font-weight: 700;
+    align-items: center; justify-content: center; cursor: pointer;
+    box-shadow: 0 4px 10px rgba(240, 68, 56, 0.3); z-index: 2;
+  }
+  :is(html.dt-web, html.dt-app) body.memo-page .mw-new:hover { filter: brightness(1.07); }
+  :is(html.dt-web, html.dt-app) body.memo-page .fab { display: none; }
+}
