@@ -10,8 +10,9 @@
   <meta name="theme-color" content="#ffffff" />
   <script>document.documentElement.classList.add(window.Capacitor ? "dt-app" : "dt-web");</script>
   <script>
-    // 설치형(PWA) 창에서는 랜딩 대신 바로 웹앱으로
-    if (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) {
+    // 네이티브 앱·설치형(PWA)에서는 랜딩 대신 바로 웹앱으로
+    if (window.Capacitor ||
+        (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches)) {
       window.location.replace("/app");
     }
   </script>

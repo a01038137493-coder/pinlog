@@ -24,6 +24,16 @@
   <script src="/js/supabaseClient.js?v=mock17"></script>
   <script>
     (async () => {
+      // 소셜 로그인 복귀(?code=)면 세션 교환이 끝날 때까지 잠시 대기 (레이스 방지)
+      if (new URLSearchParams(location.search).has("code")) {
+        for (let i = 0; i < 20; i++) {
+          try {
+            const { data } = await supabaseClient.auth.getSession();
+            if (data && data.session) break;
+          } catch (e) {}
+          await new Promise((r) => setTimeout(r, 300));
+        }
+      }
       const profile = await getCurrentProfile();
       if (!profile) { window.location.href = "/login"; return; }
       if (!profile.onboarded) { window.location.href = "/onboarding.html"; return; }
