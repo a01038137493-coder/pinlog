@@ -36,9 +36,9 @@
       }
       const profile = await getCurrentProfile();
       if (!profile) {
-        // 앱: 웰컴 투어 / 웹: 랜딩(소개) 페이지가 메인
+        // 네이티브 앱: 웰컴 투어 / 웹: 여기까지 왔다는 건 앱 진입 의도(?app=1·PWA)이므로 로그인으로
         const native = window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform();
-        window.location.href = native ? "/welcome.html" : "/landing";
+        window.location.href = native ? "/welcome.html" : "/login";
         return;
       }
       if (!profile.onboarded) { window.location.href = "/onboarding.html"; return; }
