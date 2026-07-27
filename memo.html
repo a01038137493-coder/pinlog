@@ -9,7 +9,7 @@
   <link rel="manifest" href="/manifest.json" />
   <meta name="theme-color" content="#f04438" />
   <script>document.documentElement.classList.add(window.Capacitor ? "dt-app" : "dt-web");</script>
-  <link rel="stylesheet" href="/css/style.css?v=247" />
+  <link rel="stylesheet" href="/css/style.css?v=256" />
 </head>
 <body class="app-bg has-tabbar memo-page">
   <header class="topbar">
@@ -20,7 +20,6 @@
 
   <main class="container">
     <input type="search" id="memo-search" class="field__input memo-search" placeholder="메모 검색" autocomplete="off" />
-    <button type="button" class="mw-new" id="mw-new" aria-label="새 메모">＋</button>
     <div class="memo-cats" id="memo-cats"></div>
     <div id="memo-list"></div>
 
@@ -39,6 +38,7 @@
           <button type="button" data-cmd="insertUnorderedList" aria-label="글머리 기호">• 목록</button>
         </div>
         <button type="button" class="mw-cat" id="mw-cat" hidden>📁 미분류</button>
+        <button type="button" class="mw-cat mw-del" id="mw-del" hidden>삭제</button>
         <span id="mw-status"></span>
       </div>
       <div id="mw-body" class="memoedit__body" contenteditable="true" spellcheck="false"
@@ -90,7 +90,7 @@
 
   <script src="/js/vendor/supabase.js"></script>
   <script src="/js/supabaseClient.js?v=mock19"></script>
-  <script src="/js/utils.js?v=43"></script>
+  <script src="/js/utils.js?v=44"></script>
   <script src="/js/notify.js?v=5"></script>
   <script src="/js/memofmt.js?v=1"></script>
   <script>
@@ -381,8 +381,24 @@
       function mwPaintCat() {
         const m = memos.find((x) => x.id === mwId);
         mwCatBtn.hidden = !m;
+        mwDelBtn.hidden = !m;
         if (m) mwCatBtn.textContent = "📁 " + mwCatName(m.category_id);
       }
+
+      /* ---------- 웹 편집기: 현재 메모 삭제 ---------- */
+      const mwDelBtn = document.getElementById("mw-del");
+      mwDelBtn.addEventListener("click", async () => {
+        if (!mwId) return;
+        if (!confirm("이 메모를 삭제할까요?")) return;
+        const { error } = await supabaseClient.from("memos").delete().eq("id", mwId);
+        if (error) { alert("메모를 삭제하지 못했습니다."); return; }
+        memos = memos.filter((m) => m.id !== mwId);
+        mwId = null;
+        renderCats();
+        const next = sorted(memos.filter((m) =>
+          activeCat === "all" ? true : activeCat === "none" ? !m.category_id : m.category_id === activeCat))[0];
+        mwOpen(next || null);
+      });
       mwCatBtn.addEventListener("click", () => {
         const old = document.getElementById("mwcat-menu");
         if (old) { old.remove(); return; }
@@ -501,8 +517,6 @@
       }
 
       searchEl.addEventListener("input", () => { openRow = null; renderList(); });
-      const mwNewBtn = document.getElementById("mw-new");
-      if (mwNewBtn) mwNewBtn.addEventListener("click", () => document.getElementById("memo-new").click());
       document.getElementById("memo-new").addEventListener("click", () => {
         if (WEB_DESK()) { mwSave(); mwOpen(null); return; }
         const cat = activeCat !== "all" && activeCat !== "none" ? "?cat=" + activeCat : "";

@@ -1895,6 +1895,10 @@ body.fcal-page { display: flex; flex-direction: column; min-height: 100vh; min-h
 .fcal__events { max-height: 30vh; overflow-y: auto; padding: 10px 2px 8px; }
 .fcal__events-title { font-size: 0.85rem; font-weight: 800; color: var(--muted); margin: 0 0 8px 4px; }
 .fcal__events-empty { color: var(--muted-soft); font-size: 0.85rem; text-align: center; margin: 14px 0; }
+.fcal__msum { background: #fff; border: 1px solid var(--line); border-radius: 11px; padding: 9px 13px; margin: 0 0 12px; font-size: 0.8rem; font-weight: 600; color: var(--muted); }
+.fcal__msum b { color: #f04438; font-weight: 800; }
+.fcal__uptitle { margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--line); }
+.fcal__upday { margin: 12px 4px 6px; font-size: 0.76rem; font-weight: 700; color: var(--muted-soft); }
 .fcal-ev { display: flex; align-items: center; gap: 12px; background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 11px 14px; margin-bottom: 7px; }
 .fcal-ev__time { flex: none; font-size: 0.78rem; font-weight: 800; color: var(--orange-strong); min-width: 40px; }
 .fcal-ev--rec .fcal-ev__time { color: var(--green-strong); }
@@ -1955,9 +1959,10 @@ body.fcal-page { display: flex; flex-direction: column; min-height: 100vh; min-h
 /* ============================================================
    모바일 홈 v2 (student-m.html 전용)
    ============================================================ */
-.mhead { display: flex; align-items: center; justify-content: space-between; min-height: 40px; margin: 12px 2px 16px; }
-.mhead__date { font-size: 1.2rem; font-weight: 800; }
-.mhead__dday { background: #fff; border: 1px solid var(--line); border-radius: 11px; padding: 7px 12px; font-size: 0.82rem; color: var(--muted); }
+.mhead { margin: 14px 2px 16px; }
+.mhead__top { display: flex; align-items: center; gap: 8px; min-height: 40px; }
+.mhead__date { font-size: 1.32rem; font-weight: 800; white-space: nowrap; margin-right: auto; letter-spacing: -0.01em; }
+.mhead__dday { background: #fff; border: 1px solid var(--line); border-radius: 11px; padding: 7px 12px; font-size: 0.82rem; color: var(--muted); white-space: nowrap; }
 .mhead__dday b { color: var(--navy); font-weight: 800; }
 
 /* 오늘 카드 */
@@ -2146,7 +2151,7 @@ body.is-general .task-subject { display: none; }
 /* ============================================================
  * 일반 사용자 태블릿/PC 홈 (general.html)
  * ============================================================ */
-.gtab-head { margin-top: 18px; }
+.gtab-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-top: 18px; }
 .gtab-grid { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 18px; align-items: start; }
 .gtab-grid > .gtab-col { min-width: 0; }
 .gtodo--tab { min-height: 320px; display: flex; flex-direction: column; margin-bottom: 14px; }
@@ -3063,12 +3068,18 @@ body.home-edit .gtab-grid #gnote {
 @media (min-width: 1100px) {
   :is(html.dt-web, html.dt-app) .gtab-grid { align-items: start; }
   :is(html.dt-web, html.dt-app) .gtab-grid > .gtab-col { display: contents; }
+  :is(html.dt-web, html.dt-app) .gtab-grid #g-summary,
   :is(html.dt-web, html.dt-app) .gtab-grid .gtodo--tab,
   :is(html.dt-web, html.dt-app) .gtab-grid #g-carry,
   :is(html.dt-web, html.dt-app) .gtab-grid #g-upcoming,
   :is(html.dt-web, html.dt-app) .gtab-grid #g-events { grid-column: 1; }
   :is(html.dt-web, html.dt-app) .gtab-grid #gnote,
-  :is(html.dt-web, html.dt-app) .gtab-grid #gevd { grid-column: 2; grid-row: 1 / span 4; position: sticky; top: 84px; align-self: start; }
+  :is(html.dt-web, html.dt-app) .gtab-grid #gevd { grid-column: 2; grid-row: 1 / span 5; position: sticky; top: 84px; align-self: start; }
+  /* 메모 패널이 없으면(숨김) 일정 카드가 오른쪽 열을 채움 — 한쪽 빈 공간 방지 */
+  :is(html.dt-web, html.dt-app) body:not(.has-notepanel) .gtab-grid #g-events {
+    grid-column: 2; grid-row: 1 / span 5; position: sticky; top: 84px; align-self: start;
+  }
+  :is(html.dt-web, html.dt-app) body:not(.has-notepanel) .gtab-grid #gevd { grid-row: auto; position: static; }
   :is(html.dt-web, html.dt-app) .gtodo__row.is-note .gtodo__item { background: #fef4f3; border-radius: 10px; }
 }
 
@@ -3230,6 +3241,7 @@ html.dt-web .widget--weather:hover .weather__region { display: flex; }
   color: var(--muted); cursor: pointer; white-space: nowrap;
 }
 .mw-cat:hover { background: #f7f7f5; color: var(--text); }
+.mw-del { margin-left: 0; }   /* 폴더 버튼 옆에 붙임 (auto 마진 중복 방지) */
 .mwcat-menu {
   position: fixed; z-index: 400; width: 180px; max-height: 300px; overflow-y: auto;
   background: #fff; border: 1px solid var(--line); border-radius: 13px;
@@ -3243,20 +3255,10 @@ html.dt-web .widget--weather:hover .weather__region { display: flex; }
 .mwcat-menu button:hover { background: rgba(15, 23, 42, 0.05); }
 .mwcat-menu button.is-on { background: #ffece9; color: #f04438; font-weight: 800; }
 
-/* 웹/태블릿 메모: 목록 여백 + 검색창 옆 새 메모 버튼 (FAB 대체) */
-.mw-new { display: none; }
+/* 웹/태블릿 메모: 목록 여백 + 편집기 툴바 삭제 버튼 (새 메모는 FAB) */
 @media (min-width: 1100px) {
   :is(html.dt-web, html.dt-app) body.memo-page #memo-list { padding: 12px 14px 20px; box-sizing: border-box; }
-  :is(html.dt-web, html.dt-app) body.memo-page .memo-search { padding-right: 56px; }
-  :is(html.dt-web, html.dt-app) body.memo-page .mw-new {
-    display: flex; grid-area: search; justify-self: end; align-self: center;
-    margin: 0 12px 0 0; width: 32px; height: 32px; border-radius: 10px; border: none;
-    background: var(--primary, #f04438); color: #fff; font-size: 1.2rem; font-weight: 700;
-    align-items: center; justify-content: center; cursor: pointer;
-    box-shadow: 0 4px 10px rgba(240, 68, 56, 0.3); z-index: 2;
-  }
-  :is(html.dt-web, html.dt-app) body.memo-page .mw-new:hover { filter: brightness(1.07); }
-  :is(html.dt-web, html.dt-app) body.memo-page .fab { display: none; }
+  .mw-del:hover { background: #fff5f4; color: #f04438; border-color: #f8d7d3; }
 }
 
 /* 다크모드에서도 항상 라이트로 렌더 (상태바 뒤 검은 배경 방지) */
@@ -3266,7 +3268,6 @@ html { background: #fff; }
 /* 웹 메모: 검색바가 목록 위층에 오도록 (카드가 밑줄 위로 겹쳐 보이는 문제) + 목록 상단 여백 */
 @media (min-width: 1100px) {
   :is(html.dt-web, html.dt-app) body.memo-page .memo-search { position: relative; z-index: 3; }
-  :is(html.dt-web, html.dt-app) body.memo-page .mw-new { z-index: 4; }
   :is(html.dt-web, html.dt-app) body.memo-page #memo-list { padding-top: 16px; overflow-y: auto; }
 }
 
@@ -3283,28 +3284,46 @@ html.dt-app body.memo-page main.container #memo-list { padding-top: 16px !import
 #mw-body li + li, .memoedit__body li + li { margin-top: 4px; }
 
 /* 모바일 홈: 날짜 아래 시간대별 인사말 */
-.mgreet { width: 100%; margin: 3px 0 0; font-size: 0.92rem; font-weight: 600; color: var(--muted); word-break: keep-all; }
+.mgreet { margin: 4px 0 0; font-size: 0.92rem; font-weight: 600; color: var(--muted); word-break: keep-all; line-height: 1.45; }
 
-/* 모바일 홈 상단 요약 블록 + 헤더 아이콘 */
-.mhead { position: relative; }
-.mhead__icons { position: absolute; top: 0; right: 0; display: flex; gap: 4px; }
-.mico { width: 36px; height: 36px; border-radius: 11px; display: flex; align-items: center; justify-content: center; color: var(--text); }
+/* 모바일 홈 헤더 아이콘 */
+.mhead__icons { display: flex; gap: 2px; flex: none; }
+.mico { width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--text); }
 .mico svg { width: 21px; height: 21px; }
 .mico:active { background: rgba(0, 0, 0, 0.06); }
-.msum { display: flex; gap: 16px; align-items: center; padding: 16px; }
-.msum__ring { position: relative; width: 94px; height: 94px; flex: none; }
+
+/* 모바일 홈 상단 요약 블록 */
+.msum { padding: 18px 18px 6px; }
+.msum__main { display: flex; align-items: center; gap: 14px; }
+.msum__txt { flex: 1; min-width: 0; }
+.msum__label { display: block; font-size: 0.72rem; font-weight: 700; color: var(--muted-soft); letter-spacing: 0.02em; }
+.msum__title { font-size: 1.05rem; font-weight: 800; color: var(--text); margin: 4px 0 0; word-break: keep-all; letter-spacing: -0.01em; }
+.msum__title em { font-style: normal; color: #f04438; }
+.msum__sub { font-size: 0.8rem; color: var(--muted); margin: 4px 0 0; word-break: keep-all; }
+.msum__ring { position: relative; width: 74px; height: 74px; flex: none; }
 .msum__ring svg { width: 100%; height: 100%; display: block; }
 #g-sum-arc { transition: stroke-dashoffset 0.5s ease; }
-.msum__ring-txt { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; }
-.msum__ring-label { font-size: 0.55rem; font-weight: 700; color: var(--muted-soft); }
-.msum__ring-txt b { font-size: 1.08rem; font-weight: 800; color: #f04438; line-height: 1.1; }
-.msum__ring-done { font-size: 0.64rem; font-weight: 800; color: #f04438; }
-.msum__body { flex: 1; min-width: 0; }
-.msum__title { font-size: 0.95rem; font-weight: 800; color: var(--text); }
-.msum__title em { font-style: normal; color: #f04438; }
-.msum__sub { font-size: 0.78rem; color: var(--muted); margin: 2px 0 10px; }
-.msum__stats { display: flex; gap: 8px; }
-.msum__stats span { flex: 1; background: #faf9f7; border: 1px solid var(--line); border-radius: 11px; padding: 9px 4px 8px; display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 0; }
-.msum__stats svg { width: 16px; height: 16px; color: #f04438; }
-.msum__stats em { font-style: normal; font-size: 0.62rem; color: var(--muted); font-weight: 600; white-space: nowrap; }
-.msum__stats b { font-size: 0.92rem; font-weight: 800; color: var(--text); }
+.msum__ring-txt { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+.msum__ring-txt b { font-size: 0.85rem; font-weight: 800; color: #f04438; letter-spacing: -0.01em; }
+.msum__stats { display: flex; margin-top: 16px; border-top: 1px solid var(--line); padding: 12px 0 10px; }
+.msum__stats span { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 0; }
+.msum__stats span + span { border-left: 1px solid var(--line); }
+.msum__stats em { font-style: normal; font-size: 0.72rem; color: var(--muted); font-weight: 600; white-space: nowrap; }
+.msum__stats b { font-size: 1.05rem; font-weight: 800; color: var(--text); }
+
+/* 알림 수신함 (alerts.html) */
+.topbar__action { font-size: 0.9rem; font-weight: 700; color: var(--muted); padding: 8px 2px; justify-self: end; }
+.alsec { margin: 18px 6px 8px; font-size: 0.8rem; font-weight: 700; color: var(--muted); }
+.alcard { padding: 2px 8px; }
+.alrow { display: flex; align-items: flex-start; gap: 12px; padding: 13px 8px; }
+.alrow + .alrow { border-top: 1px solid var(--line); }
+.alrow__ico { width: 36px; height: 36px; border-radius: 50%; background: #fdeeec; color: #f04438; display: flex; align-items: center; justify-content: center; flex: none; }
+.alrow__ico svg { width: 18px; height: 18px; }
+.alrow__txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.alrow__title { font-weight: 700; font-size: 0.92rem; word-break: keep-all; }
+.alrow__body { font-size: 0.82rem; color: var(--muted); word-break: keep-all; }
+.alrow__time { font-size: 0.75rem; color: var(--muted-soft); flex: none; margin-top: 3px; }
+.alempty { text-align: center; padding: 44px 20px; margin-top: 18px; }
+.alempty__title { font-weight: 800; font-size: 0.98rem; }
+.alempty__sub { font-size: 0.84rem; color: var(--muted); margin: 6px 0 18px; word-break: keep-all; }
+.alempty__btn { display: inline-block; }

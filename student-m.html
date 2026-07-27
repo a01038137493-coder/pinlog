@@ -9,7 +9,7 @@
   <link rel="manifest" href="/manifest.json" />
   <meta name="theme-color" content="#f04438" />
   <script>document.documentElement.classList.add(window.Capacitor ? "dt-app" : "dt-web");</script>
-  <link rel="stylesheet" href="/css/style.css?v=247" />
+  <link rel="stylesheet" href="/css/style.css?v=256" />
 </head>
 <body class="app-bg has-tabbar">
   <script>
@@ -29,11 +29,21 @@
 
 
   <main class="container">
-    <!-- 헤더: 날짜(좌) + D-Day(우) -->
+    <!-- 헤더: 상단 행(날짜 + D-Day + 아이콘) / 아래 인사말 -->
     <div class="mhead">
-      <span class="mhead__date" id="m-date">오늘</span>
+      <div class="mhead__top">
+        <span class="mhead__date" id="m-date">오늘</span>
+        <span class="mhead__dday">수능 <b id="m-dday">D-—</b></span>
+        <div class="mhead__icons">
+          <a href="/alerts.html" class="mico" aria-label="알림">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+          </a>
+          <a href="/mypage.html" class="mico" aria-label="마이페이지">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.5"/><circle cx="12" cy="10" r="3.2"/><path d="M5.8 19a7.5 7.5 0 0 1 12.4 0"/></svg>
+          </a>
+        </div>
+      </div>
       <p class="mgreet" id="m-greet" hidden></p>
-      <span class="mhead__dday">수능 <b id="m-dday">D-—</b></span>
     </div>
 
     <!-- 오늘 카드: 상태에 따라 플랜 CTA / 과제 체크 리스트 / 결과 요약 -->
@@ -117,7 +127,7 @@
 
   <script src="/js/vendor/supabase.js"></script>
   <script src="/js/supabaseClient.js?v=mock19"></script>
-  <script src="/js/utils.js?v=43"></script>
+  <script src="/js/utils.js?v=44"></script>
   <script src="/js/notify.js?v=5"></script>
   <script src="/js/mhome.js?v=100"></script>
 </body>

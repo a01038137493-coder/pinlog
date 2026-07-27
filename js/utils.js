@@ -728,3 +728,60 @@ function dtGreeting(name) {
   const who = name ? String(name).trim() : "";
   return (who ? who + "님, " : "") + msg;
 }
+
+/* ------------------------------------------------------------
+ * 요약 카드 상황 리마인더 — 비 예보 / 내일 이른 첫 일정.
+ * 해당 없으면 null (진행률 기본 문구 사용). 날씨는 30분 캐시.
+ * ------------------------------------------------------------ */
+async function dtSmartSub(profile) {
+  const h = new Date().getHours();
+  const evening = h >= 18 || h < 4;
+
+  const earlyEvent = async () => {
+    try {
+      const t0 = new Date(); t0.setHours(0, 0, 0, 0);
+      const s = new Date(t0.getTime() + 86400000);
+      const e = new Date(t0.getTime() + 2 * 86400000);
+      const { data } = await supabaseClient.from("events")
+        .select("start_at,all_day").eq("user_id", profile.id)
+        .gte("start_at", s.toISOString()).lt("start_at", e.toISOString())
+        .order("start_at").limit(3);
+      const ev = (data || []).find((x) => !x.all_day);
+      if (!ev) return null;
+      const st = new Date(ev.start_at);
+      if (st.getHours() > 9) return null;
+      return `내일 ${fmtTime12(st)} 일정이 있어요. 내일을 위해 일찍 쉬어요 🌙`;
+    } catch (e2) { return null; }
+  };
+
+  const rainToday = async () => {
+    try {
+      const KEY = "dt_wx_rain";
+      let p = null;
+      try {
+        const c = JSON.parse(localStorage.getItem(KEY) || "null");
+        if (c && Date.now() - c.t < 30 * 60000) p = c.p;
+      } catch (e2) {}
+      if (p === null) {
+        let lat = 37.57, lon = 126.98;                      // 실패 시 서울
+        try {
+          const g = await (await fetch("https://ipwho.is/")).json();
+          if (g && g.success !== false && typeof g.latitude === "number") { lat = g.latitude; lon = g.longitude; }
+        } catch (e2) {}
+        const d = await (await fetch(
+          `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
+          `&daily=precipitation_probability_max,weather_code&forecast_days=1&timezone=auto`)).json();
+        const code = d.daily && d.daily.weather_code ? d.daily.weather_code[0] : 0;
+        const prob = d.daily && d.daily.precipitation_probability_max ? d.daily.precipitation_probability_max[0] : 0;
+        p = prob >= 60 || (code >= 51 && code <= 99);       // WMO 51+: 비·소나기·뇌우·눈
+        localStorage.setItem(KEY, JSON.stringify({ t: Date.now(), p }));
+      }
+      return p ? "오늘 비 소식이 있어요. 우산 챙기는 거 잊지 마세요 ☔" : null;
+    } catch (e2) { return null; }
+  };
+
+  // 저녁·새벽엔 내일 일정 안내가 먼저, 낮에는 우산 리마인더가 먼저
+  const order = evening ? [earlyEvent, rainToday] : [rainToday, earlyEvent];
+  for (const f of order) { const s = await f(); if (s) return s; }
+  return null;
+}

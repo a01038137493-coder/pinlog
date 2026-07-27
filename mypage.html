@@ -9,7 +9,7 @@
   <link rel="manifest" href="/manifest.json" />
   <meta name="theme-color" content="#f04438" />
   <script>document.documentElement.classList.add(window.Capacitor ? "dt-app" : "dt-web");</script>
-  <link rel="stylesheet" href="/css/style.css?v=247" />
+  <link rel="stylesheet" href="/css/style.css?v=256" />
 </head>
 <body class="app-bg">
   <header class="topbar">
@@ -30,8 +30,8 @@
     </section>
 
     <!-- 바로가기 -->
-    <section class="card settings-menu" id="mp-shortcuts">
-      <a href="/my-history.html" class="settings-row mp-row" id="mp-history" hidden>
+    <section class="card settings-menu" id="mp-shortcuts" hidden>
+      <a href="/my-history.html" class="settings-row mp-row" id="mp-history">
         <span class="mp-row__label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>내 기록</span>
         <span class="settings-row__chevron" aria-hidden="true">›</span>
       </a>
@@ -62,7 +62,7 @@
 
   <script src="/js/vendor/supabase.js"></script>
   <script src="/js/supabaseClient.js?v=mock19"></script>
-  <script src="/js/utils.js?v=43"></script>
+  <script src="/js/utils.js?v=44"></script>
   <script src="/js/notify.js?v=5"></script>
   <script>
     document.addEventListener("DOMContentLoaded", async () => {
@@ -83,7 +83,7 @@
         document.getElementById("mp-joined").textContent = `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일`;
       }
 
-      if (profile.user_type !== "general") document.getElementById("mp-history").hidden = false;
+      if (profile.user_type !== "general") document.getElementById("mp-shortcuts").hidden = false;
     });
   </script>
 </body>

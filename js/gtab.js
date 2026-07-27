@@ -33,6 +33,12 @@
     // 수험생이 잘못 들어오면 수험생 태블릿 홈으로
     if (profile.user_type !== "general") { window.location.replace("/student.html"); return; }
 
+    /* 날짜 아래 시간대별 인사말 */
+    try {
+      const gEl = document.getElementById("g-greet");
+      if (gEl) { gEl.textContent = dtGreeting(profile.name); gEl.hidden = false; }
+    } catch (e) {}
+
     /* 목표 D-Day (설정한 경우에만) */
     const dd = ddayFor(profile);
     if (dd) {
@@ -119,7 +125,28 @@
       upListEl.querySelectorAll(".gtodo__row").forEach(wireRow);
     }
 
-    function renderAll() { render(); renderUpcoming(); }
+    let smartSub = null;   // 상황 리마인더 (비 예보·내일 이른 일정) — 있으면 기본 문구 대신
+    function updateSummary() {
+      const box = document.getElementById("g-summary");
+      if (!box) return;
+      const n = todos.length;
+      const done = todos.filter((t) => t.done).length;
+      const C = 188.5;
+      const pct = n ? done / n : 0;
+      document.getElementById("g-sum-frac").textContent = done + "/" + n;
+      document.getElementById("g-sum-done").textContent = done + "개";
+      document.getElementById("g-sum-left").textContent = n - done;
+      document.getElementById("g-sum-imp").textContent = todos.filter((t) => t.important && !t.done).length;
+      document.getElementById("g-sum-arc").style.strokeDashoffset = (C * (1 - pct)).toFixed(1);
+      document.getElementById("g-sum-sub").textContent =
+        n && pct >= 1 ? "오늘 할 일을 전부 끝냈어요! 🎉"
+        : smartSub ? smartSub
+        : pct >= 0.5 ? "절반 넘게 왔어요, 이 흐름 그대로!"
+        : "작은 시작이 큰 변화를 만듭니다";
+      box.hidden = false;
+    }
+
+    function renderAll() { render(); renderUpcoming(); updateSummary(); }
 
     /* 행 하나: 탭=완료 토글, 좌측 스와이프=중요·삭제 */
     let openRow = null;
@@ -609,6 +636,7 @@
          document.documentElement.classList.contains("dt-app")) &&
         window.matchMedia("(min-width: 900px)").matches &&
         homeCfg().hidden.note !== true) {
+      document.body.classList.add("has-notepanel");   // 오른쪽 열을 메모 패널이 차지 → 일정은 왼쪽
       const firstTodo = [...todos].sort((a, b) => (a.done === b.done ? 0 : a.done ? 1 : -1))[0];
       if (firstTodo) {
         openNote(firstTodo, false);
@@ -624,6 +652,23 @@
     const renderEvents = () => renderHomeSchedule(
       document.getElementById("g-events"), document.getElementById("g-events-list"));
     renderEvents();
+
+    /* 요약 블록: 오늘 일정 개수 */
+    (async () => {
+      try {
+        const s0 = new Date(); s0.setHours(0, 0, 0, 0);
+        const e0 = new Date(s0.getTime() + 86400000);
+        const { count } = await supabaseClient.from("events")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", profile.id)
+          .gte("start_at", s0.toISOString()).lt("start_at", e0.toISOString());
+        const el = document.getElementById("g-sum-ev");
+        if (el) el.textContent = count || 0;
+      } catch (e) {}
+    })();
+
+    /* 상황 리마인더 문구 (비 예보 · 내일 이른 일정) */
+    dtSmartSub(profile).then((s) => { if (s) { smartSub = s; updateSummary(); } }).catch(() => {});
 
     /* ---------- 상시 디스플레이: 자동 새로고침 ----------
      * 켜놓는 화면이라 데이터가 오래 묵는다.

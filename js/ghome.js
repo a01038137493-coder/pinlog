@@ -112,12 +112,13 @@
       upListEl.querySelectorAll(".gtodo__row").forEach(wireRow);
     }
 
+    let smartSub = null;   // 상황 리마인더 (비 예보·내일 이른 일정) — 있으면 기본 문구 대신
     function updateSummary() {
       const box = document.getElementById("g-summary");
       if (!box) return;
       const n = todos.length;
       const done = todos.filter((t) => t.done).length;
-      const C = 213.6;
+      const C = 188.5;
       const pct = n ? done / n : 0;
       document.getElementById("g-sum-frac").textContent = done + "/" + n;
       document.getElementById("g-sum-done").textContent = done + "개";
@@ -126,6 +127,7 @@
       document.getElementById("g-sum-arc").style.strokeDashoffset = (C * (1 - pct)).toFixed(1);
       document.getElementById("g-sum-sub").textContent =
         n && pct >= 1 ? "오늘 할 일을 전부 끝냈어요! 🎉"
+        : smartSub ? smartSub
         : pct >= 0.5 ? "절반 넘게 왔어요, 이 흐름 그대로!"
         : "작은 시작이 큰 변화를 만듭니다";
       box.hidden = false;
@@ -377,5 +379,8 @@
         if (el) el.textContent = count || 0;
       } catch (e) {}
     })();
+
+    /* 상황 리마인더 문구 (비 예보 · 내일 이른 일정) */
+    dtSmartSub(profile).then((s) => { if (s) { smartSub = s; updateSummary(); } }).catch(() => {});
   });
 })();

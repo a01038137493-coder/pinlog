@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
+  <title>알림 · 핀로그</title>
+  <link rel="icon" type="image/png" href="/assets/logo.png" />
+  <link rel="apple-touch-icon" href="/assets/logo.png" />
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#f04438" />
+  <script>document.documentElement.classList.add(window.Capacitor ? "dt-app" : "dt-web");</script>
+  <link rel="stylesheet" href="/css/style.css?v=256" />
+</head>
+<body class="app-bg">
+  <header class="topbar">
+    <a href="/index.html" class="topbar__back" aria-label="뒤로 가기" onclick="if(history.length>1){history.back();return false;}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></a>
+    <div class="topbar__brand">알림</div>
+    <a href="/notifications.html" class="topbar__action">설정</a>
+  </header>
+
+  <main class="container">
+    <div id="al-list"></div>
+
+    <section class="card alempty" id="al-empty" hidden>
+      <p class="alempty__title">지난 7일 동안 도착한 알림이 없어요</p>
+      <p class="alempty__sub">알림 설정에서 아침 플랜·저녁 기록 리마인더를 켜보세요</p>
+      <a href="/notifications.html" class="btn btn--primary alempty__btn">알림 설정 열기</a>
+    </section>
+  </main>
+
+  <script src="/js/vendor/supabase.js"></script>
+  <script src="/js/supabaseClient.js?v=mock19"></script>
+  <script src="/js/utils.js?v=44"></script>
+  <script src="/js/notify.js?v=5"></script>
+  <script>
+    /* 로컬 알림은 기기에 기록이 남지 않으므로, 알림 설정·타임박스·일정 데이터로
+       지난 7일간 실제 발송됐을 알림을 그대로 재구성해 보여준다 (notify.js 예약 로직과 동일 규칙) */
+    document.addEventListener("DOMContentLoaded", async () => {
+      const user = await requireAuth();
+      if (!user) return;
+      const profile = await getCurrentProfile();
+      const isExam = !profile || profile.user_type !== "general";
+
+      const now = new Date();
+      const DAYS = 7;
+      const since = new Date(now.getTime() - DAYS * 86400000);
+      const t12 = (h, m) => `${h < 12 ? "오전" : "오후"}${h % 12 || 12}:${String(m).padStart(2, "0")}`;
+      const dayAt = (base, t) => {                      // base 날짜의 t(HH:MM) 시각
+        const [h, m] = String(t || "0:0").split(":").map(Number);
+        const d = new Date(base); d.setHours(h || 0, m || 0, 0, 0); return d;
+      };
+      const items = [];                                 // { at, title, body, kind }
+      const push = (at, title, body, kind) => { if (at <= now && at >= since) items.push({ at, title, body, kind }); };
+
+      const s = window.dtNotify ? dtNotify.getSettings() : null;
+      const days7 = [];                                 // 오늘 포함 지난 7일 날짜 목록
+      for (let i = 0; i < DAYS; i++) days7.push(new Date(now.getFullYear(), now.getMonth(), now.getDate() - i));
+
+      /* 매일 반복 리마인더 4종 */
+      if (s) for (const d of days7) {
+        if (s.morning) push(dayAt(d, s.morningTime), "오늘 계획 세울 시간이에요",
+          isExam ? "오늘의 핵심 과제를 입력하고 하루를 시작해보세요." : "오늘 할 일을 정리하고 하루를 시작해보세요.", "daily");
+        if (s.evening) push(dayAt(d, s.eveningTime), "오늘 하루 기록할 시간이에요",
+          isExam ? "오늘의 성과를 기록하고 마무리해보세요." : "오늘 하루를 정리하고 마무리해보세요.", "daily");
+        if (s.wake) push(dayAt(d, s.wakeTime), "좋은 아침이에요 ☀️", "오늘 일정을 확인하고 하루를 시작해보세요.", "daily");
+        if (s.sleep) push(dayAt(d, s.sleepTime), "이제 잘 시간이에요 🌙", "자기 전에 내일 일정을 확인해보세요.", "daily");
+      }
+
+      /* 타임박스 시작 알림 (수험생) */
+      if (s && s.timebox && isExam && profile && profile.id) {
+        try {
+          const { data: boxes } = await supabaseClient.from("timeboxes")
+            .select("*").eq("student_id", profile.id).order("start_time");
+          for (const b of (boxes || [])) {
+            const bdays = Array.isArray(b.days) ? b.days : [0, 1, 2, 3, 4, 5, 6];   // 월=0..일=6
+            const [h, m] = b.start_time.split(":").map(Number);
+            for (const d of days7) {
+              if (bdays.includes((d.getDay() + 6) % 7))
+                push(dayAt(d, b.start_time), b.label, `타임박스 시작 시간이에요 (${t12(h, m)})`, "timebox");
+            }
+          }
+        } catch (e) {}
+      }
+
+      /* 일정 알림 (alert_min 설정된 일정) */
+      if (profile && profile.id) {
+        try {
+          const [one, rep] = await Promise.all([
+            supabaseClient.from("events").select("*").eq("user_id", profile.id)
+              .is("repeat", null).not("alert_min", "is", null)
+              .gte("start_at", new Date(since.getTime() - 86400000).toISOString())
+              .lte("start_at", new Date(now.getTime() + 86400000).toISOString()).limit(60),
+            supabaseClient.from("events").select("*").eq("user_id", profile.id)
+              .not("repeat", "is", null).not("alert_min", "is", null).limit(40),
+          ]);
+          const bodyOf = (ev) => {
+            const st = new Date(ev.start_at);
+            return ev.all_day ? "오늘 일정이에요" : `${t12(st.getHours(), st.getMinutes())} 일정이에요`;
+          };
+          for (const ev of (one.data || []))
+            push(new Date(new Date(ev.start_at).getTime() + ev.alert_min * 60000), ev.title, bodyOf(ev), "event");
+          for (const ev of (rep.data || [])) {
+            const base = new Date(new Date(ev.start_at).getTime() + ev.alert_min * 60000);
+            for (const d of days7) {
+              if (d < new Date(base.getFullYear(), base.getMonth(), base.getDate())) continue;
+              const hit =
+                ev.repeat === "daily" ? true :
+                ev.repeat === "weekly" ? d.getDay() === base.getDay() :
+                ev.repeat === "monthly" ? d.getDate() === base.getDate() :
+                d.getDate() === base.getDate() && d.getMonth() === base.getMonth();
+              if (hit) {
+                const at = new Date(d); at.setHours(base.getHours(), base.getMinutes(), 0, 0);
+                push(at, ev.title, bodyOf(ev), "event");
+              }
+            }
+          }
+        } catch (e) {}
+      }
+
+      /* 최신순 정렬 후 날짜별 그룹 렌더 */
+      items.sort((a, b) => b.at - a.at);
+      const listEl = document.getElementById("al-list");
+      if (!items.length) { document.getElementById("al-empty").hidden = false; return; }
+
+      const ICONS = {
+        daily: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>',
+        timebox: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>',
+        event: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>',
+      };
+      const WD = ["일", "월", "화", "수", "목", "금", "토"];
+      const dayLabel = (d) => {
+        const t0 = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const d0 = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+        const diff = Math.round((t0 - d0) / 86400000);
+        return diff === 0 ? "오늘" : diff === 1 ? "어제" : `${d.getMonth() + 1}월 ${d.getDate()}일 (${WD[d.getDay()]})`;
+      };
+      const esc = (t) => String(t || "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+      let html = "", curKey = "";
+      for (const it of items) {
+        const key = `${it.at.getFullYear()}-${it.at.getMonth()}-${it.at.getDate()}`;
+        if (key !== curKey) {
+          if (curKey) html += "</section>";
+          html += `<p class="alsec">${dayLabel(it.at)}</p><section class="card alcard">`;
+          curKey = key;
+        }
+        html += `<div class="alrow">
+          <span class="alrow__ico">${ICONS[it.kind] || ICONS.daily}</span>
+          <span class="alrow__txt"><b class="alrow__title">${esc(it.title)}</b><span class="alrow__body">${esc(it.body)}</span></span>
+          <span class="alrow__time">${t12(it.at.getHours(), it.at.getMinutes())}</span>
+        </div>`;
+      }
+      html += "</section>";
+      listEl.innerHTML = html;
+    });
+  </script>
+</body>
+</html>
