@@ -137,15 +137,31 @@
         const WB = window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform()
           && Capacitor.Plugins && Capacitor.Plugins.WidgetBridge;
         if (WB) {
-          const firstOpen = todos.find((t) => !t.done);
           WB.update({
             left: n - done, total: n, done,
-            top: firstOpen ? firstOpen.content : "",
+            items: todos.filter((t) => !t.done).slice(0, 3).map((t) => t.content),
+            ev: widgetEv,
             date: today,
           });
         }
       } catch (e) {}
     }
+
+    /* 위젯용 다음 일정 (오늘 남은 첫 일정) */
+    let widgetEv = "";
+    async function loadWidgetEv() {
+      try {
+        const e0 = new Date(); e0.setHours(24, 0, 0, 0);
+        const { data } = await supabaseClient.from("events")
+          .select("start_at,title,all_day").eq("user_id", profile.id)
+          .gte("start_at", new Date().toISOString()).lt("start_at", e0.toISOString())
+          .order("start_at").limit(1);
+        const ev = (data || [])[0];
+        widgetEv = ev ? (ev.all_day ? "" : fmtTime12(new Date(ev.start_at)) + " ") + ev.title : "";
+        if (widgetEv) updateSummary();
+      } catch (e) {}
+    }
+    loadWidgetEv();
 
     function renderAll() { render(); renderUpcoming(); updateSummary(); }
 

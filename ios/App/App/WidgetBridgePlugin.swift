@@ -24,7 +24,8 @@ public class WidgetBridgePlugin: CAPPlugin, CAPBridgedPlugin {
             "left": call.getInt("left") ?? 0,
             "total": call.getInt("total") ?? 0,
             "done": call.getInt("done") ?? 0,
-            "top": call.getString("top") ?? "",
+            "items": call.getArray("items", String.self) ?? [],
+            "ev": call.getString("ev") ?? "",
             "date": call.getString("date") ?? ""
         ]
         if let d = UserDefaults(suiteName: "group.com.pinlog.app"),
