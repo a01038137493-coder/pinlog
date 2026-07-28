@@ -408,6 +408,25 @@
       border: none; border-radius: 22px; box-shadow: none; width: 100%;
     }
 
+    /* ---------- 등장 애니메이션 ---------- */
+    @keyframes rise { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
+    .hero > * { animation: rise 0.7s ease backwards; }
+    .hero > *:nth-child(1) { animation-delay: 0.05s; }
+    .hero > *:nth-child(2) { animation-delay: 0.12s; }
+    .hero > *:nth-child(3) { animation-delay: 0.2s; }
+    .hero > *:nth-child(4) { animation-delay: 0.28s; }
+    .hero > *:nth-child(5) { animation-delay: 0.34s; }
+    .hero > *:nth-child(6) { animation-delay: 0.4s; }
+    .hero > *:nth-child(7) { animation-delay: 0.5s; }
+    .rv { opacity: 0; transform: translateY(22px); transition: opacity 0.65s ease, transform 0.65s ease; }
+    .rv.in { opacity: 1; transform: none; }
+    #demo-img { transition: opacity 0.22s ease, transform 0.22s ease; }
+    #demo-img.sw { opacity: 0; transform: translateY(10px); }
+    @media (prefers-reduced-motion: reduce) {
+      .hero > * { animation: none; }
+      .rv { opacity: 1; transform: none; transition: none; }
+    }
+
     /* ---------- 마지막 CTA ---------- */
     .final { text-align: center; background: var(--bg-soft); border-top: 1px solid var(--line); }
     .final .hero__btns { margin-top: 28px; }
@@ -666,15 +685,44 @@
       }
     })();
 
-    // 제품 데모: 단계 클릭 → 해당 화면으로 교체
+    // 스크롤 등장 애니메이션 — 섹션 제목·카드가 보일 때 순차 페이드업
     (() => {
-      const steps = document.querySelectorAll("#demo-steps li");
+      const targets = [...document.querySelectorAll(".sec-tag, .sec-h, .sec-sub, .demo__grid > *, .deskapp__shot, .deskapp .devcap")];
+      document.querySelectorAll(".fmin, .dl").forEach((grid) =>
+        [...grid.children].forEach((c, i) => { c.style.transitionDelay = (i * 0.07) + "s"; targets.push(c); }));
+      const io = "IntersectionObserver" in window
+        ? new IntersectionObserver((es) => es.forEach((e) => {
+            if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); }
+          }), { threshold: 0.12, rootMargin: "0px 0px -40px" })
+        : null;
+      targets.forEach((el) => { el.classList.add("rv"); io ? io.observe(el) : el.classList.add("in"); });
+    })();
+
+    // 제품 데모: 단계 클릭 → 화면 페이드 전환, 보이는 동안 3.2초마다 자동 순환 (클릭하면 자동 멈춤)
+    (() => {
+      const steps = [...document.querySelectorAll("#demo-steps li")];
       const img = document.getElementById("demo-img");
-      steps.forEach((li) => li.addEventListener("click", () => {
-        steps.forEach((x) => x.classList.remove("is-on"));
-        li.classList.add("is-on");
-        img.src = li.dataset.shot;
+      let idx = 0, timer = null, manual = false;
+      function activate(i) {
+        idx = i;
+        steps.forEach((x, j) => x.classList.toggle("is-on", j === i));
+        const next = steps[i].dataset.shot;
+        if (img.getAttribute("src") === next) return;
+        img.classList.add("sw");
+        setTimeout(() => { img.src = next; img.classList.remove("sw"); }, 200);
+      }
+      steps.forEach((li, i) => li.addEventListener("click", () => {
+        manual = true;                                       // 직접 조작하면 자동 순환 종료
+        if (timer) { clearInterval(timer); timer = null; }
+        activate(i);
       }));
+      const demoSec = document.getElementById("demo");
+      if ("IntersectionObserver" in window && demoSec) {
+        new IntersectionObserver((es) => es.forEach((e) => {
+          if (e.isIntersecting && timer === null && !manual) timer = setInterval(() => activate((idx + 1) % steps.length), 3200);
+          else if (!e.isIntersecting && timer) { clearInterval(timer); timer = null; }
+        }), { threshold: 0.3 }).observe(demoSec);
+      }
     })();
 
     // 데스크톱 앱(PWA) 설치 버튼 — 크롬 설치 프롬프트, 미지원 브라우저는 안내
