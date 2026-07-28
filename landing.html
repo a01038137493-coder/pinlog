@@ -280,35 +280,132 @@
     .sec-h em { font-style: normal; color: var(--red); }
     .sec-sub { margin: 14px auto 0; text-align: center; color: var(--muted); max-width: 36em; word-break: keep-all; }
 
-    /* ---------- 제품 데모 ---------- */
+    /* ---------- 제품 데모 (폰 UI 시뮬레이션) ---------- */
     .demo { background: var(--bg-soft); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
-    .demo__grid { display: grid; grid-template-columns: minmax(300px, 400px) 1fr; gap: 48px; align-items: center; max-width: 880px; margin: 46px auto 0; }
-    .demo__steps { list-style: none; display: flex; flex-direction: column; gap: 10px; }
-    .demo__steps li {
-      display: flex; gap: 14px; align-items: flex-start;
-      background: #fff; border: 1px solid var(--line); border-radius: 14px;
-      padding: 15px 18px; cursor: pointer; transition: box-shadow 0.2s ease, border-color 0.2s ease;
+    .demo__grid { display: flex; align-items: center; justify-content: center; gap: 60px; margin-top: 52px; flex-wrap: wrap; }
+    .demo__steps { width: 344px; display: flex; flex-direction: column; gap: 10px; }
+    .demo__steps button {
+      position: relative; overflow: hidden; display: block; width: 100%; text-align: left;
+      background: #fff; border: 1px solid var(--line); border-radius: 15px;
+      padding: 15px 17px 16px; cursor: pointer; font: inherit;
+      transition: box-shadow 0.2s ease, transform 0.2s ease;
     }
-    .demo__steps li:hover { box-shadow: 0 10px 26px rgba(25, 25, 25, 0.06); }
-    .demo__steps li.is-on { border-color: #f6b9b2; box-shadow: 0 12px 30px rgba(240, 68, 56, 0.1); }
-    .demo__steps li b {
-      flex: none; width: 26px; height: 26px; border-radius: 50%; margin-top: 2px;
-      background: var(--bg-soft); color: var(--muted);
-      display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 800;
+    .demo__steps button:hover { box-shadow: 0 12px 28px rgba(25, 25, 25, 0.07); transform: translateY(-1px); }
+    .demo__row { display: flex; align-items: center; gap: 10px; }
+    .demo__num {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 22px; height: 22px; border-radius: 7px; background: var(--bg-soft);
+      color: #9b9b98; font-size: 0.75rem; font-weight: 800;
     }
-    .demo__steps li.is-on b { background: var(--red); color: #fff; }
-    .demo__steps h3 { font-size: 0.98rem; font-weight: 800; color: var(--ink); letter-spacing: -0.01em; }
-    .demo__steps p { font-size: 0.84rem; color: var(--muted); word-break: keep-all; }
-    .demo__hint { margin-top: 14px; text-align: center; font-size: 0.8rem; color: #b9b9b6; }
+    .demo__steps button.is-on .demo__num { background: var(--red); color: #fff; }
+    .demo__ttl { font-size: 0.97rem; font-weight: 800; color: var(--ink); letter-spacing: -0.02em; }
+    .demo__steps p { margin-top: 6px; padding-left: 32px; font-size: 0.83rem; color: var(--muted); word-break: keep-all; }
+    .demo__rail { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: var(--bg-soft); display: none; }
+    .demo__steps button.is-on .demo__rail { display: block; }
+    .demo__steps button.is-on .demo__rail i { display: block; height: 100%; background: var(--red); animation: railfill 6.5s linear both; }
+    .demo__hint { width: 344px; margin-top: 6px; font-size: 0.8rem; color: #9b9b98; font-weight: 600; }
     .demo__shot { display: flex; justify-content: center; }
-    @media (max-width: 860px) {
-      .demo__grid { grid-template-columns: 1fr; gap: 34px; }
-      .demo__shot .phframe { width: 250px; }
-    }
 
-    /* ---------- 데스크톱 앱 섹션 ---------- */
+    /* 폰 시뮬 */
+    .simwrap { position: relative; }
+    .simglow { position: absolute; inset: -30px -30px -40px; background: radial-gradient(closest-side, rgba(240, 68, 56, 0.10), transparent 72%); pointer-events: none; }
+    .simphone { position: relative; width: 400px; filter: drop-shadow(0 34px 64px rgba(25, 25, 25, 0.26)); }
+    .simframe { position: relative; z-index: 1; width: 100%; display: block; pointer-events: none; }
+    .simscreen {
+      position: absolute; left: 3.295%; top: 1.173%; width: 93.79%; height: 97.654%;
+      border-radius: 45px; overflow: hidden; background: #f4f4f5; z-index: 0;
+      font-size: 14px; letter-spacing: -0.01em; line-height: 1.55; color: #141414;
+    }
+    .simstatus { position: relative; z-index: 50; display: flex; align-items: center; justify-content: space-between; padding: 14px 26px 4px; font-size: 13px; font-weight: 700; color: #141414; }
+    .simstatus.is-inv { color: #fff; }
+    .simstatus__icons { display: flex; align-items: flex-end; gap: 6px; }
+    .simstatus__icons svg:nth-child(1) { width: 19px; height: 12px; }
+    .simstatus__icons svg:nth-child(2) { width: 16px; height: 12px; }
+    .simstatus__icons svg:nth-child(3) { width: 27px; height: 13px; }
+    .simtab {
+      position: absolute; left: 12px; right: 12px; bottom: 12px; z-index: 20; display: flex;
+      background: #fff; border-radius: 26px; box-shadow: 0 8px 26px rgba(25, 25, 25, 0.14);
+    }
+    .simtab span { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 11px 0 10px; font-size: 9.8px; font-weight: 700; color: #9a9a9a; }
+    .simtab span.is-on { color: #111; }
+    .simtab svg { width: 23px; height: 23px; }
+    .simfab {
+      position: absolute; right: 20px; bottom: 88px; z-index: 25; width: 58px; height: 58px;
+      border: none; border-radius: 50%; background: var(--red); color: #fff;
+      font-size: 27px; font-weight: 400; line-height: 1; cursor: pointer;
+      box-shadow: 0 12px 28px rgba(240, 68, 56, 0.45);
+    }
+    .simcap { text-align: center; margin-top: 20px; font-size: 0.83rem; font-weight: 700; color: var(--muted); }
+    @media (max-width: 500px) { .simphone { width: min(400px, calc(100vw - 60px)); } }
+
+    /* ---------- 데스크톱 앱 데모 (창 시뮬레이션) ---------- */
     .deskapp__shot { display: flex; justify-content: center; margin-top: 46px; }
-    .deskapp .devcap { margin-top: 18px; }
+    .dskscale { width: 100%; max-width: 1000px; }
+    .dskwin { border: 1px solid #e6e6e4; border-radius: 14px; overflow: hidden; background: #fff; box-shadow: 0 30px 70px rgba(25, 25, 25, 0.16); }
+    .dskbar { display: flex; align-items: center; gap: 8px; height: 38px; padding: 0 14px; background: #f6f6f4; border-bottom: 1px solid var(--line); }
+    .dskbar i { width: 11px; height: 11px; border-radius: 50%; }
+    .dskbar i:nth-child(1) { background: #ff5f57; }
+    .dskbar i:nth-child(2) { background: #febc2e; }
+    .dskbar i:nth-child(3) { background: #28c840; }
+    .dskbar span { flex: 1; text-align: center; font-size: 12.6px; font-weight: 700; color: var(--muted); }
+    .dskbar em { width: 45px; }
+    .dskbody { display: flex; height: 664px; background: #f4f4f5; }
+    .dsknav { position: relative; width: 210px; flex: none; background: #faf9f8; border-right: 1px solid var(--line); padding: 18px 14px; }
+    .dsknav__logo { display: block; font-size: 14.7px; font-weight: 800; letter-spacing: -0.02em; padding: 0 8px 16px; color: var(--ink); }
+    .dsknav__item { display: flex; align-items: center; gap: 11px; padding: 10px; border-radius: 10px; font-size: 13.3px; font-weight: 600; color: var(--text); }
+    .dsknav__item.is-on { background: #ececea; color: #141414; }
+    .dsknav__item svg { width: 18px; height: 18px; }
+    .dsknav__newwrap { position: relative; margin-top: 18px; }
+    .dsknav__new { display: flex; align-items: center; justify-content: center; padding: 13px 0; border-radius: 12px; background: #111; color: #fff; font-size: 13.3px; font-weight: 800; box-shadow: 0 8px 20px rgba(240, 68, 56, 0.22); }
+    .dskmenu { position: absolute; left: 0; right: -30px; top: 52px; z-index: 5; background: #fff; border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 18px 40px rgba(25, 25, 25, 0.16); padding: 6px; animation: popin 0.2s ease both; }
+    .dskmenu span { display: flex; align-items: center; gap: 9px; padding: 9px 11px; border-radius: 9px; font-size: 12.6px; font-weight: 600; color: var(--text); }
+    .dskmenu span.is-on { background: #fef2f1; color: #d92d20; font-weight: 700; }
+    .dskmain { flex: 1; min-width: 0; padding: 22px 24px; display: flex; flex-direction: column; gap: 14px; overflow: hidden; }
+    .dskclock { font-size: 30px; font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; color: #141414; }
+    .dskdate { font-size: 15px; font-weight: 800; margin-top: 4px; color: #141414; }
+    .dskgreet { font-size: 12.6px; color: #6b6b6b; }
+    .dskcols { display: grid; grid-template-columns: 1fr 300px; gap: 16px; align-items: start; min-height: 0; }
+    .dskcol { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+    .dskcard { background: #fff; border-radius: 18px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06); }
+    .dsksum { padding: 16px 18px 4px; }
+    .dsksum__main { display: flex; align-items: center; gap: 14px; }
+    .dsksum__txt { flex: 1; min-width: 0; }
+    .dsksum__label { font-size: 11.2px; font-weight: 700; color: #9a9a9a; }
+    .dsksum__title { font-size: 14.3px; font-weight: 800; color: #141414; }
+    .dsksum__title em { font-style: normal; color: var(--red); }
+    .dsksum__sub { font-size: 11.9px; color: #6b6b6b; }
+    .dskring { position: relative; width: 76px; height: 76px; flex: none; }
+    .dskring svg { width: 100%; height: 100%; display: block; }
+    #dsk-arc { transition: stroke-dashoffset 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); }
+    .dskring b { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; color: var(--red); font-variant-numeric: tabular-nums; }
+    .dsksum__stats { display: flex; border-top: 1px solid #ededed; margin-top: 12px; }
+    .dsksum__stats span { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 10px 0 12px; }
+    .dsksum__stats span + span { border-left: 1px solid #ededed; }
+    .dsksum__stats em { font-style: normal; font-size: 11.2px; color: #6b6b6b; font-weight: 600; }
+    .dsksum__stats b { font-size: 15px; font-weight: 800; color: #141414; font-variant-numeric: tabular-nums; }
+    .dsktodocard { padding: 16px 18px 8px; }
+    .dsktodo__head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+    .dsktodo__head span { font-weight: 800; font-size: 14.3px; color: #141414; }
+    .dsktodo__head b { color: var(--red); font-weight: 800; font-size: 12.3px; }
+    .dskrow { position: relative; display: flex; align-items: center; gap: 11px; padding: 9px 10px; border-bottom: 1px solid #f2f2f1; }
+    .dskrow > * { position: relative; }
+    .dskrow__sel { position: absolute; inset: 0; border-radius: 10px; background: #fef2f1; }
+    .dskchk { flex: none; width: 22px; height: 22px; border-radius: 50%; border: 1.8px solid #dcdcda; box-sizing: border-box; }
+    .dskchk.is-done { border: none; background: var(--red); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; color: #fff; }
+    .dskstar { flex: none; color: var(--red); font-size: 13.3px; }
+    .dskrow__txt { font-size: 13.3px; font-weight: 600; color: #141414; }
+    .dskrow__txt.is-done { color: #9a9a9a; text-decoration: line-through; }
+    .dskcaret { display: inline-block; width: 1.5px; height: 15px; background: #141414; animation: caret 1s steps(1) infinite; }
+    .dsktodo__add { padding: 10px; font-size: 13.3px; font-weight: 700; color: #9a9a9a; }
+    .dsknote { padding: 18px 20px; min-height: 300px; }
+    .dsknote b { display: block; font-size: 14.3px; font-weight: 800; margin-bottom: 12px; color: #141414; }
+    .dsknote p { font-size: 12.6px; color: var(--text); line-height: 1.85; animation: popin 0.26s ease both; }
+    .dsknote .dsknote__empty { color: #9a9a9a; font-weight: 600; animation: none; }
+    .dskctl { display: flex; align-items: center; justify-content: center; gap: 16px; margin-top: 22px; flex-wrap: wrap; }
+    .dskdots { display: flex; gap: 7px; }
+    .dskdots button { width: 26px; height: 6px; padding: 0; border: none; border-radius: 99px; background: #e0e0dd; cursor: pointer; transition: background 0.2s ease; }
+    .dskdots button.is-on { background: var(--red); }
+    .dskctl p { font-size: 0.83rem; font-weight: 700; color: var(--muted); }
 
     /* ---------- 기능 미니멀 그리드 ---------- */
     .features { }
@@ -408,6 +505,20 @@
       border: none; border-radius: 22px; box-shadow: none; width: 100%;
     }
 
+    /* ---------- 시안 모션: 히어로 폰 플로팅 + 데모 진행 레일 ---------- */
+    @keyframes floatA { 0%, 100% { transform: rotate(-9deg) translateY(0); } 50% { transform: rotate(-9deg) translateY(-12px); } }
+    @keyframes floatB { 0%, 100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(-16px); } }
+    @keyframes floatC { 0%, 100% { transform: rotate(9deg) translateY(0); } 50% { transform: rotate(9deg) translateY(-12px); } }
+    @keyframes railfill { from { width: 0; } to { width: 100%; } }
+    @keyframes ripple { from { transform: scale(0.4); opacity: 0.5; } to { transform: scale(2.4); opacity: 0; } }
+    @keyframes popin { from { opacity: 0; transform: translateY(8px) scale(0.98); } to { opacity: 1; transform: none; } }
+    @keyframes sheetup { from { transform: translateY(102%); } to { transform: translateY(0); } }
+    @keyframes caret { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
+    @keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
+    .fan__ph--l { animation: floatA 7s ease-in-out infinite; }
+    .fan__ph--c { animation: floatB 7s ease-in-out infinite 0.45s; }
+    .fan__ph--r { animation: floatC 7s ease-in-out infinite 0.9s; }
+
     /* ---------- 등장 애니메이션 ---------- */
     @keyframes rise { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
     .hero > * { animation: rise 0.7s ease backwards; }
@@ -420,11 +531,11 @@
     .hero > *:nth-child(7) { animation-delay: 0.5s; }
     .rv { opacity: 0; transform: translateY(22px); transition: opacity 0.65s ease, transform 0.65s ease; }
     .rv.in { opacity: 1; transform: none; }
-    #demo-img { transition: opacity 0.22s ease, transform 0.22s ease; }
-    #demo-img.sw { opacity: 0; transform: translateY(10px); }
     @media (prefers-reduced-motion: reduce) {
       .hero > * { animation: none; }
       .rv { opacity: 1; transform: none; transition: none; }
+      .fan__ph--l, .fan__ph--c, .fan__ph--r { animation: none; }
+      .demo__steps button.is-on .demo__rail i { animation: none; width: 100%; }
     }
 
     /* ---------- 마지막 CTA ---------- */
@@ -498,42 +609,119 @@
     </div>
   </div>
 
-  <!-- 제품 데모 -->
+  <!-- 제품 데모: 실제 UI 재현 시뮬레이션 -->
   <section class="demo" id="demo">
     <div class="wrap">
-      <p class="sec-tag"><b class="tint-red">제품 데모</b></p>
+      <p class="sec-tag"><b class="tint-purple">제품 데모</b></p>
       <h2 class="sec-h">실제 화면 그대로,<br />써보는 것처럼 보여드려요</h2>
-      <p class="sec-sub">체크 한 번, 할 일 추가, 캘린더, 메모까지 — 앱에서 일어나는 일을 그대로 담았습니다.</p>
+      <p class="sec-sub">체크 한 번, 할 일 추가, 캘린더, 메모까지 — 앱에서 일어나는 일을 그대로 재현했습니다.</p>
       <div class="demo__grid">
         <div>
-          <ol class="demo__steps" id="demo-steps">
-            <li class="is-on" data-shot="/assets/landing/land-m-home.png"><b>1</b><div><h3>할 일 체크하기</h3><p>탭 한 번으로 완료 — 진행률 링과 카운트가 같이 올라가요.</p></div></li>
-            <li data-shot="/assets/landing/land-m-home.png"><b>2</b><div><h3>할 일 추가하기</h3><p>시트를 열어 제목·날짜·중요 표시를 한 번에 등록해요.</p></div></li>
-            <li data-shot="/assets/landing/land-m-cal.png"><b>3</b><div><h3>캘린더 확인하기</h3><p>월간 달력에서 날짜를 눌러 그날 일정을 봐요.</p></div></li>
-            <li data-shot="/assets/landing/land-m-memo.png"><b>4</b><div><h3>메모 정리하기</h3><p>폴더로 나누고, 자주 보는 메모는 위에 고정해요.</p></div></li>
-          </ol>
-          <p class="demo__hint">단계를 누르면 해당 화면을 볼 수 있어요.</p>
+          <div class="demo__steps" id="demo-steps">
+            <button type="button" class="is-on"><span class="demo__row"><b class="demo__num">1</b><b class="demo__ttl">할 일 체크하기</b></span><p>탭 한 번으로 완료 — 진행률 링과 카운트가 같이 올라가요.</p><i class="demo__rail"><i></i></i></button>
+            <button type="button"><span class="demo__row"><b class="demo__num">2</b><b class="demo__ttl">할 일 추가하기</b></span><p>시트를 올려 제목 · 날짜 · 중요 표시를 한 화면에서.</p><i class="demo__rail"><i></i></i></button>
+            <button type="button"><span class="demo__row"><b class="demo__num">3</b><b class="demo__ttl">캘린더 확인하기</b></span><p>월간 달력에서 날짜를 눌러 그날 일정을 봐요.</p><i class="demo__rail"><i></i></i></button>
+            <button type="button"><span class="demo__row"><b class="demo__num">4</b><b class="demo__ttl">메모 정리하기</b></span><p>폴더로 나누고, 자주 보는 메모는 위에 고정.</p><i class="demo__rail"><i></i></i></button>
+          </div>
+          <p class="demo__hint">단계를 눌러 원하는 화면부터 볼 수 있어요.</p>
         </div>
         <div class="demo__shot">
-          <div class="phframe"><img id="demo-img" src="/assets/landing/land-m-home.png" alt="핀로그 앱 화면" /></div>
+          <div class="simwrap">
+            <div class="simglow"></div>
+            <div class="simphone">
+              <div class="simscreen">
+                <div class="simstatus" id="sim-status">
+                  <span>9:41</span>
+                  <span class="simstatus__icons">
+                    <svg viewBox="0 0 19 12" aria-hidden="true"><rect x="0" y="8" width="3" height="4" rx="1" fill="currentColor"/><rect x="5.3" y="5.6" width="3" height="6.4" rx="1" fill="currentColor"/><rect x="10.6" y="3" width="3" height="9" rx="1" fill="currentColor"/><rect x="15.9" y="0.4" width="3" height="11.6" rx="1" fill="currentColor"/></svg>
+                    <svg viewBox="0 0 16 12" aria-hidden="true"><path d="M1 4.4a10.4 10.4 0 0 1 14 0" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M3.7 7.2a6.4 6.4 0 0 1 8.6 0" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M6.4 9.9a2.5 2.5 0 0 1 3.2 0" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+                    <svg viewBox="0 0 27 13" aria-hidden="true"><rect x="0.7" y="0.7" width="23" height="11.6" rx="3.4" fill="none" stroke="currentColor" stroke-opacity="0.4" stroke-width="1.2"/><rect x="2.2" y="2.2" width="20" height="8.6" rx="2.3" fill="#34c759"/><path d="M25.1 4.6c1.2.5 1.2 3.3 0 3.8z" fill="currentColor" fill-opacity="0.4"/><path d="M12.9 3.1 8.4 7.5h3l-.7 2.9 4.6-4.6h-3.1z" fill="#fff"/></svg>
+                  </span>
+                </div>
+                <div id="sim-view"></div>
+                <nav class="simtab" id="sim-tab"></nav>
+                <button type="button" class="simfab" id="sim-fab" aria-hidden="true">＋</button>
+                <div id="sim-sheet"></div>
+              </div>
+              <img class="simframe" src="/assets/landing/phone-frame-v2.png" alt="" />
+            </div>
+            <p class="simcap" id="sim-cap">오늘 할 일 — 탭하면 바로 완료</p>
+          </div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- 데스크톱 앱 -->
+  <!-- 데스크톱 앱: 실제 UI 재현 시뮬레이션 -->
   <section class="deskapp">
     <div class="wrap">
       <p class="sec-tag"><b class="tint-blue">데스크톱 앱</b></p>
       <h2 class="sec-h">넓은 화면에서는<br />할 일과 메모를 나란히</h2>
       <p class="sec-sub">설치하면 브라우저 없이 앱처럼 열려요. 왼쪽에서 할 일을 고르면 오른쪽에 바로 메모를 씁니다.</p>
       <div class="deskapp__shot">
-        <div class="browser">
-          <div class="browser__bar"><i></i><i></i><i></i><span class="browser__url">핀로그</span></div>
-          <img src="/assets/landing/land-desk-home.png" alt="핀로그 데스크톱 앱 — 할 일과 업무 메모" />
+        <div class="dskscale" id="dsk-scale">
+          <div class="dskwin">
+            <div class="dskbar"><i></i><i></i><i></i><span>핀로그</span><em></em></div>
+            <div class="dskbody">
+              <aside class="dsknav">
+                <b class="dsknav__logo">핀로그</b>
+                <div id="dsk-nav"></div>
+                <div class="dsknav__newwrap">
+                  <span class="dsknav__new">＋ 새로 만들기</span>
+                  <div class="dskmenu" id="dsk-menu" hidden>
+                    <span class="is-on">✓ 할 일 추가</span>
+                    <span>🗓 일정 추가</span>
+                    <span>✏️ 메모 추가</span>
+                    <span>📁 파일 업로드</span>
+                  </div>
+                </div>
+              </aside>
+              <div class="dskmain">
+                <div class="dskhead">
+                  <p class="dskclock">오전 2:21</p>
+                  <p class="dskdate">7월 28일 (화)</p>
+                  <p class="dskgreet">지원님, 새벽까지 수고하십니다.. 무리하지 마세요!</p>
+                </div>
+                <div class="dskcols">
+                  <div class="dskcol">
+                    <div class="dskcard dsksum">
+                      <div class="dsksum__main">
+                        <div class="dsksum__txt">
+                          <p class="dsksum__label">오늘의 진행률</p>
+                          <p class="dsksum__title">오늘 할 일 <em id="dsk-done">3개</em> 완료했어요</p>
+                          <p class="dsksum__sub">작은 시작이 큰 변화를 만듭니다</p>
+                        </div>
+                        <div class="dskring">
+                          <svg viewBox="0 0 84 84">
+                            <circle cx="42" cy="42" r="34" fill="none" stroke="#fbe7e5" stroke-width="7"/>
+                            <circle id="dsk-arc" cx="42" cy="42" r="34" fill="none" stroke="#f04438" stroke-width="7" stroke-linecap="round" stroke-dasharray="213.6" stroke-dashoffset="133.5" transform="rotate(-90 42 42)"/>
+                          </svg>
+                          <b id="dsk-frac">3/8</b>
+                        </div>
+                      </div>
+                      <div class="dsksum__stats">
+                        <span><em>남은 할 일</em><b id="dsk-left">5</b></span>
+                        <span><em>우선순위</em><b id="dsk-imp">2</b></span>
+                        <span><em>오늘 일정</em><b>2</b></span>
+                      </div>
+                    </div>
+                    <div class="dskcard dsktodocard">
+                      <div class="dsktodo__head"><span>오늘 할 일</span><b id="dsk-donelabel">3/8 완료</b></div>
+                      <div id="dsk-todos"></div>
+                      <div class="dsktodo__add" id="dsk-add">＋ 할 일 추가</div>
+                    </div>
+                  </div>
+                  <div class="dskcard dsknote" id="dsk-note"></div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-      <p class="devcap">할 일을 체크하면 진행률이 바로 올라가요</p>
+      <div class="dskctl">
+        <div class="dskdots" id="dsk-dots"><button type="button" class="is-on"></button><button type="button"></button><button type="button"></button></div>
+        <p id="dsk-cap">할 일을 고르면 오른쪽에 메모가 열려요</p>
+      </div>
     </div>
   </section>
 
@@ -656,6 +844,7 @@
 
   <script src="/js/vendor/supabase.js"></script>
   <script src="/js/supabaseClient.js?v=mock19"></script>
+  <script src="/js/landing-demo.js?v=1"></script>
   <script>
     // 로그인 상태면 CTA를 "내 핀로그 열기"로, 비로그인이면 우상단 로그인 팝업 표시
     (async () => {
@@ -698,32 +887,7 @@
       targets.forEach((el) => { el.classList.add("rv"); io ? io.observe(el) : el.classList.add("in"); });
     })();
 
-    // 제품 데모: 단계 클릭 → 화면 페이드 전환, 보이는 동안 3.2초마다 자동 순환 (클릭하면 자동 멈춤)
-    (() => {
-      const steps = [...document.querySelectorAll("#demo-steps li")];
-      const img = document.getElementById("demo-img");
-      let idx = 0, timer = null, manual = false;
-      function activate(i) {
-        idx = i;
-        steps.forEach((x, j) => x.classList.toggle("is-on", j === i));
-        const next = steps[i].dataset.shot;
-        if (img.getAttribute("src") === next) return;
-        img.classList.add("sw");
-        setTimeout(() => { img.src = next; img.classList.remove("sw"); }, 200);
-      }
-      steps.forEach((li, i) => li.addEventListener("click", () => {
-        manual = true;                                       // 직접 조작하면 자동 순환 종료
-        if (timer) { clearInterval(timer); timer = null; }
-        activate(i);
-      }));
-      const demoSec = document.getElementById("demo");
-      if ("IntersectionObserver" in window && demoSec) {
-        new IntersectionObserver((es) => es.forEach((e) => {
-          if (e.isIntersecting && timer === null && !manual) timer = setInterval(() => activate((idx + 1) % steps.length), 3200);
-          else if (!e.isIntersecting && timer) { clearInterval(timer); timer = null; }
-        }), { threshold: 0.3 }).observe(demoSec);
-      }
-    })();
+    // 제품 데모·데스크톱 데모 시뮬레이션은 /js/landing-demo.js 에서 구동
 
     // 데스크톱 앱(PWA) 설치 버튼 — 크롬 설치 프롬프트, 미지원 브라우저는 안내
     let dPrompt = null;
