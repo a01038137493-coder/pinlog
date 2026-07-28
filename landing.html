@@ -447,22 +447,24 @@
     .mode li::before { content: "✓"; color: var(--red); font-weight: 800; }
     .mode--exam li::before { color: #ff8a80; }
 
-    /* ---------- 히어로 3폰 팬 ---------- */
-    .fan { position: relative; height: 648px; max-width: 900px; margin: 56px auto 0; }
-    .fan__ph {
-      position: absolute; border-radius: 34px; border: 5px solid #202227;
-      background: #202227; overflow: hidden;
-      box-shadow: 0 24px 55px rgba(25, 25, 25, 0.18);
+    /* ---------- 히어로 3폰 팬 (프레임 이미지 + 스크린) ---------- */
+    .fan { position: relative; height: 640px; max-width: 900px; margin: 44px auto 0; }
+    .fan__ph { position: absolute; }
+    .fan__scr {
+      position: absolute; left: 3.295%; top: 1.173%; width: 93.79%; height: 97.654%;
+      border-radius: 29px; overflow: hidden; background: #f4f4f5; z-index: 0; display: block;
     }
-    .fan__ph img { display: block; width: 100%; border-radius: 29px; }
-    .fan__ph--l { left: 70px; top: 60px; width: 250px; transform: rotate(-9deg); opacity: 0.92; }
-    .fan__ph--r { right: 70px; top: 60px; width: 250px; transform: rotate(9deg); opacity: 0.92; }
-    .fan__ph--c { left: 50%; transform: translateX(-50%); top: 0; width: 290px; z-index: 2; box-shadow: 0 34px 70px rgba(25, 25, 25, 0.28); }
+    .fan__scr img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
+    .fan__scr--c { border-radius: 34px; }
+    .fan__frame { position: relative; z-index: 1; width: 100%; display: block; pointer-events: none; }
+    .fan__ph--l { left: 62px; top: 56px; width: 258px; filter: drop-shadow(0 22px 44px rgba(25, 25, 25, 0.22)); }
+    .fan__ph--r { right: 62px; top: 56px; width: 258px; filter: drop-shadow(0 22px 44px rgba(25, 25, 25, 0.22)); }
+    .fan__ph--c { left: 50%; top: 0; width: 302px; z-index: 2; filter: drop-shadow(0 34px 60px rgba(25, 25, 25, 0.3)); }
     @media (max-width: 720px) {
-      .fan { height: 470px; max-width: 100%; }
-      .fan__ph--l { left: 4px; top: 44px; width: 168px; }
-      .fan__ph--r { right: 4px; top: 44px; width: 168px; }
-      .fan__ph--c { width: 205px; }
+      .fan { height: 480px; max-width: 100%; }
+      .fan__ph--l { left: 0; top: 44px; width: 172px; }
+      .fan__ph--r { right: 0; top: 44px; width: 172px; }
+      .fan__ph--c { width: 214px; }
     }
 
     /* ---------- 로그인 모달 ---------- */
@@ -534,7 +536,9 @@
     @media (prefers-reduced-motion: reduce) {
       .hero > * { animation: none; }
       .rv { opacity: 1; transform: none; transition: none; }
-      .fan__ph--l, .fan__ph--c, .fan__ph--r { animation: none; }
+      .fan__ph--l { animation: none; transform: rotate(-9deg); }
+      .fan__ph--r { animation: none; transform: rotate(9deg); }
+      .fan__ph--c { animation: none; transform: translateX(-50%); }
       .demo__steps button.is-on .demo__rail i { animation: none; width: 100%; }
     }
 
@@ -603,9 +607,9 @@
       <span><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4.5" width="17" height="15" rx="2.4"/><path d="M10.5 16.5h3"/></svg></i><em>태블릿</em></span>
     </div>
     <div class="fan">
-      <div class="fan__ph fan__ph--l"><img src="/assets/landing/land-m-cal.png" alt="캘린더 화면" /></div>
-      <div class="fan__ph fan__ph--c"><img src="/assets/landing/land-m-home.png" alt="홈 — 오늘 할 일과 진행률" /></div>
-      <div class="fan__ph fan__ph--r"><img src="/assets/landing/land-m-memo.png" alt="메모 화면" /></div>
+      <div class="fan__ph fan__ph--l"><span class="fan__scr"><img src="/assets/landing/land-m-cal.png" alt="캘린더 화면" /></span><img class="fan__frame" src="/assets/landing/phone-frame-v2.png" alt="" /></div>
+      <div class="fan__ph fan__ph--r"><span class="fan__scr"><img src="/assets/landing/land-m-memo.png" alt="메모 화면" /></span><img class="fan__frame" src="/assets/landing/phone-frame-v2.png" alt="" /></div>
+      <div class="fan__ph fan__ph--c"><span class="fan__scr fan__scr--c"><img src="/assets/landing/land-m-home.png" alt="홈 — 오늘 할 일과 진행률" /></span><img class="fan__frame" src="/assets/landing/phone-frame-v2.png" alt="" /></div>
     </div>
   </div>
 
