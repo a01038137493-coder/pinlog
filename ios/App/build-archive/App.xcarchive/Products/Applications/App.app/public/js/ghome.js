@@ -131,6 +131,20 @@
         : pct >= 0.5 ? "절반 넘게 왔어요, 이 흐름 그대로!"
         : "작은 시작이 큰 변화를 만듭니다";
       box.hidden = false;
+
+      /* iOS 잠금화면·홈 위젯에 오늘 요약 전달 */
+      try {
+        const WB = window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform()
+          && Capacitor.Plugins && Capacitor.Plugins.WidgetBridge;
+        if (WB) {
+          const firstOpen = todos.find((t) => !t.done);
+          WB.update({
+            left: n - done, total: n, done,
+            top: firstOpen ? firstOpen.content : "",
+            date: today,
+          });
+        }
+      } catch (e) {}
     }
 
     function renderAll() { render(); renderUpcoming(); updateSummary(); }

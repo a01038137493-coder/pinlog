@@ -10,7 +10,7 @@
 				<string>arm64</string>
 			</array>
 			<key>buildNumber</key>
-			<string>2</string>
+			<string>3</string>
 			<key>certificate</key>
 			<dict>
 				<key>SHA1</key>
@@ -88,7 +88,7 @@
 						<string>arm64</string>
 					</array>
 					<key>buildNumber</key>
-					<string>2</string>
+					<string>3</string>
 					<key>certificate</key>
 					<dict>
 						<key>SHA1</key>
@@ -142,7 +142,61 @@
 						<string>arm64</string>
 					</array>
 					<key>buildNumber</key>
-					<string>2</string>
+					<string>3</string>
+					<key>certificate</key>
+					<dict>
+						<key>SHA1</key>
+						<string>47F5376B48C71C002EFED5D37A549CF8B88CF644</string>
+						<key>dateExpires</key>
+						<string>7/23/27</string>
+						<key>type</key>
+						<string>Cloud Managed Apple Distribution</string>
+					</dict>
+					<key>entitlements</key>
+					<dict>
+						<key>application-identifier</key>
+						<string>9C9859LMAS.com.pinlog.app.LockWidget</string>
+						<key>beta-reports-active</key>
+						<true/>
+						<key>com.apple.developer.team-identifier</key>
+						<string>9C9859LMAS</string>
+						<key>com.apple.security.application-groups</key>
+						<array>
+							<string>group.com.pinlog.app</string>
+						</array>
+						<key>get-task-allow</key>
+						<false/>
+					</dict>
+					<key>name</key>
+					<string>LockWidget.appex</string>
+					<key>profile</key>
+					<dict>
+						<key>UUID</key>
+						<string>879e9710-b445-49e1-9e78-a47be127dccf</string>
+						<key>dateExpires</key>
+						<string>7/23/27</string>
+						<key>name</key>
+						<string>iOS Team Store Provisioning Profile: com.pinlog.app.LockWidget</string>
+					</dict>
+					<key>symbols</key>
+					<true/>
+					<key>team</key>
+					<dict>
+						<key>id</key>
+						<string>9C9859LMAS</string>
+						<key>name</key>
+						<string></string>
+					</dict>
+					<key>versionNumber</key>
+					<string>1.0.1</string>
+				</dict>
+				<dict>
+					<key>architectures</key>
+					<array>
+						<string>arm64</string>
+					</array>
+					<key>buildNumber</key>
+					<string>3</string>
 					<key>certificate</key>
 					<dict>
 						<key>SHA1</key>

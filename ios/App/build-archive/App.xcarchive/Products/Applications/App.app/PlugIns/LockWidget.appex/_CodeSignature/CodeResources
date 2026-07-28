@@ -4,55 +4,22 @@
 <dict>
 	<key>files</key>
 	<dict>
-		<key>AppIcon60x60@2x.png</key>
-		<data>
-		rJqDSeo0+pe0aoRV/vWzjohTMR4=
-		</data>
-		<key>AppIcon76x76@2x~ipad.png</key>
-		<data>
-		iu3He3gbC9YE7hWEz8JL9DQpnXw=
-		</data>
-		<key>Assets.car</key>
-		<data>
-		hHcTkKBVcCnr7JSPCfuppu5YA5U=
-		</data>
 		<key>Info.plist</key>
 		<data>
-		cOK94LmNHCxPFb/ShGC0lasxNR8=
+		ExM0MSruMV9nxGUaBSYbX0pL1+M=
 		</data>
 		<key>embedded.mobileprovision</key>
 		<data>
-		gVXgXvNyCveSxl+TJE9+cGwQGxo=
+		YcvW7czU3hNpGePTFnwoMlRbkF4=
 		</data>
 	</dict>
 	<key>files2</key>
 	<dict>
-		<key>AppIcon60x60@2x.png</key>
-		<dict>
-			<key>hash2</key>
-			<data>
-			87jIF3hLv9uWrenojpbWv6kZUjOo7p/pzvgld7biiG0=
-			</data>
-		</dict>
-		<key>AppIcon76x76@2x~ipad.png</key>
-		<dict>
-			<key>hash2</key>
-			<data>
-			S7RCWilCf93HA2LEHQRktlIHotSNkYqtuU4Wn0A2n94=
-			</data>
-		</dict>
-		<key>Assets.car</key>
-		<dict>
-			<key>hash2</key>
-			<data>
-			jrQtEQljWo0F7FQXYBoDrbenbfpftCbgL5VLNhaYGaY=
-			</data>
-		</dict>
 		<key>embedded.mobileprovision</key>
 		<dict>
 			<key>hash2</key>
 			<data>
-			Ot4zKPrdRJD/KmTsdxTATSsdoNBFVoK0x7uQZYuN6lM=
+			iTFMah/4sS3vjKvmZNrsbHjtZEla+x38ho4VGNekVNo=
 			</data>
 		</dict>
 	</dict>

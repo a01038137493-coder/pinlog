@@ -14,6 +14,7 @@ class AppViewController: CAPBridgeViewController {
 
     override open func capacitorDidLoad() {
         bridge?.registerPluginInstance(VisionOCRPlugin())
+        bridge?.registerPluginInstance(WidgetBridgePlugin())
     }
 
     override open func viewDidLoad() {

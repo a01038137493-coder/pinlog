@@ -24,6 +24,10 @@
 		B9E9CACED310DDB365EFF64E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D3A4D1879CFDD86324C02524 /* Assets.xcassets */; };
 		D5F0DC1F53FD6DAA52081765 /* ActionExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = B386EE6766F3523004967652 /* ActionExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		E4E9C0E930336A4600145470 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FDEFF8DD4C5D5D08841E1F57 /* Foundation.framework */; };
+		AD0000000000000000000005 /* LockWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD0000000000000000000001 /* LockWidget.swift */; };
+		AD0000000000000000000006 /* LockWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = AD0000000000000000000004 /* LockWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		AD0000000000000000000011 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FDEFF8DD4C5D5D08841E1F57 /* Foundation.framework */; };
+		AD0000000000000000000012 /* WidgetBridgePlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD0000000000000000000013 /* WidgetBridgePlugin.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -41,6 +45,13 @@
 			remoteGlobalIDString = A5D2688D8731CAA1F29F3316;
 			remoteInfo = ActionExtension;
 		};
+		AD000000000000000000000F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 504EC2FC1FED79650016851F /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = AD0000000000000000000008;
+			remoteInfo = LockWidget;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -52,6 +63,7 @@
 			files = (
 				192CC3C0A5187A95D9E4F831 /* ShareExtension.appex in Embed Foundation Extensions */,
 				D5F0DC1F53FD6DAA52081765 /* ActionExtension.appex in Embed Foundation Extensions */,
+				AD0000000000000000000006 /* LockWidget.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -80,6 +92,11 @@
 		D3A4D1879CFDD86324C02524 /* Assets.xcassets */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		E40EFB2A6D6589562CA60903 /* ShareViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ShareViewController.swift; sourceTree = "<group>"; };
 		FDEFF8DD4C5D5D08841E1F57 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
+		AD0000000000000000000001 /* LockWidget.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LockWidget.swift; sourceTree = "<group>"; };
+		AD0000000000000000000002 /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		AD0000000000000000000003 /* LockWidget.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; path = LockWidget.entitlements; sourceTree = "<group>"; };
+		AD0000000000000000000004 /* LockWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; name = LockWidget.appex; path = LockWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		AD0000000000000000000013 /* WidgetBridgePlugin.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WidgetBridgePlugin.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -107,6 +124,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		AD000000000000000000000D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AD0000000000000000000011 /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -126,6 +151,7 @@
 				504EC3051FED79650016851F /* Products */,
 				270FC86008BDD19D4D8AC9AA /* Frameworks */,
 				EA50D292CE7645251FDB1B6A /* ShareExtension */,
+				AD0000000000000000000007 /* LockWidget */,
 				5ECD863677BA24E053E51DC2 /* ActionExtension */,
 			);
 			sourceTree = "<group>";
@@ -135,6 +161,7 @@
 			children = (
 				504EC3041FED79650016851F /* App.app */,
 				674E1CC149CB53E5A08EDF55 /* ShareExtension.appex */,
+				AD0000000000000000000004 /* LockWidget.appex */,
 				B386EE6766F3523004967652 /* ActionExtension.appex */,
 			);
 			name = Products;
@@ -147,6 +174,7 @@
 				504EC3071FED79650016851F /* AppDelegate.swift */,
 				A1B2C3D4E5F6071809102004 /* AppViewController.swift */,
 				A1B2C3D4E5F6071809102002 /* VisionOCRPlugin.swift */,
+				AD0000000000000000000013 /* WidgetBridgePlugin.swift */,
 				504EC30B1FED79650016851F /* Main.storyboard */,
 				504EC30E1FED79650016851F /* Assets.xcassets */,
 				504EC3101FED79650016851F /* LaunchScreen.storyboard */,
@@ -187,6 +215,17 @@
 			path = ShareExtension;
 			sourceTree = "<group>";
 		};
+		AD0000000000000000000007 /* LockWidget */ = {
+			isa = PBXGroup;
+			children = (
+				AD0000000000000000000001 /* LockWidget.swift */,
+				AD0000000000000000000002 /* Info.plist */,
+				AD0000000000000000000003 /* LockWidget.entitlements */,
+			);
+			name = LockWidget;
+			path = LockWidget;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -204,6 +243,7 @@
 			dependencies = (
 				EAC2DB258BE05579A42F0A8B /* PBXTargetDependency */,
 				E0D2E00E6CCDA73A091ADEBE /* PBXTargetDependency */,
+				AD0000000000000000000010 /* PBXTargetDependency */,
 			);
 			name = App;
 			packageProductDependencies = (
@@ -247,6 +287,23 @@
 			productReference = B386EE6766F3523004967652 /* ActionExtension.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
+		AD0000000000000000000008 /* LockWidget */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AD0000000000000000000009 /* Build configuration list for PBXNativeTarget "LockWidget" */;
+			buildPhases = (
+				AD000000000000000000000C /* Sources */,
+				AD000000000000000000000D /* Frameworks */,
+				AD000000000000000000000E /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = LockWidget;
+			productName = LockWidget;
+			productReference = AD0000000000000000000004 /* LockWidget.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -282,6 +339,7 @@
 				504EC3031FED79650016851F /* App */,
 				5957641EB4070C807815C607 /* ShareExtension */,
 				A5D2688D8731CAA1F29F3316 /* ActionExtension */,
+				AD0000000000000000000008 /* LockWidget */,
 			);
 		};
 /* End PBXProject section */
@@ -315,6 +373,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		AD000000000000000000000E /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -333,6 +398,7 @@
 				504EC3081FED79650016851F /* AppDelegate.swift in Sources */,
 				A1B2C3D4E5F6071809102003 /* AppViewController.swift in Sources */,
 				A1B2C3D4E5F6071809102001 /* VisionOCRPlugin.swift in Sources */,
+				AD0000000000000000000012 /* WidgetBridgePlugin.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -341,6 +407,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				948A67C85BE1F842CB46E83C /* ActionViewController.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AD000000000000000000000C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AD0000000000000000000005 /* LockWidget.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -358,6 +432,12 @@
 			name = ShareExtension;
 			target = 5957641EB4070C807815C607 /* ShareExtension */;
 			targetProxy = 372E0429245151D9D7FF04CB /* PBXContainerItemProxy */;
+		};
+		AD0000000000000000000010 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = LockWidget;
+			target = AD0000000000000000000008 /* LockWidget */;
+			targetProxy = AD000000000000000000000F /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -497,7 +577,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = App/App.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = 9C9859LMAS;
 				INFOPLIST_FILE = App/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
@@ -521,7 +601,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = App/App.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = 9C9859LMAS;
 				INFOPLIST_FILE = App/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
@@ -545,7 +625,7 @@
 				CLANG_ENABLE_OBJC_WEAK = NO;
 				CODE_SIGN_ENTITLEMENTS = ActionExtension/ActionExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = 9C9859LMAS;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = ActionExtension/Info.plist;
@@ -567,7 +647,7 @@
 				CLANG_ENABLE_OBJC_WEAK = NO;
 				CODE_SIGN_ENTITLEMENTS = ShareExtension/ShareExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = 9C9859LMAS;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = ShareExtension/Info.plist;
@@ -589,7 +669,7 @@
 				CLANG_ENABLE_OBJC_WEAK = NO;
 				CODE_SIGN_ENTITLEMENTS = ActionExtension/ActionExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = 9C9859LMAS;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = ActionExtension/Info.plist;
@@ -610,7 +690,7 @@
 				CLANG_ENABLE_OBJC_WEAK = NO;
 				CODE_SIGN_ENTITLEMENTS = ShareExtension/ShareExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = 9C9859LMAS;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = ShareExtension/Info.plist;
@@ -618,6 +698,49 @@
 				MARKETING_VERSION = 1.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.pinlog.app.ShareExtension;
 				PRODUCT_NAME = ShareExtension;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		AD000000000000000000000A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CODE_SIGN_ENTITLEMENTS = LockWidget/LockWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 3;
+				DEVELOPMENT_TEAM = 9C9859LMAS;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = LockWidget/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MARKETING_VERSION = 1.0.1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.pinlog.app.LockWidget;
+				PRODUCT_NAME = LockWidget;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		AD000000000000000000000B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CODE_SIGN_ENTITLEMENTS = LockWidget/LockWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 3;
+				DEVELOPMENT_TEAM = 9C9859LMAS;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = LockWidget/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MARKETING_VERSION = 1.0.1;
+				PRODUCT_BUNDLE_IDENTIFIER = com.pinlog.app.LockWidget;
+				PRODUCT_NAME = LockWidget;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
 				SWIFT_VERSION = 5.0;
@@ -661,6 +784,15 @@
 			buildConfigurations = (
 				DC7C1F4374BF669F22C78898 /* Release */,
 				7A025ADF1B45F1183AC92F49 /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		AD0000000000000000000009 /* Build configuration list for PBXNativeTarget "LockWidget" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AD000000000000000000000A /* Debug */,
+				AD000000000000000000000B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
