@@ -113,7 +113,8 @@
       font-size: clamp(2.2rem, 4.9vw, 3.8rem); font-weight: 900; color: var(--ink);
       letter-spacing: -0.04em; line-height: 1.22; word-break: keep-all; white-space: nowrap;
     }
-    @media (max-width: 900px) { .hero h1 { white-space: normal; } }
+    .h1br { display: none; }
+    @media (max-width: 900px) { .hero h1 { white-space: normal; } .h1br { display: block; } }
     /* 하이라이트 필 — 텍스트와 같은 베이스라인, 핀이 좌상단에 꽂힌 모양 */
     .hl {
       position: relative; display: inline-block;
@@ -123,7 +124,15 @@
       position: absolute; top: -0.42em; left: 50%; width: 0.72em; height: 0.72em;
       transform: translateX(-50%) rotate(-8deg); pointer-events: none;
     }
+    .hero__new {
+      display: inline-flex; align-items: center; gap: 9px; margin-bottom: 24px;
+      background: var(--red-soft); border-radius: 99px; padding: 7px 16px 7px 7px;
+      font-size: 0.84rem; font-weight: 600; color: var(--text);
+    }
+    .hero__new b { background: var(--red); color: #fff; border-radius: 99px; padding: 3px 9px; font-size: 0.68rem; font-weight: 800; letter-spacing: 0.05em; }
     .hero__sub { margin: 26px auto 0; font-size: 1.16rem; color: var(--muted); max-width: 34em; word-break: keep-all; }
+    .hero__note { margin-top: 14px; font-size: 0.8rem; color: #b9b9b6; }
+    @media (max-width: 640px) { .hero__sub br { display: none; } }
     .plats { display: flex; justify-content: center; gap: 26px; margin-top: 30px; flex-wrap: wrap; }
     .plats span { display: flex; flex-direction: column; align-items: center; gap: 8px; }
     .plats i {
@@ -271,8 +280,39 @@
     .sec-h em { font-style: normal; color: var(--red); }
     .sec-sub { margin: 14px auto 0; text-align: center; color: var(--muted); max-width: 36em; word-break: keep-all; }
 
+    /* ---------- 제품 데모 ---------- */
+    .demo { background: var(--bg-soft); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .demo__grid { display: grid; grid-template-columns: minmax(300px, 400px) 1fr; gap: 48px; align-items: center; max-width: 880px; margin: 46px auto 0; }
+    .demo__steps { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+    .demo__steps li {
+      display: flex; gap: 14px; align-items: flex-start;
+      background: #fff; border: 1px solid var(--line); border-radius: 14px;
+      padding: 15px 18px; cursor: pointer; transition: box-shadow 0.2s ease, border-color 0.2s ease;
+    }
+    .demo__steps li:hover { box-shadow: 0 10px 26px rgba(25, 25, 25, 0.06); }
+    .demo__steps li.is-on { border-color: #f6b9b2; box-shadow: 0 12px 30px rgba(240, 68, 56, 0.1); }
+    .demo__steps li b {
+      flex: none; width: 26px; height: 26px; border-radius: 50%; margin-top: 2px;
+      background: var(--bg-soft); color: var(--muted);
+      display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 800;
+    }
+    .demo__steps li.is-on b { background: var(--red); color: #fff; }
+    .demo__steps h3 { font-size: 0.98rem; font-weight: 800; color: var(--ink); letter-spacing: -0.01em; }
+    .demo__steps p { font-size: 0.84rem; color: var(--muted); word-break: keep-all; }
+    .demo__hint { margin-top: 14px; text-align: center; font-size: 0.8rem; color: #b9b9b6; }
+    .demo__shot { display: flex; justify-content: center; }
+    @media (max-width: 860px) {
+      .demo__grid { grid-template-columns: 1fr; gap: 34px; }
+      .demo__shot .phframe { width: 250px; }
+    }
+
+    /* ---------- 데스크톱 앱 섹션 ---------- */
+    .deskapp__shot { display: flex; justify-content: center; margin-top: 46px; }
+    .deskapp .devcap { margin-top: 18px; }
+
     /* ---------- 기능 미니멀 그리드 ---------- */
-    .features { background: var(--bg-soft); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .features { }
+    .download { background: var(--bg-soft); border-top: 1px solid var(--line); }
     .fmin { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 46px; }
     .fmin__card {
       background: #fff; border: 1px solid var(--line); border-radius: 16px;
@@ -410,6 +450,7 @@
     <div class="nav nav--edge">
       <a class="brand" href="/landing"><img src="/assets/logo.png" alt="핀로그 로고" /><b>핀로그</b></a>
       <span class="nav__sp"></span>
+      <a class="nav__login" href="#demo">제품 둘러보기</a>
       <a class="nav__login" href="/login" id="nav-login">로그인</a>
       <a class="nav__cta" href="/signup">핀로그 무료로 사용하기</a>
     </div>
@@ -417,24 +458,65 @@
 
   <!-- 히어로 -->
   <div class="wrap hero">
-    <h1>하루의 계획과 기록이 <span class="hl"><img class="hl__pin" src="/assets/logo.png" alt="" />한곳</span>에 모이는 곳</h1>
-    <p class="hero__sub">할 일 · 일정 · 메모를 핀로그 하나로</p>
+    <p class="hero__new"><b>NEW</b> 할 일 · 일정 · 메모 · 파일을 하나의 앱에서</p>
+    <h1>하루의 계획과 기록이<br class="h1br" /> <span class="hl"><img class="hl__pin" src="/assets/logo.png" alt="" />한곳</span>에 모이는 곳</h1>
+    <p class="hero__sub">오늘 할 일을 체크하고, 일정을 확인하고, 메모와 파일을 남기는 일. <br />앱 네 개를 오가지 않고 핀로그 하나로 끝냅니다.</p>
+    <div class="hero__btns">
+      <a class="btn-primary" href="/app" id="hero-cta">웹앱에서 무료로 시작하기</a>
+      <a class="btn-soft" href="#demo">30초 제품 데모 보기</a>
+    </div>
+    <p class="hero__note">설치 없이 브라우저에서 바로 · 카드 등록 없음 · iOS 앱 심사 진행 중</p>
     <div class="plats">
       <span><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2.5" width="10" height="19" rx="2.6"/><path d="M10.5 18.5h3"/></svg></i><em>모바일</em></span>
       <span><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="4" width="19" height="13" rx="2"/><path d="M9.5 21h5M12 17v4"/></svg></i><em>데스크톱 앱</em></span>
       <span><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.5"/><path d="M2.5 12h19M12 2.5c2.8 2.6 4.2 5.9 4.2 9.5s-1.4 6.9-4.2 9.5c-2.8-2.6-4.2-5.9-4.2-9.5S9.2 5.1 12 2.5z"/></svg></i><em>웹</em></span>
       <span><i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4.5" width="17" height="15" rx="2.4"/><path d="M10.5 16.5h3"/></svg></i><em>태블릿</em></span>
     </div>
-    <div class="hero__btns">
-      <a class="btn-primary" href="#" id="pwa-install">데스크톱 앱 설치</a>
-      <a class="btn-soft" href="/app">웹앱에서 사용하기</a>
-    </div>
     <div class="fan">
-      <div class="fan__ph fan__ph--l"><img src="/assets/landing/shot-02.png" alt="캘린더" /></div>
-      <div class="fan__ph fan__ph--c"><img src="/assets/landing/shot-01.png" alt="홈 — 오늘 할 일과 일정" /></div>
-      <div class="fan__ph fan__ph--r"><img src="/assets/landing/shot-06.png" alt="타임박스 시간표" /></div>
+      <div class="fan__ph fan__ph--l"><img src="/assets/landing/land-m-cal.png" alt="캘린더 화면" /></div>
+      <div class="fan__ph fan__ph--c"><img src="/assets/landing/land-m-home.png" alt="홈 — 오늘 할 일과 진행률" /></div>
+      <div class="fan__ph fan__ph--r"><img src="/assets/landing/land-m-memo.png" alt="메모 화면" /></div>
     </div>
   </div>
+
+  <!-- 제품 데모 -->
+  <section class="demo" id="demo">
+    <div class="wrap">
+      <p class="sec-tag"><b class="tint-red">제품 데모</b></p>
+      <h2 class="sec-h">실제 화면 그대로,<br />써보는 것처럼 보여드려요</h2>
+      <p class="sec-sub">체크 한 번, 할 일 추가, 캘린더, 메모까지 — 앱에서 일어나는 일을 그대로 담았습니다.</p>
+      <div class="demo__grid">
+        <div>
+          <ol class="demo__steps" id="demo-steps">
+            <li class="is-on" data-shot="/assets/landing/land-m-home.png"><b>1</b><div><h3>할 일 체크하기</h3><p>탭 한 번으로 완료 — 진행률 링과 카운트가 같이 올라가요.</p></div></li>
+            <li data-shot="/assets/landing/land-m-home.png"><b>2</b><div><h3>할 일 추가하기</h3><p>시트를 열어 제목·날짜·중요 표시를 한 번에 등록해요.</p></div></li>
+            <li data-shot="/assets/landing/land-m-cal.png"><b>3</b><div><h3>캘린더 확인하기</h3><p>월간 달력에서 날짜를 눌러 그날 일정을 봐요.</p></div></li>
+            <li data-shot="/assets/landing/land-m-memo.png"><b>4</b><div><h3>메모 정리하기</h3><p>폴더로 나누고, 자주 보는 메모는 위에 고정해요.</p></div></li>
+          </ol>
+          <p class="demo__hint">단계를 누르면 해당 화면을 볼 수 있어요.</p>
+        </div>
+        <div class="demo__shot">
+          <div class="phframe"><img id="demo-img" src="/assets/landing/land-m-home.png" alt="핀로그 앱 화면" /></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 데스크톱 앱 -->
+  <section class="deskapp">
+    <div class="wrap">
+      <p class="sec-tag"><b class="tint-blue">데스크톱 앱</b></p>
+      <h2 class="sec-h">넓은 화면에서는<br />할 일과 메모를 나란히</h2>
+      <p class="sec-sub">설치하면 브라우저 없이 앱처럼 열려요. 왼쪽에서 할 일을 고르면 오른쪽에 바로 메모를 씁니다.</p>
+      <div class="deskapp__shot">
+        <div class="browser">
+          <div class="browser__bar"><i></i><i></i><i></i><span class="browser__url">핀로그</span></div>
+          <img src="/assets/landing/land-desk-home.png" alt="핀로그 데스크톱 앱 — 할 일과 업무 메모" />
+        </div>
+      </div>
+      <p class="devcap">할 일을 체크하면 진행률이 바로 올라가요</p>
+    </div>
+  </section>
 
   <!-- 로그인 모달 -->
   <div class="lmodal" id="lmodal" hidden>
@@ -561,7 +643,7 @@
       let user = null;
       try { user = await getCurrentUser(); } catch (e) {}
       if (user) {
-        document.querySelectorAll(".nav__cta, .btn-primary:not(#pwa-install)").forEach((a) => {
+        document.querySelectorAll(".nav__cta, #hero-cta").forEach((a) => {
           a.textContent = "내 핀로그 열기";
           a.setAttribute("href", "/app");
         });
@@ -584,7 +666,18 @@
       }
     })();
 
-    // 데스크톱 앱(PWA) 설치 버튼 — 크롬 설치 프롬프트, 미지원 브라우저는 안내 (히어로·다운로드 섹션 공용)
+    // 제품 데모: 단계 클릭 → 해당 화면으로 교체
+    (() => {
+      const steps = document.querySelectorAll("#demo-steps li");
+      const img = document.getElementById("demo-img");
+      steps.forEach((li) => li.addEventListener("click", () => {
+        steps.forEach((x) => x.classList.remove("is-on"));
+        li.classList.add("is-on");
+        img.src = li.dataset.shot;
+      }));
+    })();
+
+    // 데스크톱 앱(PWA) 설치 버튼 — 크롬 설치 프롬프트, 미지원 브라우저는 안내
     let dPrompt = null;
     window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); dPrompt = e; });
     ["pwa-install", "pwa-install-2"].forEach((id) => {
