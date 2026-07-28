@@ -3327,3 +3327,19 @@ html.dt-app body.memo-page main.container #memo-list { padding-top: 16px !import
 .alempty__title { font-weight: 800; font-size: 0.98rem; }
 .alempty__sub { font-size: 0.84rem; color: var(--muted); margin: 6px 0 18px; word-break: keep-all; }
 .alempty__btn { display: inline-block; }
+
+/* 잠금화면 리마인더 설정 (notifications.html) */
+.lm-title { font-size: 0.92rem; font-weight: 800; padding: 10px 4px 2px; }
+.lm-row { display: flex; align-items: center; gap: 10px; padding: 10px 4px; border-bottom: 1px solid var(--line); }
+.lm-row__txt { flex: 1; min-width: 0; }
+.lm-row__txt b { display: block; font-size: 0.9rem; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lm-row__txt em { font-style: normal; font-size: 0.74rem; color: var(--muted); font-weight: 600; }
+.lm-del { border: none; background: none; font: inherit; font-size: 0.8rem; font-weight: 700; color: #e5484d; padding: 6px; cursor: pointer; }
+.lm-addrow { padding: 10px 2px 0; }
+.lm-days { display: flex; gap: 5px; padding: 8px 2px 12px; flex-wrap: wrap; }
+.lm-days button {
+  border: 1px solid var(--line); background: #fff; border-radius: 99px;
+  padding: 6px 11px; font: inherit; font-size: 0.78rem; font-weight: 700; color: var(--muted); cursor: pointer;
+}
+.lm-days button.is-on { background: #191919; border-color: #191919; color: #fff; }
+.lm-days .lm-addbtn { margin-left: auto; background: var(--primary, #f04438); border-color: var(--primary, #f04438); color: #fff; padding: 6px 16px; }

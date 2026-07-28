@@ -137,8 +137,22 @@
         const WB = window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform()
           && Capacitor.Plugins && Capacitor.Plugins.WidgetBridge;
         if (WB) {
+          /* 위젯 첫 줄: 사용자 요일 리마인더 → 상황 문구(비·내일 일정) → 남은 할 일 요약 */
+          let msg = "";
+          try {
+            const arr = JSON.parse(localStorage.getItem("dt_lockmsg") || "[]");
+            const dow = new Date().getDay();
+            const hit = arr.find((r) => r && r.text && (!r.days || r.days.length >= 7 || r.days.includes(dow)));
+            if (hit) msg = hit.text;
+          } catch (e2) {}
+          if (!msg) msg = smartSub || "";
+          if (!msg) {
+            msg = n === 0 ? "오늘은 여유로운 날이에요"
+              : done >= n ? "오늘 할 일 모두 완료! 🎉"
+              : "오늘 할 일 " + (n - done) + "개 남았어요";
+          }
           WB.update({
-            left: n - done, total: n, done,
+            left: n - done, total: n, done, msg,
             items: todos.filter((t) => !t.done).slice(0, 3).map((t) => t.content),
             ev: widgetEv,
             date: today,

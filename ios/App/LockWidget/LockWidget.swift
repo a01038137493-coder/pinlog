@@ -17,6 +17,7 @@ struct TodayEntry: TimelineEntry {
     let left: Int
     let total: Int
     let done: Int
+    let msg: String          // 오늘의 한 문장 (리마인더·날씨·요약)
     let items: [String]      // 미완료 할 일 상위 3개
     let ev: String           // 다음 일정 "오후 2:00 팀 미팅" (없으면 "")
     let fresh: Bool          // 오늘 데이터인지
@@ -25,6 +26,7 @@ struct TodayEntry: TimelineEntry {
 struct TodayProvider: TimelineProvider {
     func placeholder(in context: Context) -> TodayEntry {
         TodayEntry(date: Date(), left: 5, total: 8, done: 3,
+                   msg: "비가 와요! 우산 꼭 챙기세요 ☔",
                    items: ["프로젝트 기획안 작성", "병원 예약 전화", "운동 30분"],
                    ev: "오후 2:00 팀 미팅", fresh: true)
     }
@@ -47,17 +49,22 @@ struct TodayProvider: TimelineProvider {
         guard let d = UserDefaults(suiteName: APP_GROUP),
               let raw = d.data(forKey: "dt_widget"),
               let obj = try? JSONSerialization.jsonObject(with: raw) as? [String: Any] else {
-            return TodayEntry(date: Date(), left: 0, total: 0, done: 0, items: [], ev: "", fresh: false)
+            return empty
         }
         return TodayEntry(
             date: Date(),
             left: obj["left"] as? Int ?? 0,
             total: obj["total"] as? Int ?? 0,
             done: obj["done"] as? Int ?? 0,
+            msg: obj["msg"] as? String ?? "",
             items: obj["items"] as? [String] ?? [],
             ev: obj["ev"] as? String ?? "",
             fresh: (obj["date"] as? String) == todayStr
         )
+    }
+
+    private var empty: TodayEntry {
+        TodayEntry(date: Date(), left: 0, total: 0, done: 0, msg: "", items: [], ev: "", fresh: false)
     }
 }
 
@@ -87,52 +94,36 @@ struct TodayWidgetView: View {
         .gaugeStyle(.accessoryCircular)
     }
 
-    /* ── 잠금화면 사각형: 헤더 + 실제 할 일 2줄 (부족하면 다음 일정으로 채움) ── */
+    /* ── 잠금화면 사각형: 오늘의 한 문장 + 컨텍스트 한 줄 ── */
     var rectangularView: some View {
-        VStack(alignment: .leading, spacing: 2.5) {
-            HStack(spacing: 4) {
-                Text(headerTitle).font(.system(size: 13, weight: .heavy))
-                Spacer(minLength: 0)
-                if entry.fresh && entry.total > 0 {
-                    Text("\(entry.done)/\(entry.total)")
-                        .font(.system(size: 11, weight: .bold)).opacity(0.65)
-                }
-            }
-            ForEach(Array(bodyLines.enumerated()), id: \.offset) { _, line in
-                HStack(spacing: 5) {
-                    Image(systemName: line.icon)
-                        .font(.system(size: line.icon == "circle" ? 10 : 11, weight: .semibold))
-                        .opacity(line.icon == "circle" ? 0.55 : 0.85)
-                    Text(line.text)
-                        .font(.system(size: 12.5, weight: .semibold))
-                        .lineLimit(1)
-                }
-            }
+        VStack(alignment: .leading, spacing: 3) {
+            Text(mainSentence)
+                .font(.system(size: 14, weight: .heavy))
+                .lineLimit(2)
+                .minimumScaleFactor(0.85)
+            Text(contextLine)
+                .font(.system(size: 11, weight: .semibold))
+                .opacity(0.62)
+                .lineLimit(1)
             Spacer(minLength: 0)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
 
-    private var headerTitle: String {
-        if !entry.fresh || entry.total == 0 { return "오늘 할 일 없음" }
-        if entry.left == 0 { return "오늘 다 했어요!" }
-        return "남은 할 일 \(entry.left)"
+    private var mainSentence: String {
+        if entry.fresh && !entry.msg.isEmpty { return entry.msg }
+        if !entry.fresh { return "좋은 하루 보내세요!" }
+        if entry.total == 0 { return "오늘은 여유로운 날이에요" }
+        if entry.left == 0 { return "오늘 할 일 모두 완료! 🎉" }
+        return "오늘 할 일 \(entry.left)개 남았어요"
     }
 
-    private struct Line { let icon: String; let text: String }
-    private var bodyLines: [Line] {
-        var lines: [Line] = []
-        if entry.fresh {
-            for t in entry.items.prefix(2) { lines.append(Line(icon: "circle", text: t)) }
-        }
-        if lines.count < 2 && !entry.ev.isEmpty {
-            lines.append(Line(icon: "calendar", text: entry.ev))
-        }
-        if lines.isEmpty {
-            lines.append(Line(icon: "plus.circle", text: entry.fresh && entry.left == 0 && entry.total > 0
-                              ? "\(entry.done)개 완료 · 수고했어요" : "핀로그에서 추가해보세요"))
-        }
-        return lines
+    private var contextLine: String {
+        var parts: [String] = []
+        if entry.fresh && entry.total > 0 { parts.append("할 일 \(entry.done)/\(entry.total)") }
+        if !entry.ev.isEmpty { parts.append(entry.ev) }
+        if parts.isEmpty { parts.append("핀로그 — 오늘을 계획해보세요") }
+        return parts.joined(separator: " · ")
     }
 
     /* ── 홈화면 스몰: 앱과 같은 진행률 링 카드 ── */

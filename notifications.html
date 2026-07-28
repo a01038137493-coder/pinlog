@@ -9,7 +9,7 @@
   <link rel="manifest" href="/manifest.json" />
   <meta name="theme-color" content="#f04438" />
   <script>document.documentElement.classList.add(window.Capacitor ? "dt-app" : "dt-web");</script>
-  <link rel="stylesheet" href="/css/style.css?v=256" />
+  <link rel="stylesheet" href="/css/style.css?v=257" />
 </head>
 <body class="app-bg">
   <header class="topbar">
@@ -62,6 +62,27 @@
       <p class="settings-menu__hint" id="ntf-hint">알림은 이 기기에서 울립니다. 일정에 설정한 알림(5분 전 등)은 자동으로 예약돼요.</p>
     </section>
 
+    <!-- 잠금화면 위젯 한 문장 리마인더 (요일 반복) -->
+    <section class="card settings-menu" id="lm-sec" hidden>
+      <p class="lm-title">잠금화면 리마인더</p>
+      <p class="settings-menu__hint" style="margin-top:0;">선택한 요일에 잠금화면 위젯 첫 줄로 보여드려요. 예: "아 맞다, 유니폼 챙기기!"</p>
+      <div id="lm-list"></div>
+      <div class="lm-addrow">
+        <input type="text" id="lm-input" class="field__input" placeholder="한 문장 리마인더" maxlength="40" autocomplete="off" />
+      </div>
+      <div class="lm-days" id="lm-days">
+        <button type="button" data-d="all" class="is-on">매일</button>
+        <button type="button" data-d="1">월</button>
+        <button type="button" data-d="2">화</button>
+        <button type="button" data-d="3">수</button>
+        <button type="button" data-d="4">목</button>
+        <button type="button" data-d="5">금</button>
+        <button type="button" data-d="6">토</button>
+        <button type="button" data-d="0">일</button>
+        <button type="button" class="lm-addbtn" id="lm-add">추가</button>
+      </div>
+    </section>
+
     <section class="card settings-menu" id="ntf-tools" hidden>
       <button type="button" class="settings-row" id="ntf-test">
         테스트 알림 보내기
@@ -86,6 +107,60 @@
       }
       document.getElementById("ntf-sec").hidden = false;
       document.getElementById("ntf-tools").hidden = false;
+      document.getElementById("lm-sec").hidden = false;
+
+      /* ---------- 잠금화면 리마인더 (기기 저장, 위젯 첫 줄) ---------- */
+      (() => {
+        const KEY = "dt_lockmsg";
+        const DAYS_KO = ["일", "월", "화", "수", "목", "금", "토"];
+        const listEl = document.getElementById("lm-list");
+        const input = document.getElementById("lm-input");
+        const daysEl = document.getElementById("lm-days");
+        const load = () => { try { return JSON.parse(localStorage.getItem(KEY) || "[]"); } catch (e) { return []; } };
+        const save = (arr) => localStorage.setItem(KEY, JSON.stringify(arr));
+
+        function daysLabel(days) {
+          if (!days || days.length >= 7) return "매일";
+          return [1, 2, 3, 4, 5, 6, 0].filter((d) => days.includes(d)).map((d) => DAYS_KO[d]).join(" · ");
+        }
+        function paint() {
+          const arr = load();
+          listEl.innerHTML = arr.length
+            ? arr.map((r, i) =>
+                `<div class="lm-row"><div class="lm-row__txt"><b>${r.text.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]))}</b><em>${daysLabel(r.days)}</em></div><button type="button" class="lm-del" data-i="${i}">삭제</button></div>`).join("")
+            : '<p class="settings-menu__hint" style="margin:4px 0 8px;">등록된 리마인더가 없어요.</p>';
+          listEl.querySelectorAll(".lm-del").forEach((b) => b.addEventListener("click", () => {
+            const arr2 = load(); arr2.splice(Number(b.dataset.i), 1); save(arr2); paint();
+          }));
+        }
+        paint();
+
+        /* 요일 선택: 매일 ↔ 개별 요일 토글 */
+        const dayBtns = [...daysEl.querySelectorAll("button[data-d]")];
+        daysEl.addEventListener("click", (e) => {
+          const b = e.target.closest("button[data-d]");
+          if (!b) return;
+          if (b.dataset.d === "all") {
+            dayBtns.forEach((x) => x.classList.toggle("is-on", x.dataset.d === "all"));
+          } else {
+            b.classList.toggle("is-on");
+            const anyDay = dayBtns.some((x) => x.dataset.d !== "all" && x.classList.contains("is-on"));
+            dayBtns.find((x) => x.dataset.d === "all").classList.toggle("is-on", !anyDay);
+          }
+        });
+
+        document.getElementById("lm-add").addEventListener("click", () => {
+          const text = input.value.trim();
+          if (!text) { input.focus(); return; }
+          const picked = dayBtns.filter((x) => x.dataset.d !== "all" && x.classList.contains("is-on")).map((x) => Number(x.dataset.d));
+          const arr = load();
+          arr.push({ text, days: picked.length ? picked : [0, 1, 2, 3, 4, 5, 6] });
+          save(arr);
+          input.value = "";
+          dayBtns.forEach((x) => x.classList.toggle("is-on", x.dataset.d === "all"));
+          paint();
+        });
+      })();
       if (profile.user_type !== "general") document.getElementById("ntf-tb-row").hidden = false;
 
       const el = {

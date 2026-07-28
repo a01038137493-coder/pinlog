@@ -24,6 +24,7 @@ public class WidgetBridgePlugin: CAPPlugin, CAPBridgedPlugin {
             "left": call.getInt("left") ?? 0,
             "total": call.getInt("total") ?? 0,
             "done": call.getInt("done") ?? 0,
+            "msg": call.getString("msg") ?? "",
             "items": call.getArray("items", String.self) ?? [],
             "ev": call.getString("ev") ?? "",
             "date": call.getString("date") ?? ""
