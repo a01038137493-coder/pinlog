@@ -711,3 +711,77 @@ function dtSkeleton(el, rows) {
     if (location.pathname === "/timebox.html") a.classList.add("is-active");
   } catch (e) {}
 })();
+
+
+/* 시간대별 친근한 인사말 (모바일 홈 헤더용) */
+function dtGreeting(name) {
+  const h = new Date().getHours();
+  let msg;
+  if (h >= 1 && h < 5) msg = "새벽까지 수고하십니다.. 무리하지 마세요!";
+  else if (h >= 5 && h < 8) msg = "일찍 시작하는 하루네요! 오늘도 화이팅 ☀️";
+  else if (h >= 8 && h < 11) msg = "좋은 아침이에요! 가볍게 시작해봐요";
+  else if (h >= 11 && h < 13) msg = "오늘 점심 메뉴는 뭐예요? ㅎㅎ";
+  else if (h >= 13 && h < 17) msg = "나른한 오후네요, 잠깐 스트레칭 어때요?";
+  else if (h >= 17 && h < 19) msg = "오늘 하루도 수고 많았어요!";
+  else if (h >= 19 && h < 22) msg = "하루 마무리 잘 하고 있나요? 🌙";
+  else msg = "슬슬 잘 준비 해볼까요? 😴";
+  const who = name ? String(name).trim() : "";
+  return (who ? who + "님, " : "") + msg;
+}
+
+/* ------------------------------------------------------------
+ * 요약 카드 상황 리마인더 — 비 예보 / 내일 이른 첫 일정.
+ * 해당 없으면 null (진행률 기본 문구 사용). 날씨는 30분 캐시.
+ * ------------------------------------------------------------ */
+async function dtSmartSub(profile) {
+  const h = new Date().getHours();
+  const evening = h >= 18 || h < 4;
+
+  const earlyEvent = async () => {
+    try {
+      const t0 = new Date(); t0.setHours(0, 0, 0, 0);
+      const s = new Date(t0.getTime() + 86400000);
+      const e = new Date(t0.getTime() + 2 * 86400000);
+      const { data } = await supabaseClient.from("events")
+        .select("start_at,all_day").eq("user_id", profile.id)
+        .gte("start_at", s.toISOString()).lt("start_at", e.toISOString())
+        .order("start_at").limit(3);
+      const ev = (data || []).find((x) => !x.all_day);
+      if (!ev) return null;
+      const st = new Date(ev.start_at);
+      if (st.getHours() > 9) return null;
+      return `내일 ${fmtTime12(st)} 일정이 있어요. 내일을 위해 일찍 쉬어요 🌙`;
+    } catch (e2) { return null; }
+  };
+
+  const rainToday = async () => {
+    try {
+      const KEY = "dt_wx_rain";
+      let p = null;
+      try {
+        const c = JSON.parse(localStorage.getItem(KEY) || "null");
+        if (c && Date.now() - c.t < 30 * 60000) p = c.p;
+      } catch (e2) {}
+      if (p === null) {
+        let lat = 37.57, lon = 126.98;                      // 실패 시 서울
+        try {
+          const g = await (await fetch("https://ipwho.is/")).json();
+          if (g && g.success !== false && typeof g.latitude === "number") { lat = g.latitude; lon = g.longitude; }
+        } catch (e2) {}
+        const d = await (await fetch(
+          `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
+          `&daily=precipitation_probability_max,weather_code&forecast_days=1&timezone=auto`)).json();
+        const code = d.daily && d.daily.weather_code ? d.daily.weather_code[0] : 0;
+        const prob = d.daily && d.daily.precipitation_probability_max ? d.daily.precipitation_probability_max[0] : 0;
+        p = prob >= 60 || (code >= 51 && code <= 99);       // WMO 51+: 비·소나기·뇌우·눈
+        localStorage.setItem(KEY, JSON.stringify({ t: Date.now(), p }));
+      }
+      return p ? "오늘 비 소식이 있어요. 우산 챙기는 거 잊지 마세요 ☔" : null;
+    } catch (e2) { return null; }
+  };
+
+  // 저녁·새벽엔 내일 일정 안내가 먼저, 낮에는 우산 리마인더가 먼저
+  const order = evening ? [earlyEvent, rainToday] : [rainToday, earlyEvent];
+  for (const f of order) { const s = await f(); if (s) return s; }
+  return null;
+}

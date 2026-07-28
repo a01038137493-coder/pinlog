@@ -19,9 +19,14 @@
 
   document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("g-date").textContent = formatKoreanDate();
+    try {
+      const greetEl = document.getElementById("g-greet");
+      if (greetEl) { greetEl.textContent = dtGreeting(null); greetEl.hidden = false; }
+    } catch (e) {}
 
     const profile = await requireRole(["student"]);
     if (!profile) return;
+    try { document.getElementById("g-greet").textContent = dtGreeting(profile.name); } catch (e) {}
     if (!profile.onboarded) { window.location.replace("/onboarding.html"); return; }
     // 수험생이 잘못 들어오면 수험생 홈으로
     if (profile.user_type !== "general") { window.location.replace("/student-m.html"); return; }
@@ -107,7 +112,28 @@
       upListEl.querySelectorAll(".gtodo__row").forEach(wireRow);
     }
 
-    function renderAll() { render(); renderUpcoming(); }
+    let smartSub = null;   // 상황 리마인더 (비 예보·내일 이른 일정) — 있으면 기본 문구 대신
+    function updateSummary() {
+      const box = document.getElementById("g-summary");
+      if (!box) return;
+      const n = todos.length;
+      const done = todos.filter((t) => t.done).length;
+      const C = 188.5;
+      const pct = n ? done / n : 0;
+      document.getElementById("g-sum-frac").textContent = done + "/" + n;
+      document.getElementById("g-sum-done").textContent = done + "개";
+      document.getElementById("g-sum-left").textContent = n - done;
+      document.getElementById("g-sum-imp").textContent = todos.filter((t) => t.important && !t.done).length;
+      document.getElementById("g-sum-arc").style.strokeDashoffset = (C * (1 - pct)).toFixed(1);
+      document.getElementById("g-sum-sub").textContent =
+        n && pct >= 1 ? "오늘 할 일을 전부 끝냈어요! 🎉"
+        : smartSub ? smartSub
+        : pct >= 0.5 ? "절반 넘게 왔어요, 이 흐름 그대로!"
+        : "작은 시작이 큰 변화를 만듭니다";
+      box.hidden = false;
+    }
+
+    function renderAll() { render(); renderUpcoming(); updateSummary(); }
 
     /* 행 하나: 탭=완료 토글, 좌측 스와이프=중요·삭제 */
     let openRow = null;
@@ -305,7 +331,7 @@
           .select("*").eq("student_id", profile.id).gt("date", today).eq("done", false)
           .order("date").order("created_at").limit(30),
         supabaseClient.from("todos")
-          .select("*").eq("student_id", profile.id).eq("date", yesterday).eq("done", false),
+          .select("*").eq("student_id", profile.id).lt("date", today).eq("done", false),
         supabaseClient.from("todo_tags")
           .select("*").eq("student_id", profile.id).order("sort").order("created_at"),
       ]);
@@ -319,7 +345,7 @@
       const box = document.getElementById("g-carry");
       if (carryover.length) {
         document.getElementById("g-carry-text").textContent =
-          `어제 못 끝낸 할 일 ${carryover.length}개가 있어요`;
+          `밀린 할 일 ${carryover.length}개가 있어요`;
         box.hidden = false;
       } else {
         box.hidden = true;
@@ -341,5 +367,20 @@
 
     /* ---------- 일정 블록: 오늘 + 다가오는 7일 ---------- */
     renderHomeSchedule(document.getElementById("g-events"), document.getElementById("g-events-list"));
+    (async () => {
+      try {
+        const s0 = new Date(); s0.setHours(0, 0, 0, 0);
+        const e0 = new Date(s0.getTime() + 86400000);
+        const { count } = await supabaseClient.from("events")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", profile.id)
+          .gte("start_at", s0.toISOString()).lt("start_at", e0.toISOString());
+        const el = document.getElementById("g-sum-ev");
+        if (el) el.textContent = count || 0;
+      } catch (e) {}
+    })();
+
+    /* 상황 리마인더 문구 (비 예보 · 내일 이른 일정) */
+    dtSmartSub(profile).then((s) => { if (s) { smartSub = s; updateSummary(); } }).catch(() => {});
   });
 })();

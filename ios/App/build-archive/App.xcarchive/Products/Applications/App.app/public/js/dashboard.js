@@ -24,7 +24,7 @@ const WIDGET_CATALOG = {
   calendar: { emoji: "📅", title: "달력",       desc: "이번 달 미니 달력",       builtin: true, w: 2, h: 2 },
   timer:    { emoji: "⏱️", title: "공부 타이머", desc: "집중 시간 카운트다운 (5·25·50분)",      w: 2, h: 2 },
   clock:    { emoji: "🕐", title: "시계",       desc: "현재 시각",               w: 2, h: 2 },
-  weather:  { emoji: "🌤️", title: "날씨",       desc: "현재 날씨 (위치 기반)",   w: 2, h: 2 },
+  weather:  { emoji: "🌤️", title: "날씨",       desc: "오늘의 날씨와 기온",   w: 2, h: 2 },
   tasks:    { emoji: "✅", title: "오늘 과제",   desc: "지금 할 일 · 완료 체크",  w: 2, h: 2 },
   memo:     { emoji: "📝", title: "메모장",     desc: "자유 메모 (폰트 선택 가능)", w: 2, h: 2 },
   motto:    { emoji: "🔥", title: "한줄 다짐",   desc: "오늘의 한 줄 선언 (가로 배너)", w: 4, h: 1 },
@@ -46,6 +46,9 @@ async function initDashboard(profile) {
   setupPager();
   setupEditEntry();        // 상단 "편집" 버튼(원탭 진입) — 롱프레스 어색함 보완
   setupCoreAutoReflow();   // 코어 카드 높이 변동 시 아래 위젯 자동 재배치(겹침/흐트러짐 방지)
+  // 프로필 로드 전(첫 페인트)에 만들어진 과제 위젯은 로드가 실패한 채 방치될 수 있다 → 여기서 다시 로드
+  const tasksEl = document.querySelector(".widget--tasks");
+  if (tasksEl && tasksWidget.tasks == null) { renderTasksWidget(tasksEl); loadTodayTasks(tasksEl); }
   window.addEventListener("resize", renderCanvas);
   // 웹폰트가 늦게 로드되면 코어 높이가 미세하게 달라지므로, 로드 후 한 번 더 정렬 보정
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => renderCanvas());
@@ -137,6 +140,8 @@ function normalizeLayout(l) {
     clock: {
       design: l && l.clock && l.clock.design === "analog" ? "analog" : "digital",
     },
+    // 날씨 지역 선택 (null = 자동 추정)
+    weather: l && l.weather && typeof l.weather.lat === "number" ? l.weather : null,
   };
 }
 
@@ -145,12 +150,20 @@ function normalizeLayout(l) {
  * ============================================================ */
 function layoutKey(id) { return `dt_dashboard_${id}`; }
 
+let layoutLoadFailed = false;   // 서버에서 확답을 못 받은 상태 — 자동 저장으로 덮어쓰지 않는다
+
 async function loadLayout(id) {
-  try {
-    const { data, error } = await supabaseClient
-      .from("profiles").select("dashboard_layout").eq("id", id).maybeSingle();
-    if (!error && data && data.dashboard_layout) return data.dashboard_layout;
-  } catch (e) {}
+  // 앱 재실행 직후엔 세션 복원 전이라 RLS 로 빈 결과가 올 수 있다.
+  // 그 순간을 "저장된 배치 없음"으로 오인하면 기본 배치로 초기화돼 보이므로 재시도한다.
+  for (let i = 0; i < 3; i++) {
+    try {
+      const { data, error } = await supabaseClient
+        .from("profiles").select("dashboard_layout").eq("id", id).maybeSingle();
+      if (!error && data) return data.dashboard_layout || null;
+    } catch (e) {}
+    await new Promise((r) => setTimeout(r, 700));
+  }
+  layoutLoadFailed = true;
   try {
     const raw = localStorage.getItem(layoutKey(id));
     if (raw) return JSON.parse(raw);
@@ -179,7 +192,11 @@ async function saveLayout() {
 function colsNow() {
   const canvas = document.getElementById("widget-canvas");
   const w = canvas ? canvas.clientWidth : window.innerWidth;
-  return Math.max(2, Math.floor((w + GAP) / (CELL_W + GAP)));
+  let n = Math.max(2, Math.floor((w + GAP) / (CELL_W + GAP)));
+  // 코어 카드(5칸)가 정확히 가운데 오도록 양옆 열 수를 짝수로 맞춘다.
+  // (예: 10열이면 좌2/우3으로 코어가 비껴 보임 → 9열로 줄여 좌2/우2 대칭)
+  if (n > CORE_COLS && (n - CORE_COLS) % 2 === 1) n -= 1;
+  return n;
 }
 
 /* 현재 화면 "열 수"에 맞는 위젯 배치 맵을 활성화 (기기/화면 폭별 분리 저장)
@@ -189,16 +206,32 @@ let pendingLayoutSave = false;   // 처음 보는 화면 폭 → 자동 배치 �
 function useLayoutForCols(cols) {
   const key = "c" + cols;
   if (!dashLayout.layouts[key]) {
-    // 이 화면 폭을 처음 보는 경우: 구버전 단일 배치가 있으면 1회 이식, 없으면 자동 배치.
-    // 다른 폭의 좌표를 그대로 물려받으면 행 번호까지 따라와 위젯이 화면 밖으로
-    // 밀리므로, 이 폭에 맞게 새로 채운 뒤 그대로 저장해 다음부터 고정한다.
-    dashLayout.layouts[key] = dashLayout._seedPos
-      ? JSON.parse(JSON.stringify(dashLayout._seedPos))
-      : {};
+    // 이 화면 폭을 처음 보는 경우: 구버전 단일 배치 → 가장 가까운 폭의 기존 배치 → 자동 배치 순.
+    // 백지에서 자동 배치하면 회전/기기 변경 때마다 "위젯이 초기화됐다"고 느끼므로,
+    // 사용자가 만든 상대 배치를 최대한 물려받고 열만 화면 안으로 클램프한다.
+    const seed = dashLayout._seedPos || nearestLayoutSeed(cols);
+    dashLayout.layouts[key] = seed ? JSON.parse(JSON.stringify(seed)) : {};
     dashLayout._seedPos = null;
     pendingLayoutSave = true;
   }
   dashLayout.pos = dashLayout.layouts[key];
+}
+
+/* 저장된 다른 화면 폭 배치 중 열 수가 가장 가까운 것을 상속 (겹치는 칸은 렌더 시 자동 재배치) */
+function nearestLayoutSeed(cols) {
+  const keys = Object.keys(dashLayout.layouts)
+    .filter((k) => /^c\d+$/.test(k) && Object.keys(dashLayout.layouts[k] || {}).length);
+  if (!keys.length) return null;
+  keys.sort((a, b) => Math.abs(Number(a.slice(1)) - cols) - Math.abs(Number(b.slice(1)) - cols));
+  const src = dashLayout.layouts[keys[0]];
+  const out = {};
+  Object.keys(src).forEach((id) => {
+    const p = src[id];
+    if (!p || typeof p.c !== "number") return;
+    const w = footprint(id).w;
+    out[id] = { ...p, c: Math.max(1, Math.min(p.c, cols - w + 1)) };
+  });
+  return out;
 }
 
 /* ===== 페이지(좌우 슬라이드) ===== */
@@ -354,10 +387,11 @@ function renderCanvas() {
     });
   }
 
-  // 이 화면 폭에서 처음 만든 배치를 저장해 다음 진입 때도 같은 자리에 오게 한다
+  // 이 화면 폭에서 처음 만든 배치를 저장해 다음 진입 때도 같은 자리에 오게 한다.
+  // 단, 서버에서 배치를 못 읽어온 상태라면 저장하지 않는다 — 진짜 배치를 덮어쓸 수 있다.
   if (pendingLayoutSave) {
     pendingLayoutSave = false;
-    saveLayout();
+    if (!layoutLoadFailed) saveLayout();
   }
 }
 
@@ -1194,8 +1228,9 @@ function createWeatherTile() {
   el.dataset.widget = "weather";
   el.innerHTML = `
     <button type="button" class="widget__del" aria-label="삭제">−</button>
+    <button type="button" class="widget__opt weather__region" aria-label="지역 변경" title="지역 변경">⌖</button>
     <div class="weather__top">
-      <span class="weather__loc" id="weather-loc">대구광역시</span>
+      <span class="weather__loc" id="weather-loc">--</span>
       <svg class="weather__nav" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.6 3.4c.66-.26 1.3.38 1.04 1.04L15 21c-.3.76-1.4.66-1.55-.14l-1.27-6.04-6.04-1.27c-.8-.16-.9-1.25-.14-1.55z"/></svg>
     </div>
     <div class="weather__temp" id="weather-temp">--°</div>
@@ -1206,6 +1241,11 @@ function createWeatherTile() {
     </div>`;
   el.querySelector(".widget__del").addEventListener("click", (e) => {
     e.preventDefault(); e.stopPropagation(); removeWidget("weather");
+  });
+  const regionBtn = el.querySelector(".weather__region");
+  regionBtn.addEventListener("pointerdown", (e) => e.stopPropagation());  // 드래그/롱프레스와 충돌 방지
+  regionBtn.addEventListener("click", (e) => {
+    e.preventDefault(); e.stopPropagation(); openWeatherRegionMenu(regionBtn);
   });
   loadWeather();
   return el;
@@ -1246,6 +1286,65 @@ function wmoWeather(code, isDay) {
   return { img: `/assets/weather/${WEATHER_ICONS[key]}.png`, text };
 }
 
+/* 지역: 저장된 선택 → 없으면 IP로 추정(위치 권한 불필요) → 실패 시 서울 */
+const WEATHER_CITIES = [
+  { name: "서울", lat: 37.5665, lon: 126.978 },
+  { name: "인천", lat: 37.4563, lon: 126.7052 },
+  { name: "수원", lat: 37.2636, lon: 127.0286 },
+  { name: "춘천", lat: 37.8813, lon: 127.7298 },
+  { name: "강릉", lat: 37.7519, lon: 128.8761 },
+  { name: "청주", lat: 36.6424, lon: 127.489 },
+  { name: "천안", lat: 36.8151, lon: 127.1139 },
+  { name: "대전", lat: 36.3504, lon: 127.3845 },
+  { name: "세종", lat: 36.48, lon: 127.289 },
+  { name: "전주", lat: 35.8242, lon: 127.148 },
+  { name: "광주", lat: 35.1595, lon: 126.8526 },
+  { name: "여수", lat: 34.7604, lon: 127.6622 },
+  { name: "대구", lat: 35.8714, lon: 128.6014 },
+  { name: "포항", lat: 36.019, lon: 129.3435 },
+  { name: "부산", lat: 35.1796, lon: 129.0756 },
+  { name: "울산", lat: 35.5384, lon: 129.3114 },
+  { name: "창원", lat: 35.2281, lon: 128.6811 },
+  { name: "제주", lat: 33.4996, lon: 126.5312 },
+];
+function nearestWeatherCity(lat, lon) {
+  let best = WEATHER_CITIES[0], bd = Infinity;
+  WEATHER_CITIES.forEach((c) => {
+    const d = (c.lat - lat) ** 2 + (c.lon - lon) ** 2;
+    if (d < bd) { bd = d; best = c; }
+  });
+  return best;
+}
+
+function openWeatherRegionMenu(anchor) {
+  const old = document.getElementById("weather-region-menu");
+  if (old) { old.remove(); return; }
+  const menu = document.createElement("div");
+  menu.id = "weather-region-menu";
+  menu.className = "weather-regionmenu";
+  const cur = dashLayout.weather && dashLayout.weather.name;
+  menu.innerHTML =
+    `<button type="button" data-auto class="${cur ? "" : "is-on"}">자동 (내 위치 추정)</button>` +
+    WEATHER_CITIES.map((c) =>
+      `<button type="button" data-city="${c.name}" class="${cur === c.name ? "is-on" : ""}">${c.name}</button>`).join("");
+  document.body.appendChild(menu);
+  const r = anchor.getBoundingClientRect();
+  menu.style.left = Math.max(8, Math.min(window.innerWidth - 190, r.left - 8)) + "px";
+  menu.style.top = (r.bottom + 6) + "px";
+  const close = () => { menu.remove(); document.removeEventListener("pointerdown", onDoc, true); };
+  const onDoc = (e) => { if (!menu.contains(e.target)) close(); };
+  document.addEventListener("pointerdown", onDoc, true);
+  menu.addEventListener("click", (e) => {
+    const b = e.target.closest("button");
+    if (!b) return;
+    if (b.dataset.auto !== undefined) dashLayout.weather = null;
+    else dashLayout.weather = WEATHER_CITIES.find((c) => c.name === b.dataset.city) || null;
+    saveLayout();
+    close();
+    loadWeather();
+  });
+}
+
 function loadWeather() {
   const set = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
   const fetchAt = (lat, lon, locName) => {
@@ -1266,7 +1365,25 @@ function loadWeather() {
       })
       .catch(() => set("weather-cond", "날씨 정보를 못 불러왔어요"));
   };
-  fetchAt(35.8714, 128.6014, "대구광역시");   // 대구 고정
+
+  const cfg = dashLayout.weather;
+  if (cfg && typeof cfg.lat === "number") { fetchAt(cfg.lat, cfg.lon, cfg.name); return; }
+  // 자동: IP 기반 대략적 위치 추정 (권한 팝업 없음). 국내면 가까운 도시명으로 표기.
+  fetch("https://ipwho.is/")
+    .then((r) => r.json())
+    .then((d) => {
+      if (d && d.success !== false && typeof d.latitude === "number") {
+        if (d.country_code === "KR") {
+          const c = nearestWeatherCity(d.latitude, d.longitude);
+          fetchAt(c.lat, c.lon, c.name);
+        } else {
+          fetchAt(d.latitude, d.longitude, d.city || "내 위치");
+        }
+      } else {
+        const s = WEATHER_CITIES[0]; fetchAt(s.lat, s.lon, s.name);
+      }
+    })
+    .catch(() => { const s = WEATHER_CITIES[0]; fetchAt(s.lat, s.lon, s.name); });
 }
 
 /* ============================================================

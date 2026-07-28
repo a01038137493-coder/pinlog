@@ -9,7 +9,7 @@
   <link rel="manifest" href="/manifest.json" />
   <meta name="theme-color" content="#f04438" />
   <script>document.documentElement.classList.add(window.Capacitor ? "dt-app" : "dt-web");</script>
-  <link rel="stylesheet" href="/css/style.css?v=234" />
+  <link rel="stylesheet" href="/css/style.css?v=256" />
 </head>
 <body class="center-screen">
   <!-- 앱 로더와 동일한 미니멀 스플래시 (라우팅 판단 동안만 잠깐 표시) -->
@@ -21,15 +21,24 @@
   </div>
 
   <script src="/js/vendor/supabase.js"></script>
-  <script src="/js/supabaseClient.js?v=mock14"></script>
+  <script src="/js/supabaseClient.js?v=mock19"></script>
   <script>
     // 로그인 여부 / role 에 따라 적절한 페이지로 자동 이동
     (async () => {
+      // 웹 루트는 항상 랜딩(소개) 페이지. 앱 진입은 /app (vercel rewrite) 또는 ?app=1
+      {
+        const nativeEntry = location.protocol === "capacitor:" || (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+        const appEntry = location.pathname === "/app" || new URLSearchParams(location.search).has("app");
+        if (!nativeEntry && !appEntry) {
+          window.location.replace("/landing");
+          return;
+        }
+      }
       const profile = await getCurrentProfile();
       if (!profile) {
-        // 앱: 웰컴 투어 / 웹: 노션식 로그인 화면이 메인
+        // 네이티브 앱: 웰컴 투어 / 웹: 여기까지 왔다는 건 앱 진입 의도(?app=1·PWA)이므로 로그인으로
         const native = window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform();
-        window.location.href = native ? "/welcome.html" : "/login.html";
+        window.location.href = native ? "/welcome.html" : "/login";
         return;
       }
       if (!profile.onboarded) { window.location.href = "/onboarding.html"; return; }

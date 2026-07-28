@@ -23,9 +23,14 @@
   document.addEventListener("DOMContentLoaded", async () => {
     /* 헤더 — 날짜는 네트워크 없이 즉시 */
     document.getElementById("m-date").textContent = formatKoreanDate();
+    try {
+      const greetEl = document.getElementById("m-greet");
+      if (greetEl) { greetEl.textContent = dtGreeting(null); greetEl.hidden = false; }
+    } catch (e) {}
 
     const profile = await requireRole(["student"]);
     if (!profile) return;
+    try { document.getElementById("m-greet").textContent = dtGreeting(profile.name); } catch (e) {}
     if (!profile.onboarded) { window.location.replace("/onboarding.html"); return; }
     // 일반 사용자는 전용 홈으로 (수험생 홈과 완전 분리)
     if (profile.user_type === "general") { window.location.replace("/general-m.html"); return; }
@@ -220,16 +225,16 @@
       const H = ((ge - gs) / 60) * PX;
       const y = (min) => ((min - gs) / 60) * PX;
 
-      let ghtml = "";
-      for (let m = gs; m <= ge; m += 60) {
-        ghtml += `<div class="tgrid__hour" style="top:${y(m)}px"><span>${hb12(m / 60)}</span></div>`;
-        if (m < ge) ghtml += `<div class="tgrid__half" style="top:${y(m + 30)}px"></div>`;
-      }
       const hb12 = (h) => (h % 12 === 0 ? 12 : h % 12);
       const hbT12 = (t) => {
         const [h, m] = t.split(":").map(Number);
         return `${h < 12 ? "오전" : "오후"} ${hb12(h)}:${String(m).padStart(2, "0")}`;
       };
+      let ghtml = "";
+      for (let m = gs; m <= ge; m += 60) {
+        ghtml += `<div class="tgrid__hour" style="top:${y(m)}px"><span>${hb12(m / 60)}</span></div>`;
+        if (m < ge) ghtml += `<div class="tgrid__half" style="top:${y(m + 30)}px"></div>`;
+      }
       const HB_COLORS = ["#ef767a", "#f5a25d", "#d9b23c", "#64ba7b", "#45c4b6", "#6096f0", "#7d80da", "#a06ee1", "#ea7fb1"];
       const hbColor = (b) => {
         if (b.color) return b.color;

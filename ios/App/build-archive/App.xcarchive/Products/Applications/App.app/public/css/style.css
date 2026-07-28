@@ -1895,6 +1895,10 @@ body.fcal-page { display: flex; flex-direction: column; min-height: 100vh; min-h
 .fcal__events { max-height: 30vh; overflow-y: auto; padding: 10px 2px 8px; }
 .fcal__events-title { font-size: 0.85rem; font-weight: 800; color: var(--muted); margin: 0 0 8px 4px; }
 .fcal__events-empty { color: var(--muted-soft); font-size: 0.85rem; text-align: center; margin: 14px 0; }
+.fcal__msum { background: #fff; border: 1px solid var(--line); border-radius: 11px; padding: 9px 13px; margin: 0 0 12px; font-size: 0.8rem; font-weight: 600; color: var(--muted); }
+.fcal__msum b { color: #f04438; font-weight: 800; }
+.fcal__uptitle { margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--line); }
+.fcal__upday { margin: 12px 4px 6px; font-size: 0.76rem; font-weight: 700; color: var(--muted-soft); }
 .fcal-ev { display: flex; align-items: center; gap: 12px; background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 11px 14px; margin-bottom: 7px; }
 .fcal-ev__time { flex: none; font-size: 0.78rem; font-weight: 800; color: var(--orange-strong); min-width: 40px; }
 .fcal-ev--rec .fcal-ev__time { color: var(--green-strong); }
@@ -1955,9 +1959,10 @@ body.fcal-page { display: flex; flex-direction: column; min-height: 100vh; min-h
 /* ============================================================
    모바일 홈 v2 (student-m.html 전용)
    ============================================================ */
-.mhead { display: flex; align-items: center; justify-content: space-between; min-height: 40px; margin: 12px 2px 16px; }
-.mhead__date { font-size: 1.2rem; font-weight: 800; }
-.mhead__dday { background: #fff; border: 1px solid var(--line); border-radius: 11px; padding: 7px 12px; font-size: 0.82rem; color: var(--muted); }
+.mhead { margin: 14px 2px 16px; }
+.mhead__top { display: flex; align-items: center; gap: 8px; min-height: 40px; }
+.mhead__date { font-size: 1.32rem; font-weight: 800; white-space: nowrap; margin-right: auto; letter-spacing: -0.01em; }
+.mhead__dday { background: #fff; border: 1px solid var(--line); border-radius: 11px; padding: 7px 12px; font-size: 0.82rem; color: var(--muted); white-space: nowrap; }
 .mhead__dday b { color: var(--navy); font-weight: 800; }
 
 /* 오늘 카드 */
@@ -2146,7 +2151,7 @@ body.is-general .task-subject { display: none; }
 /* ============================================================
  * 일반 사용자 태블릿/PC 홈 (general.html)
  * ============================================================ */
-.gtab-head { margin-top: 18px; }
+.gtab-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-top: 18px; }
 .gtab-grid { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 18px; align-items: start; }
 .gtab-grid > .gtab-col { min-width: 0; }
 .gtodo--tab { min-height: 320px; display: flex; flex-direction: column; margin-bottom: 14px; }
@@ -3063,12 +3068,18 @@ body.home-edit .gtab-grid #gnote {
 @media (min-width: 1100px) {
   :is(html.dt-web, html.dt-app) .gtab-grid { align-items: start; }
   :is(html.dt-web, html.dt-app) .gtab-grid > .gtab-col { display: contents; }
+  :is(html.dt-web, html.dt-app) .gtab-grid #g-summary,
   :is(html.dt-web, html.dt-app) .gtab-grid .gtodo--tab,
   :is(html.dt-web, html.dt-app) .gtab-grid #g-carry,
   :is(html.dt-web, html.dt-app) .gtab-grid #g-upcoming,
   :is(html.dt-web, html.dt-app) .gtab-grid #g-events { grid-column: 1; }
   :is(html.dt-web, html.dt-app) .gtab-grid #gnote,
-  :is(html.dt-web, html.dt-app) .gtab-grid #gevd { grid-column: 2; grid-row: 1 / span 4; position: sticky; top: 84px; align-self: start; }
+  :is(html.dt-web, html.dt-app) .gtab-grid #gevd { grid-column: 2; grid-row: 1 / span 5; position: sticky; top: 84px; align-self: start; }
+  /* 메모 패널이 없으면(숨김) 일정 카드가 오른쪽 열을 채움 — 한쪽 빈 공간 방지 */
+  :is(html.dt-web, html.dt-app) body:not(.has-notepanel) .gtab-grid #g-events {
+    grid-column: 2; grid-row: 1 / span 5; position: sticky; top: 84px; align-self: start;
+  }
+  :is(html.dt-web, html.dt-app) body:not(.has-notepanel) .gtab-grid #gevd { grid-row: auto; position: static; }
   :is(html.dt-web, html.dt-app) .gtodo__row.is-note .gtodo__item { background: #fef4f3; border-radius: 10px; }
 }
 
@@ -3160,3 +3171,159 @@ body.home-edit .gtab-grid #gnote {
   .fmtbar--inline button:hover { background: #f6f6f7; }
   .fmtbar--inline .fmtbar__sep { width: 1px; height: 18px; background: var(--line); margin: 0 4px; align-self: center; }
 }
+
+/* 앱 태블릿: 타임박스 풀스크린 — 그리드가 화면을 최대한 채우도록 고정 배치
+   (높이 계산 대신 fixed: 위=타이틀바 아래, 아래=탭바 위 → 어떤 기기에서도 안 잘림) */
+@media (min-width: 1100px) {
+  html.dt-app body:has(.tbside) { padding-bottom: 0; }
+  html.dt-app main.container:has(> .tbside) {
+    position: fixed;
+    top: calc(env(safe-area-inset-top, 0px) + 56px);
+    left: 0; right: 0;
+    bottom: calc(60px + env(safe-area-inset-bottom, 0px));
+    max-width: none;
+    align-items: stretch;
+    padding: 16px 16px 10px; box-sizing: border-box;   /* 위 16px: 타이틀바와 간격 */
+  }
+  html.dt-app main.container:has(> .tbside) > .tbside { position: static; overflow-y: auto; min-height: 0; }
+  /* 사이드가 6행을 차지하므로 뷰도 6행 전체를 스팬해야 세로가 꽉 찬다 */
+  html.dt-app main.container:has(> .tbside) > #tb-view,
+  html.dt-app main.container:has(> .tbside) > #tb-editor {
+    grid-row: 1 / span 6; overflow-y: auto; min-height: 0; margin: 0;
+    display: flex; flex-direction: column;
+  }
+  html.dt-app main.container:has(> .tbside) > #tb-view > #tb-grid { flex: 1; display: flex; flex-direction: column; }
+}
+
+/* 앱 태블릿: 수험생 홈 하단 문구·페이지 인디케이터를 탭바에서 띄움 */
+@media (min-width: 768px) {
+  html.dt-app body:has(.pager) .footer-quote { margin: 26px 0 8px; }
+  html.dt-app body:has(.pager) .pager-dots { padding: 4px 0 36px; }
+}
+
+/* 모바일 타임박스: 그리드 아래 주간 배분 카드 (태블릿에선 좌측 패널이 있으므로 숨김) */
+.tbweekm { margin-top: 12px; padding: 14px; }
+@media (min-width: 768px) and (min-height: 500px) {
+  .tbweekm { display: none !important; }
+}
+
+/* 모바일 주간 배분 카드 내부 행 스타일 (태블릿 패널용 스타일이 미디어쿼리 안이라 전역 복제) */
+.tbweekm .tbside__h { margin: 0 0 10px; font-size: 0.76rem; font-weight: 800; letter-spacing: 0.02em; color: var(--muted-soft); }
+.tbweekm .tbside__row { display: flex; align-items: center; gap: 8px; padding: 6px 2px; font-size: 0.9rem; }
+.tbweekm .tbside__row i { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+.tbweekm .tbside__row span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.tbweekm .tbside__row b { font-weight: 700; color: var(--navy); font-size: 0.86rem; }
+.tbweekm .tbside__sub { margin: 6px 0 0; font-size: 0.84rem; color: var(--muted); }
+
+/* 날씨 위젯 지역 선택 메뉴 */
+.weather-regionmenu {
+  position: fixed; z-index: 400; width: 180px; max-height: 320px; overflow-y: auto;
+  background: #fff; border: 1px solid var(--line); border-radius: 13px;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.16); padding: 6px; box-sizing: border-box;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 2px;
+}
+.weather-regionmenu button {
+  border: none; background: none; font: inherit; font-size: 0.86rem; font-weight: 600;
+  padding: 8px 6px; border-radius: 8px; cursor: pointer; color: var(--text);
+}
+.weather-regionmenu button[data-auto] { grid-column: 1 / -1; font-weight: 700; }
+.weather-regionmenu button:hover { background: rgba(15, 23, 42, 0.05); }
+.weather-regionmenu button.is-on { background: #ffece9; color: var(--primary, #f04438); font-weight: 800; }
+/* 지역 변경 버튼은 편집 모드가 아니어도 위젯에 올리면 보이도록 (데스크톱 호버) */
+html.dt-web .widget--weather:hover .weather__region { display: flex; }
+
+/* 웹 메모 편집기: 폴더 이동 버튼 + 메뉴 */
+.mweb-editor__bar { justify-content: flex-start !important; }
+.mw-cat {
+  margin-left: auto; margin-right: 10px;
+  border: 1px solid var(--line); background: #fff; border-radius: 99px;
+  padding: 5px 13px; font: inherit; font-size: 0.8rem; font-weight: 700;
+  color: var(--muted); cursor: pointer; white-space: nowrap;
+}
+.mw-cat:hover { background: #f7f7f5; color: var(--text); }
+.mw-del { margin-left: 0; }   /* 폴더 버튼 옆에 붙임 (auto 마진 중복 방지) */
+.mwcat-menu {
+  position: fixed; z-index: 400; width: 180px; max-height: 300px; overflow-y: auto;
+  background: #fff; border: 1px solid var(--line); border-radius: 13px;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.16); padding: 6px; box-sizing: border-box;
+}
+.mwcat-menu button {
+  display: block; width: 100%; text-align: left;
+  border: none; background: none; font: inherit; font-size: 0.88rem; font-weight: 600;
+  padding: 9px 11px; border-radius: 8px; cursor: pointer; color: var(--text);
+}
+.mwcat-menu button:hover { background: rgba(15, 23, 42, 0.05); }
+.mwcat-menu button.is-on { background: #ffece9; color: #f04438; font-weight: 800; }
+
+/* 웹/태블릿 메모: 목록 여백 + 편집기 툴바 삭제 버튼 (새 메모는 FAB) */
+@media (min-width: 1100px) {
+  :is(html.dt-web, html.dt-app) body.memo-page #memo-list { padding: 12px 14px 20px; box-sizing: border-box; }
+  .mw-del:hover { background: #fff5f4; color: #f04438; border-color: #f8d7d3; }
+}
+
+/* 다크모드에서도 항상 라이트로 렌더 (상태바 뒤 검은 배경 방지) */
+:root { color-scheme: light; }
+html { background: #fff; }
+
+/* 웹 메모: 검색바가 목록 위층에 오도록 (카드가 밑줄 위로 겹쳐 보이는 문제) + 목록 상단 여백 */
+@media (min-width: 1100px) {
+  :is(html.dt-web, html.dt-app) body.memo-page .memo-search { position: relative; z-index: 3; }
+  :is(html.dt-web, html.dt-app) body.memo-page #memo-list { padding-top: 16px; overflow-y: auto; }
+}
+
+/* 메모 본문 글머리 목록: 좌측 여백 (모바일 편집기·웹 편집기 공통) */
+.memoedit__body ul, .memoedit__body ol,
+#mw-body ul, #mw-body ol {
+  padding-left: 24px; margin: 6px 0;
+}
+
+/* [실측 검증됨] 메모: 목록 상단 여백은 기존 고특이성 규칙을 확실히 이기도록, 글머리는 bare li 대응 */
+html.dt-web body.memo-page main.container #memo-list,
+html.dt-app body.memo-page main.container #memo-list { padding-top: 16px !important; }
+#mw-body li, .memoedit__body li { margin-left: 24px; }
+#mw-body li + li, .memoedit__body li + li { margin-top: 4px; }
+
+/* 모바일 홈: 날짜 아래 시간대별 인사말 */
+.mgreet { margin: 4px 0 0; font-size: 0.92rem; font-weight: 600; color: var(--muted); word-break: keep-all; line-height: 1.45; }
+
+/* 모바일 홈 헤더 아이콘 */
+.mhead__icons { display: flex; gap: 2px; flex: none; }
+.mico { width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--text); }
+.mico svg { width: 21px; height: 21px; }
+.mico:active { background: rgba(0, 0, 0, 0.06); }
+
+/* 모바일 홈 상단 요약 블록 */
+.msum { padding: 18px 18px 6px; }
+.msum__main { display: flex; align-items: center; gap: 14px; }
+.msum__txt { flex: 1; min-width: 0; }
+.msum__label { display: block; font-size: 0.72rem; font-weight: 700; color: var(--muted-soft); letter-spacing: 0.02em; }
+.msum__title { font-size: 1.05rem; font-weight: 800; color: var(--text); margin: 4px 0 0; word-break: keep-all; letter-spacing: -0.01em; }
+.msum__title em { font-style: normal; color: #f04438; }
+.msum__sub { font-size: 0.8rem; color: var(--muted); margin: 4px 0 0; word-break: keep-all; }
+.msum__ring { position: relative; width: 74px; height: 74px; flex: none; }
+.msum__ring svg { width: 100%; height: 100%; display: block; }
+#g-sum-arc { transition: stroke-dashoffset 0.5s ease; }
+.msum__ring-txt { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+.msum__ring-txt b { font-size: 0.85rem; font-weight: 800; color: #f04438; letter-spacing: -0.01em; }
+.msum__stats { display: flex; margin-top: 16px; border-top: 1px solid var(--line); padding: 12px 0 10px; }
+.msum__stats span { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 0; }
+.msum__stats span + span { border-left: 1px solid var(--line); }
+.msum__stats em { font-style: normal; font-size: 0.72rem; color: var(--muted); font-weight: 600; white-space: nowrap; }
+.msum__stats b { font-size: 1.05rem; font-weight: 800; color: var(--text); }
+
+/* 알림 수신함 (alerts.html) */
+.topbar__action { font-size: 0.9rem; font-weight: 700; color: var(--muted); padding: 8px 2px; justify-self: end; }
+.alsec { margin: 18px 6px 8px; font-size: 0.8rem; font-weight: 700; color: var(--muted); }
+.alcard { padding: 2px 8px; }
+.alrow { display: flex; align-items: flex-start; gap: 12px; padding: 13px 8px; }
+.alrow + .alrow { border-top: 1px solid var(--line); }
+.alrow__ico { width: 36px; height: 36px; border-radius: 50%; background: #fdeeec; color: #f04438; display: flex; align-items: center; justify-content: center; flex: none; }
+.alrow__ico svg { width: 18px; height: 18px; }
+.alrow__txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.alrow__title { font-weight: 700; font-size: 0.92rem; word-break: keep-all; }
+.alrow__body { font-size: 0.82rem; color: var(--muted); word-break: keep-all; }
+.alrow__time { font-size: 0.75rem; color: var(--muted-soft); flex: none; margin-top: 3px; }
+.alempty { text-align: center; padding: 44px 20px; margin-top: 18px; }
+.alempty__title { font-weight: 800; font-size: 0.98rem; }
+.alempty__sub { font-size: 0.84rem; color: var(--muted); margin: 6px 0 18px; word-break: keep-all; }
+.alempty__btn { display: inline-block; }

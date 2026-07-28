@@ -88,8 +88,13 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 });
 
-/* role 별 시작 페이지로 이동 */
+/* role 별 시작 페이지로 이동 (?next= 로 온 경우 그 페이지로 복귀) */
 function redirectByRole(role) {
+  const next = new URLSearchParams(window.location.search).get("next");
+  if (next && next.startsWith("/") && !next.startsWith("//")) {
+    window.location.href = next;
+    return;
+  }
   if (role === "student") {
     window.location.href = "/student.html";
   } else {

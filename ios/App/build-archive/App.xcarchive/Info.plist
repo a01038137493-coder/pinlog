@@ -13,9 +13,9 @@
 		<key>CFBundleIdentifier</key>
 		<string>com.pinlog.app</string>
 		<key>CFBundleShortVersionString</key>
-		<string>1.0</string>
+		<string>1.0.1</string>
 		<key>CFBundleVersion</key>
-		<string>1</string>
+		<string>2</string>
 		<key>SigningIdentity</key>
 		<string>Apple Development: giwoung kim (J23LNY3SB3)</string>
 		<key>Team</key>
@@ -24,7 +24,7 @@
 	<key>ArchiveVersion</key>
 	<integer>2</integer>
 	<key>CreationDate</key>
-	<date>2026-07-22T16:34:29Z</date>
+	<date>2026-07-28T09:14:09Z</date>
 	<key>Name</key>
 	<string>App</string>
 	<key>SchemeName</key>

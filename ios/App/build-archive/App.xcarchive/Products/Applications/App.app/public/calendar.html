@@ -9,7 +9,7 @@
   <link rel="manifest" href="/manifest.json" />
   <meta name="theme-color" content="#f04438" />
   <script>document.documentElement.classList.add(window.Capacitor ? "dt-app" : "dt-web");</script>
-  <link rel="stylesheet" href="/css/style.css?v=234" />
+  <link rel="stylesheet" href="/css/style.css?v=256" />
 </head>
 <body class="app-bg has-tabbar fcal-page" data-kbresize="none">
   <main class="fcal">
@@ -126,8 +126,8 @@
   </nav>
 
   <script src="/js/vendor/supabase.js"></script>
-  <script src="/js/supabaseClient.js?v=mock14"></script>
-  <script src="/js/utils.js?v=42"></script>
+  <script src="/js/supabaseClient.js?v=mock19"></script>
+  <script src="/js/utils.js?v=44"></script>
   <script src="/js/notify.js?v=5"></script>
   <script src="/js/scheduleParse.js?v=4"></script>
   <script>
@@ -312,7 +312,15 @@
         const hasRec = recorded.has(selected);
         const [y, m, d] = selected.split("-").map(Number);
 
-        let html = `<p class="fcal__events-title">${m}월 ${d}일</p>`;
+        /* 이달 전체 일정 요약 (한눈에) */
+        let totalM = 0;
+        events.forEach((l) => { totalM += l.length; });
+        const todayKey = dstr(now.getFullYear(), now.getMonth(), now.getDate());
+        const todayCnt = viewY === now.getFullYear() && viewM === now.getMonth()
+          ? (events.get(todayKey) || []).length : 0;
+
+        let html = `<p class="fcal__msum">${viewM + 1}월 전체 일정 <b>${totalM}개</b>${todayCnt ? ` · 오늘 <b>${todayCnt}개</b>` : ""}</p>`;
+        html += `<p class="fcal__events-title">${m}월 ${d}일</p>`;
         if (hasRec) html += `<div class="fcal-ev fcal-ev--rec"><span class="fcal-ev__time">공부</span><span class="fcal-ev__title">체크아웃 기록 완료 ✓</span></div>`;
         if (list.length) {
           html += list.map((ev, idx) => {
@@ -327,7 +335,7 @@
         } else if (!hasRec) {
           html += `<p class="fcal__events-empty">일정이 없습니다 · 날짜를 길게 누르면 일정을 등록할 수 있어요</p>`;
         }
-        box.innerHTML = html;
+        box.innerHTML = html + upHtml;
 
         // 일정 탭 → 수정/삭제 시트
         box.querySelectorAll("[data-ev]").forEach((row) => {
@@ -336,6 +344,63 @@
             if (ev) openEditSheet(ev);
           });
         });
+        // 다가오는 일정 탭 → 해당 날짜로 이동
+        box.querySelectorAll("[data-upkey]").forEach((row) => {
+          row.addEventListener("click", async () => {
+            if (monthBusy) return;
+            monthBusy = true;
+            const [uy, um] = row.dataset.upkey.split("-").map(Number);
+            viewY = uy; viewM = um - 1; selected = row.dataset.upkey;
+            renderGrid();
+            await loadMonth();
+            renderGrid();
+            renderEvents();
+            monthBusy = false;
+          });
+        });
+      }
+
+      /* ---------- 다가오는 일정: 내일부터 14일 (선택 날짜와 무관) ---------- */
+      let upHtml = "";
+      async function loadUpcoming() {
+        try {
+          const t0 = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+          const from = t0.getTime() + 86400000;                 // 내일 0시
+          const to = from + 14 * 86400000 - 1;
+          const list = await dtPinEventsInRange(profile.id, from, to);
+          if (await ensureCalendarAccess()) {
+            try {
+              const dup = new Set(list.map((p) => (p.title || "") + "|" + Math.round(p.startDate / 60000)));
+              const { result } = await calPlugin.listEventsInRange({ from, to });
+              (result || []).forEach((ev) => {
+                if (dup.has((ev.title || "") + "|" + Math.round(ev.startDate / 60000))) return;
+                list.push(ev);
+              });
+            } catch (e) {}
+          }
+          list.sort((a, b) => a.startDate - b.startDate);
+          const shown = list.slice(0, 12);
+          if (!shown.length) { upHtml = ""; renderEvents(); return; }
+
+          const WD = ["일", "월", "화", "수", "목", "금", "토"];
+          let html = `<p class="fcal__events-title fcal__uptitle">다가오는 일정</p>`, cur = "";
+          for (const ev of shown) {
+            const d = new Date(ev.startDate);
+            const key = dstr(d.getFullYear(), d.getMonth(), d.getDate());
+            if (key !== cur) {
+              const diff = Math.round((new Date(d.getFullYear(), d.getMonth(), d.getDate()) - t0) / 86400000);
+              html += `<p class="fcal__upday">${diff === 1 ? "내일" : `${d.getMonth() + 1}월 ${d.getDate()}일 (${WD[d.getDay()]})`}</p>`;
+              cur = key;
+            }
+            html += `<button type="button" class="fcal-ev fcal-ev--tap" data-upkey="${key}">
+              <span class="fcal-ev__time">${ev.isAllDay ? "종일" : fmtTime12(new Date(ev.startDate))}</span>
+              <span class="fcal-ev__title">${esc(ev.title || "(제목 없음)")}</span>
+              <span class="fcal-ev__chevron" aria-hidden="true">›</span>
+            </button>`;
+          }
+          upHtml = html;
+          renderEvents();
+        } catch (e) {}
       }
 
       /* ---------- 새 일정 / 수정 시트 ---------- */
@@ -465,6 +530,7 @@
           await loadMonth();
           renderGrid();
           renderEvents();
+          loadUpcoming();
         } catch (e) {
           evErr.textContent = editingId && editingSrc === "apple"
             ? "이 일정은 수정할 수 없어요. (공휴일 등 구독 캘린더 일정)"
@@ -490,6 +556,7 @@
           await loadMonth();
           renderGrid();
           renderEvents();
+          loadUpcoming();
         } catch (e) {
           evErr.textContent = "이 일정은 삭제할 수 없어요. (공휴일 등 구독 캘린더 일정)";
         }
@@ -645,7 +712,7 @@
           }
           localStorage.setItem(FLAG, "1");
           if (rows.length) {
-            await loadMonth(); renderGrid(); renderEvents();
+            await loadMonth(); renderGrid(); renderEvents(); loadUpcoming();
             showToast(`기기 일정 ${rows.length}개를 계정으로 가져왔어요`);
           }
         } catch (e) {}
@@ -656,6 +723,7 @@
       await loadMonth();
       renderGrid();
       renderEvents();
+      loadUpcoming();
       migrateDeviceEvents();
     });
   </script>

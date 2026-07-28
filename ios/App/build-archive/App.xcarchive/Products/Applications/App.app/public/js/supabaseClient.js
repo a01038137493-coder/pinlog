@@ -335,7 +335,9 @@ async function getCurrentProfile() {
 async function requireAuth() {
   const user = await getCurrentUser();
   if (!user) {
-    window.location.href = "/login.html";
+    // 로그인 후 원래 보던 페이지로 복귀할 수 있게 next 전달
+    const here = window.location.pathname + window.location.search;
+    window.location.href = "/login.html?next=" + encodeURIComponent(here);
     return null;
   }
   return user;
@@ -466,7 +468,7 @@ async function signInWithProvider(provider) {
     } else {
       const { error } = await supabaseClient.auth.signInWithOAuth({
         provider,
-        options: { redirectTo: window.location.origin + "/index.html" },
+        options: { redirectTo: window.location.origin + "/app" },
       });
       if (error) throw error;
     }
@@ -485,6 +487,8 @@ async function signInWithProvider(provider) {
     try { code = new URL(url.replace("dittonlog://", "https://dt/")).searchParams.get("code"); } catch (e) {}
     if (!code) return;
     const { error } = await supabaseClient.auth.exchangeCodeForSession(code);
+    try { await window.Capacitor.Plugins.Browser.close(); } catch (e) {}   // 인증 시트 닫기
     if (!error) window.location.href = "/index.html";
+    else alert("로그인 처리에 실패했어요.\n" + (error.message || String(error)));
   });
 })();
