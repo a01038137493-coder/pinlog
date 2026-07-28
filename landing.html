@@ -282,8 +282,8 @@
 
     /* ---------- 제품 데모 (폰 UI 시뮬레이션) ---------- */
     .demo { background: var(--bg-soft); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
-    .demo__grid { display: flex; align-items: center; justify-content: center; gap: 60px; margin-top: 52px; flex-wrap: wrap; }
-    .demo__steps { width: 344px; display: flex; flex-direction: column; gap: 10px; }
+    .demo__steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 46px; }
+    @media (max-width: 860px) { .demo__steps { grid-template-columns: 1fr 1fr; } }
     .demo__steps button {
       position: relative; overflow: hidden; display: block; width: 100%; text-align: left;
       background: #fff; border: 1px solid var(--line); border-radius: 15px;
@@ -299,17 +299,25 @@
     }
     .demo__steps button.is-on .demo__num { background: var(--red); color: #fff; }
     .demo__ttl { font-size: 0.97rem; font-weight: 800; color: var(--ink); letter-spacing: -0.02em; }
-    .demo__steps p { margin-top: 6px; padding-left: 32px; font-size: 0.83rem; color: var(--muted); word-break: keep-all; }
+    .demo__steps p { margin-top: 6px; font-size: 0.8rem; color: var(--muted); word-break: keep-all; }
     .demo__rail { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: var(--bg-soft); display: none; }
     .demo__steps button.is-on .demo__rail { display: block; }
     .demo__steps button.is-on .demo__rail i { display: block; height: 100%; background: var(--red); animation: railfill 6.5s linear both; }
-    .demo__hint { width: 344px; margin-top: 6px; font-size: 0.8rem; color: #9b9b98; font-weight: 600; }
-    .demo__shot { display: flex; justify-content: center; }
+    .demo__hint { margin-top: 12px; text-align: center; font-size: 0.8rem; color: #9b9b98; font-weight: 600; }
+
+    /* 폰 + 데스크톱 창을 한 무대에 — 폭에 맞춰 통째로 축소 */
+    .stage { position: relative; left: 50%; transform: translateX(-50%); width: min(1320px, calc(100vw - 48px)); margin-top: 40px; }
+    .stage__in {
+      position: absolute; top: 0; left: 50%; width: 1240px;
+      transform: translateX(-50%); transform-origin: top center;
+      display: flex; align-items: flex-start; gap: 40px;
+    }
+    .stage__desk { width: 870px; flex: none; }
 
     /* 폰 시뮬 */
     .simwrap { position: relative; }
     .simglow { position: absolute; inset: -30px -30px -40px; background: radial-gradient(closest-side, rgba(240, 68, 56, 0.10), transparent 72%); pointer-events: none; }
-    .simphone { position: relative; width: 400px; filter: drop-shadow(0 34px 64px rgba(25, 25, 25, 0.26)); }
+    .simphone { position: relative; width: 336px; filter: drop-shadow(0 34px 64px rgba(25, 25, 25, 0.26)); }
     .simframe { position: relative; z-index: 1; width: 100%; display: block; pointer-events: none; }
     .simscreen {
       position: absolute; left: 3.295%; top: 1.173%; width: 93.79%; height: 97.654%;
@@ -336,11 +344,8 @@
       box-shadow: 0 12px 28px rgba(240, 68, 56, 0.45);
     }
     .simcap { text-align: center; margin-top: 20px; font-size: 0.83rem; font-weight: 700; color: var(--muted); }
-    @media (max-width: 500px) { .simphone { width: min(400px, calc(100vw - 60px)); } }
 
     /* ---------- 데스크톱 앱 데모 (창 시뮬레이션) ---------- */
-    .deskapp__shot { display: flex; justify-content: center; margin-top: 46px; }
-    .dskscale { width: 100%; max-width: 1000px; }
     .dskwin { border: 1px solid #e6e6e4; border-radius: 14px; overflow: hidden; background: #fff; box-shadow: 0 30px 70px rgba(25, 25, 25, 0.16); }
     .dskbar { display: flex; align-items: center; gap: 8px; height: 38px; padding: 0 14px; background: #f6f6f4; border-bottom: 1px solid var(--line); }
     .dskbar i { width: 11px; height: 11px; border-radius: 50%; }
@@ -349,8 +354,8 @@
     .dskbar i:nth-child(3) { background: #28c840; }
     .dskbar span { flex: 1; text-align: center; font-size: 12.6px; font-weight: 700; color: var(--muted); }
     .dskbar em { width: 45px; }
-    .dskbody { display: flex; height: 664px; background: #f4f4f5; }
-    .dsknav { position: relative; width: 210px; flex: none; background: #faf9f8; border-right: 1px solid var(--line); padding: 18px 14px; }
+    .dskbody { display: flex; height: 604px; background: #f4f4f5; }
+    .dsknav { position: relative; width: 200px; flex: none; background: #faf9f8; border-right: 1px solid var(--line); padding: 18px 14px; }
     .dsknav__logo { display: block; font-size: 14.7px; font-weight: 800; letter-spacing: -0.02em; padding: 0 8px 16px; color: var(--ink); }
     .dsknav__item { display: flex; align-items: center; gap: 11px; padding: 10px; border-radius: 10px; font-size: 13.3px; font-weight: 600; color: var(--text); }
     .dsknav__item.is-on { background: #ececea; color: #141414; }
@@ -360,11 +365,11 @@
     .dskmenu { position: absolute; left: 0; right: -30px; top: 52px; z-index: 5; background: #fff; border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 18px 40px rgba(25, 25, 25, 0.16); padding: 6px; animation: popin 0.2s ease both; }
     .dskmenu span { display: flex; align-items: center; gap: 9px; padding: 9px 11px; border-radius: 9px; font-size: 12.6px; font-weight: 600; color: var(--text); }
     .dskmenu span.is-on { background: #fef2f1; color: #d92d20; font-weight: 700; }
-    .dskmain { flex: 1; min-width: 0; padding: 22px 24px; display: flex; flex-direction: column; gap: 14px; overflow: hidden; }
+    .dskmain { flex: 1; min-width: 0; padding: 22px; display: flex; flex-direction: column; gap: 12px; overflow: hidden; }
     .dskclock { font-size: 30px; font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; color: #141414; }
     .dskdate { font-size: 15px; font-weight: 800; margin-top: 4px; color: #141414; }
     .dskgreet { font-size: 12.6px; color: #6b6b6b; }
-    .dskcols { display: grid; grid-template-columns: 1fr 300px; gap: 16px; align-items: start; min-height: 0; }
+    .dskcols { display: grid; grid-template-columns: minmax(0, 1fr) 268px; gap: 16px; align-items: start; min-height: 0; }
     .dskcol { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
     .dskcard { background: #fff; border-radius: 18px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06); }
     .dsksum { padding: 16px 18px 4px; }
@@ -401,7 +406,7 @@
     .dsknote b { display: block; font-size: 14.3px; font-weight: 800; margin-bottom: 12px; color: #141414; }
     .dsknote p { font-size: 12.6px; color: var(--text); line-height: 1.85; animation: popin 0.26s ease both; }
     .dsknote .dsknote__empty { color: #9a9a9a; font-weight: 600; animation: none; }
-    .dskctl { display: flex; align-items: center; justify-content: center; gap: 16px; margin-top: 22px; flex-wrap: wrap; }
+    .dskctl { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 18px; flex-wrap: wrap; }
     .dskdots { display: flex; gap: 7px; }
     .dskdots button { width: 26px; height: 6px; padding: 0; border: none; border-radius: 99px; background: #e0e0dd; cursor: pointer; transition: background 0.2s ease; }
     .dskdots button.is-on { background: var(--red); }
@@ -618,18 +623,17 @@
     <div class="wrap">
       <p class="sec-tag"><b class="tint-purple">제품 데모</b></p>
       <h2 class="sec-h">실제 화면 그대로,<br />써보는 것처럼 보여드려요</h2>
-      <p class="sec-sub">체크 한 번, 할 일 추가, 캘린더, 메모까지 — 앱에서 일어나는 일을 그대로 재현했습니다.</p>
-      <div class="demo__grid">
-        <div>
-          <div class="demo__steps" id="demo-steps">
+      <p class="sec-sub">모바일과 데스크톱에서 앱이 어떻게 쓰이는지 — 체크, 할 일 추가, 캘린더, 메모까지 그대로 재현했습니다.</p>
+      <div class="demo__steps" id="demo-steps">
             <button type="button" class="is-on"><span class="demo__row"><b class="demo__num">1</b><b class="demo__ttl">할 일 체크하기</b></span><p>탭 한 번으로 완료 — 진행률 링과 카운트가 같이 올라가요.</p><i class="demo__rail"><i></i></i></button>
             <button type="button"><span class="demo__row"><b class="demo__num">2</b><b class="demo__ttl">할 일 추가하기</b></span><p>시트를 올려 제목 · 날짜 · 중요 표시를 한 화면에서.</p><i class="demo__rail"><i></i></i></button>
             <button type="button"><span class="demo__row"><b class="demo__num">3</b><b class="demo__ttl">캘린더 확인하기</b></span><p>월간 달력에서 날짜를 눌러 그날 일정을 봐요.</p><i class="demo__rail"><i></i></i></button>
             <button type="button"><span class="demo__row"><b class="demo__num">4</b><b class="demo__ttl">메모 정리하기</b></span><p>폴더로 나누고, 자주 보는 메모는 위에 고정.</p><i class="demo__rail"><i></i></i></button>
-          </div>
-          <p class="demo__hint">단계를 눌러 원하는 화면부터 볼 수 있어요.</p>
-        </div>
-        <div class="demo__shot">
+      </div>
+      <p class="demo__hint">단계를 눌러 원하는 화면부터 볼 수 있어요.</p>
+
+      <div class="stage" id="demo-stage">
+        <div class="stage__in" id="demo-stagein">
           <div class="simwrap">
             <div class="simglow"></div>
             <div class="simphone">
@@ -651,20 +655,9 @@
             </div>
             <p class="simcap" id="sim-cap">오늘 할 일 — 탭하면 바로 완료</p>
           </div>
-        </div>
-      </div>
-    </div>
-  </section>
 
-  <!-- 데스크톱 앱: 실제 UI 재현 시뮬레이션 -->
-  <section class="deskapp">
-    <div class="wrap">
-      <p class="sec-tag"><b class="tint-blue">데스크톱 앱</b></p>
-      <h2 class="sec-h">넓은 화면에서는<br />할 일과 메모를 나란히</h2>
-      <p class="sec-sub">설치하면 브라우저 없이 앱처럼 열려요. 왼쪽에서 할 일을 고르면 오른쪽에 바로 메모를 씁니다.</p>
-      <div class="deskapp__shot">
-        <div class="dskscale" id="dsk-scale">
-          <div class="dskwin">
+          <div class="stage__desk">
+            <div class="dskwin">
             <div class="dskbar"><i></i><i></i><i></i><span>핀로그</span><em></em></div>
             <div class="dskbody">
               <aside class="dsknav">
@@ -719,12 +712,13 @@
                 </div>
               </div>
             </div>
+            </div>
+            <div class="dskctl">
+              <div class="dskdots" id="dsk-dots"><button type="button" class="is-on"></button><button type="button"></button><button type="button"></button></div>
+              <p id="dsk-cap">할 일을 고르면 오른쪽에 메모가 열려요</p>
+            </div>
           </div>
         </div>
-      </div>
-      <div class="dskctl">
-        <div class="dskdots" id="dsk-dots"><button type="button" class="is-on"></button><button type="button"></button><button type="button"></button></div>
-        <p id="dsk-cap">할 일을 고르면 오른쪽에 메모가 열려요</p>
       </div>
     </div>
   </section>
@@ -848,7 +842,7 @@
 
   <script src="/js/vendor/supabase.js"></script>
   <script src="/js/supabaseClient.js?v=mock19"></script>
-  <script src="/js/landing-demo.js?v=1"></script>
+  <script src="/js/landing-demo.js?v=2"></script>
   <script>
     // 로그인 상태면 CTA를 "내 핀로그 열기"로, 비로그인이면 우상단 로그인 팝업 표시
     (async () => {

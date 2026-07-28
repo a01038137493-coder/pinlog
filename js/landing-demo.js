@@ -400,27 +400,21 @@
 
     dots.forEach(function (d, i) { d.addEventListener("click", function () { run(i); }); });
 
-    /* 좁은 화면: 1000px 창을 통째로 축소 */
-    var scaleBox = document.getElementById("dsk-scale");
-    function rescale() {
-      var w = scaleBox.parentElement.clientWidth;
-      var s = Math.min(1, w / 1000);
-      var win = scaleBox.firstElementChild;
-      if (s < 1) {
-        win.style.width = "1000px";
-        win.style.transform = "scale(" + s + ")";
-        win.style.transformOrigin = "top left";
-        scaleBox.style.height = (702 * s) + "px";
-      } else {
-        win.style.width = ""; win.style.transform = ""; scaleBox.style.height = "";
-      }
+    /* 무대(폰+창 1240px)를 컨테이너 폭에 맞춰 통째로 축소 */
+    var stage = document.getElementById("demo-stage");
+    var stagein = document.getElementById("demo-stagein");
+    function fit() {
+      if (!stage || !stagein) return;
+      var s = Math.min(1, stage.clientWidth / 1240);
+      stagein.style.transform = "translateX(-50%) scale(" + s + ")";
+      stage.style.height = Math.round(742 * s) + "px";
     }
-    window.addEventListener("resize", rescale);
-    rescale();
+    window.addEventListener("resize", fit);
+    fit();
 
     var started = false;
     function start() { if (!started) { started = true; run(0); } }
-    var sec = document.querySelector(".deskapp");
+    var sec = document.getElementById("demo");
     if ("IntersectionObserver" in window && sec) {
       new IntersectionObserver(function (es, io) {
         es.forEach(function (e) { if (e.isIntersecting) { start(); io.disconnect(); } });
