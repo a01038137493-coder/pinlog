@@ -82,12 +82,15 @@
           patch.goal_label = null;
         }
 
-        const { error } = await supabaseClient.from("profiles").update(patch).eq("id", user.id);
-        if (error) {
+        const { data: updated, error } = await supabaseClient.from("profiles")
+          .update(patch).eq("id", user.id).select().single();
+        if (error || !updated) {
           errEl.textContent = "저장하지 못했습니다. 잠시 후 다시 시도해주세요.";
           startBtn.disabled = false;
           return;
         }
+        /* 라우터가 읽는 로컬 캐시를 즉시 갱신 — 온보딩 무한 반복 방지 */
+        try { localStorage.setItem("dt_profile_cache", JSON.stringify(updated)); } catch (e) {}
         window.location.replace("/index.html");
       });
     });
