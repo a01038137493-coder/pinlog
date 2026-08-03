@@ -53,22 +53,42 @@ Login
 $sha1 = [System.Security.Cryptography.SHA1]::Create()
 function Get-Hash([byte[]]$bytes) { [BitConverter]::ToString($sha1.ComputeHash($bytes)) -replace "-", "" }
 
-function Get-ClipFilePath {
-  # 탐색기에서 Ctrl+C 한 파일 (첫 번째 1개, 25MB 이하)
+function Get-ClipFilePaths {
+  # 탐색기에서 Ctrl+C 한 파일들 (최대 10개, 각 25MB 이하)
   if (-not [System.Windows.Forms.Clipboard]::ContainsFileDropList()) { return $null }
   $list = [System.Windows.Forms.Clipboard]::GetFileDropList()
   if ($null -eq $list -or $list.Count -eq 0) { return $null }
-  $p = $list[0]
-  if (-not (Test-Path $p -PathType Leaf)) { return $null }
-  $len = (Get-Item $p).Length
-  if ($len -eq 0 -or $len -gt $MAXFILE) { return $null }
-  return $p
+  $out = @()
+  foreach ($p in $list) {
+    if ($out.Count -ge 10) { break }
+    if (-not (Test-Path $p -PathType Leaf)) { continue }
+    $len = (Get-Item $p).Length
+    if ($len -eq 0 -or $len -gt $MAXFILE) { continue }
+    $out += $p
+  }
+  if ($out.Count -eq 0) { return $null }
+  return , $out
 }
 
 function Get-SafeExt($name) {
   $e = [System.IO.Path]::GetExtension($name).TrimStart('.').ToLower() -replace '[^a-z0-9]', ''
   if ($e -and $e.Length -le 10) { return $e } else { return "bin" }
 }
+
+function Get-FileSummary($names) {
+  # 홈 카드 요약: "풍경.jpg" / "jpg 5개" / "파일 3개"
+  if ($names.Count -eq 1) { return $names[0] }
+  $exts = $names | ForEach-Object { Get-SafeExt $_ } | Select-Object -Unique
+  if (@($exts).Count -eq 1) { return "$($exts) $($names.Count)개" } else { return "파일 $($names.Count)개" }
+}
+
+function Get-CombinedHash($bufList) {
+  # 파일 묶음 지문 — 순서 무관 (per-file 해시 정렬 후 재해시)
+  $hs = @($bufList | ForEach-Object { Get-Hash $_ }) | Sort-Object
+  return Get-Hash ([System.Text.Encoding]::UTF8.GetBytes(($hs -join "")))
+}
+
+function Escape-Json($s) { return ($s -replace '\\', '\\\\' -replace '"', '\"') }
 
 function Get-ClipImageBytes {
   if (-not [System.Windows.Forms.Clipboard]::ContainsImage()) { return $null }
@@ -98,34 +118,45 @@ $lastImgHash = $null
 $lastFileHash = $null
 $img0 = Get-ClipImageBytes
 if ($img0) { $lastImgHash = Get-Hash $img0 }
-$file0 = Get-ClipFilePath
-if ($file0) { $lastFileHash = Get-Hash ([System.IO.File]::ReadAllBytes($file0)) }
+$file0 = Get-ClipFilePaths
+if ($file0) { $lastFileHash = Get-CombinedHash @($file0 | ForEach-Object { , [System.IO.File]::ReadAllBytes($_) }) }
 $lastRemoteAt = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
 Write-Host "Watching clipboard - text, image & file (two-way: $twoWay)"
 
 while ($true) {
   Start-Sleep -Milliseconds 1200
 
-  # 0) 파일 복사 최우선 — 원본 바이트 그대로 업로드
-  $fpath = Get-ClipFilePath
+  # 0) 파일 복사 최우선 — 원본 바이트 그대로 업로드 (여러 개 지원)
+  $fpath = Get-ClipFilePaths
   if ($fpath) {
-    $bytes = $null
-    try { $bytes = [System.IO.File]::ReadAllBytes($fpath) } catch { }
-    if ($bytes -and $bytes.Length -gt 0 -and $bytes.Length -le $MAXFILE) {
-      $h = Get-Hash $bytes
+    $bufs = @()
+    $names = @()
+    foreach ($p in $fpath) {
+      try { $bufs += , [System.IO.File]::ReadAllBytes($p); $names += [System.IO.Path]::GetFileName($p) } catch { }
+    }
+    if ($bufs.Count -gt 0 -and $bufs.Count -eq $fpath.Count) {
+      $h = Get-CombinedHash $bufs
       if ($h -ne $lastFileHash) {
         $lastFileHash = $h
         $lastText = Get-Clipboard -Raw   # 파일명 텍스트 중복 업로드 방지
-        $name = [System.IO.Path]::GetFileName($fpath)
-        $ext = Get-SafeExt $name
-        $fp = "$uid/$([DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds())-$($h.Substring(0,8).ToLower()).$ext"
         try {
-          Invoke-RestMethod -Method Post -Uri "$URL/storage/v1/object/clips/$fp" `
-            -Headers @{ apikey = $KEY; Authorization = "Bearer $token" } `
-            -ContentType "application/octet-stream" -Body $bytes | Out-Null
-          if (Insert-Row @{ user_id = $uid; content = $name; kind = "file"; file_path = $fp; device = $DEVICE }) {
-            Write-Host "Uploaded(file): $name $([Math]::Round($bytes.Length/1024))KB"
-            Show-Note "복사한 파일을 다른 기기로 보냈어요 - $name"
+          $jsonParts = @()
+          $okAll = $true
+          for ($i = 0; $i -lt $bufs.Count; $i++) {
+            $ext = Get-SafeExt $names[$i]
+            $fh = Get-Hash $bufs[$i]
+            $fp = "$uid/$([DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds())-$($fh.Substring(0,8).ToLower())-$i.$ext"
+            Invoke-RestMethod -Method Post -Uri "$URL/storage/v1/object/clips/$fp" `
+              -Headers @{ apikey = $KEY; Authorization = "Bearer $token" } `
+              -ContentType "application/octet-stream" -Body $bufs[$i] | Out-Null
+            $jsonParts += ('{"p":"' + (Escape-Json $fp) + '","n":"' + (Escape-Json $names[$i]) + '"}')
+          }
+          $label = Get-FileSummary $names
+          $fpJson = "[" + ($jsonParts -join ",") + "]"
+          if (Insert-Row @{ user_id = $uid; content = $label; kind = "file"; file_path = $fpJson; device = $DEVICE }) {
+            $totKB = [Math]::Round((($bufs | ForEach-Object { $_.Length }) | Measure-Object -Sum).Sum / 1024)
+            Write-Host "Uploaded(file): $label ${totKB}KB"
+            Show-Note "복사한 파일을 다른 기기로 보냈어요 - $label"
           }
         } catch { Login }
       }
@@ -175,17 +206,27 @@ while ($true) {
         $lastRemoteAt = $row.created_at
         if ($row.kind -eq "file" -and $row.file_path) {
           if (!(Test-Path $RECVDIR)) { New-Item -ItemType Directory -Path $RECVDIR | Out-Null }
-          $name = ($row.content -replace '[\\/:*?"<>|]', '_')
-          if (-not $name) { $name = "clip.bin" }
-          $dest = Join-Path $RECVDIR $name
-          Invoke-WebRequest -Uri "$URL/storage/v1/object/clips/$($row.file_path)" `
-            -Headers @{ apikey = $KEY; Authorization = "Bearer $token" } -OutFile $dest
-          $lastFileHash = Get-Hash ([System.IO.File]::ReadAllBytes($dest))
+          # file_path: JSON [{p,n},...] (신) 또는 단일 스토리지 경로 (구)
+          $entries = $null
+          if ($row.file_path.StartsWith("[")) {
+            try { $entries = $row.file_path | ConvertFrom-Json } catch { $entries = $null }
+          }
+          if ($null -eq $entries) { $entries = @(@{ p = $row.file_path; n = $row.content }) }
           $sc = New-Object System.Collections.Specialized.StringCollection
-          $sc.Add($dest) | Out-Null
+          $recvBufs = @()
+          foreach ($en in @($entries) | Select-Object -First 10) {
+            $name = ("$($en.n)" -replace '[\\/:*?"<>|]', '_')
+            if (-not $name) { $name = "clip.bin" }
+            $dest = Join-Path $RECVDIR $name
+            Invoke-WebRequest -Uri "$URL/storage/v1/object/clips/$($en.p)" `
+              -Headers @{ apikey = $KEY; Authorization = "Bearer $token" } -OutFile $dest
+            $recvBufs += , [System.IO.File]::ReadAllBytes($dest)
+            $sc.Add($dest) | Out-Null
+          }
+          $lastFileHash = Get-CombinedHash $recvBufs
           [System.Windows.Forms.Clipboard]::SetFileDropList($sc)
-          Write-Host "Received(file) -> clipboard: $($row.device) - $name"
-          Show-Note "$($row.device)에서 파일이 도착했어요 - $name (바로 붙여넣기)"
+          Write-Host "Received(file) -> clipboard: $($row.device) - $($row.content)"
+          Show-Note "$($row.device)에서 파일이 도착했어요 - $($row.content) (바로 붙여넣기)"
         }
         elseif ($row.kind -eq "image" -and $row.file_path) {
           $tmp = Join-Path $env:TEMP "pinlog-clip-recv.png"

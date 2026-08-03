@@ -9,7 +9,7 @@
   <link rel="manifest" href="/manifest.json" />
   <meta name="theme-color" content="#f04438" />
   <script>document.documentElement.classList.add(window.Capacitor ? "dt-app" : "dt-web");</script>
-  <link rel="stylesheet" href="/css/style.css?v=263" />
+  <link rel="stylesheet" href="/css/style.css?v=264" />
 </head>
 <body class="app-bg has-tabbar" data-kbresize="none">
   <!-- 일반 사용자 전용 태블릿/PC 홈 (모바일은 general-m.html, 수험생은 student.html) -->
@@ -55,6 +55,13 @@
             <span><em>우선순위</em><b id="g-sum-imp">0</b></span>
             <span><em>오늘 일정</em><b id="g-sum-ev">0</b></span>
           </div>
+        </section>
+
+        <!-- 최근 클립보드 동기화 -->
+        <section class="card msum-clip" id="g-clipstat" hidden>
+          <span class="msum-clip__ico">📋</span>
+          <span class="msum-clip__txt" id="g-clipstat-txt"></span>
+          <span class="msum-clip__meta" id="g-clipstat-meta"></span>
         </section>
 
         <section class="card gtodo gtodo--tab">
@@ -168,7 +175,7 @@
 
   <script src="/js/vendor/supabase.js"></script>
   <script src="/js/supabaseClient.js?v=mock19"></script>
-  <script src="/js/utils.js?v=48"></script>
+  <script src="/js/utils.js?v=49"></script>
   <script src="/js/notify.js?v=5"></script>
   <script src="/js/gtab.js?v=22"></script>
 </body>

@@ -162,50 +162,63 @@ function writeImage(buf) {
 }
 const sha1 = (buf) => crypto.createHash("sha1").update(buf).digest("hex");
 
-/* ---------- OS 클립보드: 파일 (파인더/탐색기에서 ⌘C·Ctrl+C 한 파일) ---------- */
+/* ---------- OS 클립보드: 파일 (파인더/탐색기에서 ⌘C·Ctrl+C 한 파일들, 최대 10개) ---------- */
 const RECV_DIR = path.join(os.tmpdir(), "pinlog-clips");
-function readFilePath() {
+const MAX_FILES = 10;
+function readFilePaths() {
   try {
-    let p = null;
+    let raw = "";
     if (process.platform === "darwin") {
-      p = execFileSync("osascript",
-        ["-e", "try",
-         "-e", "POSIX path of (the clipboard as «class furl»)",
-         "-e", "on error",
-         "-e", 'return ""',
-         "-e", "end try"],
+      raw = execFileSync("osascript", ["-l", "JavaScript", "-e",
+        'ObjC.import("Cocoa");var pb=$.NSPasteboard.generalPasteboard;var it=pb.pasteboardItems;var r=[];' +
+        'if(it){for(var i=0;i<it.count;i++){try{var u=it.objectAtIndex(i).stringForType("public.file-url");' +
+        'if(u&&!u.isNil()){var p=$.NSURL.URLWithString(u).path;if(p&&!p.isNil())r.push(ObjC.unwrap(p));}}catch(e){}}}' +
+        'r.join("\\n")'],
         { encoding: "utf8", env: ENV }).trim();
     } else if (process.platform === "win32") {
-      p = execFileSync("powershell", ["-NoProfile", "-STA", "-Command",
+      raw = execFileSync("powershell", ["-NoProfile", "-STA", "-Command",
         "Add-Type -AssemblyName System.Windows.Forms;" +
-        "if([System.Windows.Forms.Clipboard]::ContainsFileDropList()){[System.Windows.Forms.Clipboard]::GetFileDropList()[0]}"],
+        "if([System.Windows.Forms.Clipboard]::ContainsFileDropList()){[System.Windows.Forms.Clipboard]::GetFileDropList() -join [char]10}"],
         { encoding: "utf8" }).trim();
     }
-    if (!p) return null;
-    const st = fs.statSync(p);
-    if (!st.isFile() || !st.size || st.size > MAX_FILE) return null;
-    return p;
+    if (!raw) return null;
+    const ps = raw.split("\n").map((s) => s.trim()).filter(Boolean).slice(0, MAX_FILES)
+      .filter((p) => {
+        try { const st = fs.statSync(p); return st.isFile() && st.size && st.size <= MAX_FILE; } catch (e) { return false; }
+      });
+    return ps.length ? ps : null;
   } catch (e) { return null; }
 }
-function writeFileClip(localPath) {
+function writeFileClip(paths) {
   try {
     if (process.platform === "darwin") {
-      execFileSync("osascript", ["-e", "set the clipboard to (POSIX file " + JSON.stringify(localPath) + ")"], { env: ENV });
+      execFileSync("osascript", ["-l", "JavaScript", "-e",
+        'ObjC.import("Cocoa");function run(argv){var pb=$.NSPasteboard.generalPasteboard;pb.clearContents;' +
+        'var urls=argv.map(function(p){return $.NSURL.fileURLWithPath(p);});pb.writeObjects($(urls));return "ok";}',
+        ...paths], { env: ENV });
     } else if (process.platform === "win32") {
       execFileSync("powershell", ["-NoProfile", "-STA", "-Command",
         "Add-Type -AssemblyName System.Windows.Forms;" +
         "$sc=New-Object System.Collections.Specialized.StringCollection;" +
-        "$sc.Add('" + localPath.replace(/'/g, "''") + "')|Out-Null;" +
+        paths.map((p) => "$sc.Add('" + p.replace(/'/g, "''") + "')|Out-Null;").join("") +
         "[System.Windows.Forms.Clipboard]::SetFileDropList($sc)"]);
     } else return false;
     return true;
   } catch (e) { return false; }
 }
-/* 저장 키는 ASCII로 안전하게 — 실제 파일명은 clips.content 에 보관 */
+/* 저장 키는 ASCII로 안전하게 — 실제 파일명은 file_path JSON({p,n})에 보관 */
 function safeExt(name) {
   const e = path.extname(name).slice(1).toLowerCase().replace(/[^a-z0-9]/g, "");
   return e && e.length <= 10 ? e : "bin";
 }
+/* 홈 카드에 뜨는 요약 라벨: "풍경.jpg" / "jpg 5개" / "파일 3개" */
+function fileSummary(names) {
+  if (names.length === 1) return names[0];
+  const exts = [...new Set(names.map(safeExt))];
+  return (exts.length === 1 ? exts[0] : "파일") + " " + names.length + "개";
+}
+/* 파일 묶음 지문 — 순서 무관 (per-file sha1 정렬 후 재해시) */
+const combinedHash = (bufs) => sha1(Buffer.from(bufs.map(sha1).sort().join("")));
 
 /* ---------- Supabase ---------- */
 let session = null;
@@ -238,6 +251,8 @@ let lastText = null;
 let lastImgHash = null;
 let lastFileHash = null;
 let lastRemoteAt = new Date().toISOString();
+let busy = false;   /* 업로드/수신 폴러 직렬화 — 클립보드 쓰기 도중 읽기 방지 */
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 async function insertRow(row) {
   const r = await api("/rest/v1/clips", {
@@ -256,27 +271,37 @@ async function insertRow(row) {
 
 async function uploadIfChanged() {
   /* 파일 최우선 — 파인더 파일 복사는 파일명이 텍스트로도 들어오므로 먼저 확인 */
-  const fileLocal = readFilePath();
-  if (fileLocal) {
-    let buf = null;
-    try { buf = fs.readFileSync(fileLocal); } catch (e) {}
-    if (buf && buf.length && buf.length <= MAX_FILE) {
-      const h = sha1(buf);
+  const fileLocals = readFilePaths();
+  if (fileLocals) {
+    /* 여러 파일 복사가 진행 중일 수 있음 — 잠깐 뒤 재확인해 안정된 상태만 처리 */
+    await sleep(250);
+    const again = readFilePaths();
+    if (!again || again.join("\n") !== fileLocals.join("\n")) return;
+    const bufs = [];
+    for (const p of fileLocals) { try { bufs.push(fs.readFileSync(p)); } catch (e) {} }
+    if (bufs.length && bufs.length === fileLocals.length) {
+      const h = combinedHash(bufs);
       if (h !== lastFileHash) {
         lastFileHash = h;
         const t = readText();
         if (t !== null) lastText = t.slice(0, MAX_TEXT);   // 파일명 텍스트 중복 업로드 방지
-        const name = path.basename(fileLocal);
-        const fp = session.user.id + "/" + Date.now() + "-" + h.slice(0, 8) + "." + safeExt(name);
-        const up = await api("/storage/v1/object/clips/" + fp, {
-          method: "POST",
-          headers: { "Content-Type": "application/octet-stream" },
-          body: buf,
-        });
-        if (!up.ok) { log("파일 업로드 실패", up.status); return; }
-        if (await insertRow({ content: name, kind: "file", file_path: fp })) {
-          log("업로드(파일):", name, Math.round(buf.length / 1024) + "KB");
-          notify("복사한 파일을 다른 기기로 보냈어요 ✓ (" + name + ")");
+        const entries = [];
+        for (let i = 0; i < fileLocals.length; i++) {
+          const name = path.basename(fileLocals[i]);
+          const fp = session.user.id + "/" + Date.now() + "-" + sha1(bufs[i]).slice(0, 8) + "-" + i + "." + safeExt(name);
+          const up = await api("/storage/v1/object/clips/" + fp, {
+            method: "POST",
+            headers: { "Content-Type": "application/octet-stream" },
+            body: bufs[i],
+          });
+          if (!up.ok) { log("파일 업로드 실패", up.status); return; }
+          entries.push({ p: fp, n: name });
+        }
+        const label = fileSummary(entries.map((e) => e.n));
+        if (await insertRow({ content: label, kind: "file", file_path: JSON.stringify(entries) })) {
+          const kb = Math.round(bufs.reduce((s, b) => s + b.length, 0) / 1024);
+          log("업로드(파일):", label, kb + "KB");
+          notify("복사한 파일을 다른 기기로 보냈어요 ✓ (" + label + ")");
         }
       }
     }
@@ -327,18 +352,36 @@ async function pullRemote() {
   const row = rows[0];
   lastRemoteAt = row.created_at;
   if (row.kind === "file" && row.file_path) {
-    const f = await api("/storage/v1/object/clips/" + row.file_path);
-    if (!f.ok) return;
-    const buf = Buffer.from(await f.arrayBuffer());
-    lastFileHash = sha1(buf);
-    const name = (row.content || "clip.bin").replace(/[\/\\:]/g, "_");
+    /* file_path: JSON [{p,n},...] (신) 또는 단일 스토리지 경로 (구) */
+    let entries;
+    try { entries = JSON.parse(row.file_path); } catch (e) { entries = null; }
+    if (!Array.isArray(entries)) entries = [{ p: row.file_path, n: row.content || "clip.bin" }];
     try {
       fs.mkdirSync(RECV_DIR, { recursive: true });
-      const dest = path.join(RECV_DIR, name);
-      fs.writeFileSync(dest, buf);
-      if (writeFileClip(dest)) {
-        log("수신(파일) → 클립보드:", (row.device || "") + " · " + name + " · " + Math.round(buf.length / 1024) + "KB");
-        notify((row.device || "다른 기기") + "에서 파일이 도착했어요 — 바로 붙여넣기 하세요 (" + name + ")");
+      const dests = [];
+      const bufs = [];
+      for (const en of entries.slice(0, MAX_FILES)) {
+        const f = await api("/storage/v1/object/clips/" + en.p);
+        if (!f.ok) return;
+        const buf = Buffer.from(await f.arrayBuffer());
+        const name = (en.n || "clip.bin").replace(/[\/\\:]/g, "_");
+        const dest = path.join(RECV_DIR, name);
+        fs.writeFileSync(dest, buf);
+        dests.push(dest);
+        bufs.push(buf);
+      }
+      lastFileHash = combinedHash(bufs);
+      let wrote = writeFileClip(dests);
+      if (wrote && dests.length > 1) {
+        /* 다중 파일 쓰기 검증 — 드물게 일부만 들어가면 1회 재시도 */
+        await sleep(300);
+        const chk = readFilePaths() || [];
+        if (chk.length !== dests.length) wrote = writeFileClip(dests);
+      }
+      if (wrote) {
+        const label = row.content || dests.length + "개";
+        log("수신(파일) → 클립보드:", (row.device || "") + " · " + label + " · " + Math.round(bufs.reduce((s, b) => s + b.length, 0) / 1024) + "KB");
+        notify((row.device || "다른 기기") + "에서 파일이 도착했어요 — 바로 붙여넣기 하세요 (" + label + ")");
       }
     } catch (e) { log("파일 수신 실패", String(e).slice(0, 80)); }
   } else if (row.kind === "image" && row.file_path) {
@@ -377,9 +420,19 @@ async function pullRemote() {
   if (t0 !== null) lastText = t0.slice(0, MAX_TEXT);
   const i0 = readImage();
   if (i0) lastImgHash = sha1(i0);
-  const f0 = readFilePath();
-  if (f0) { try { lastFileHash = sha1(fs.readFileSync(f0)); } catch (e) {} }
+  const f0 = readFilePaths();
+  if (f0) { try { lastFileHash = combinedHash(f0.map((p) => fs.readFileSync(p))); } catch (e) {} }
   log("클립보드 감시 시작 — 텍스트·이미지·파일 (양방향: " + (TWO_WAY ? "켬" : "끔") + ")");
-  setInterval(() => uploadIfChanged().catch((e) => log("err", String(e).slice(0, 120))), POLL_LOCAL_MS);
-  setInterval(() => pullRemote().catch((e) => log("err", String(e).slice(0, 120))), POLL_REMOTE_MS);
+  setInterval(async () => {
+    if (busy) return;
+    busy = true;
+    try { await uploadIfChanged(); } catch (e) { log("err", String(e).slice(0, 120)); }
+    busy = false;
+  }, POLL_LOCAL_MS);
+  setInterval(async () => {
+    if (busy) return;
+    busy = true;
+    try { await pullRemote(); } catch (e) { log("err", String(e).slice(0, 120)); }
+    busy = false;
+  }, POLL_REMOTE_MS);
 })();

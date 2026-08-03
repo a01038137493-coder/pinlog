@@ -3311,6 +3311,13 @@ html.dt-app body.memo-page main.container #memo-list { padding-top: 16px !import
 .msum__stats em { font-style: normal; font-size: 0.72rem; color: var(--muted); font-weight: 600; white-space: nowrap; }
 .msum__stats b { font-size: 1.05rem; font-weight: 800; color: var(--text); }
 
+/* 홈: 최근 클립보드 동기화 한 줄 카드 */
+.msum-clip { display: flex; align-items: center; gap: 9px; padding: 13px 16px; cursor: pointer; }
+.msum-clip__ico { flex: none; font-size: 0.95rem; }
+.msum-clip__txt { font-size: 0.88rem; font-weight: 700; color: var(--text); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.msum-clip__txt b { color: var(--orange-strong); font-weight: 800; }
+.msum-clip__meta { margin-left: auto; flex: none; font-size: 0.76rem; font-weight: 600; color: var(--muted-soft); }
+
 /* 알림 수신함 (alerts.html) */
 .topbar__action { font-size: 0.9rem; font-weight: 700; color: var(--muted); padding: 8px 2px; justify-self: end; }
 .alsec { margin: 18px 6px 8px; font-size: 0.8rem; font-weight: 700; color: var(--muted); }

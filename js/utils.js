@@ -830,3 +830,50 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
+/* ------------------------------------------------------------
+ * 홈: 최근 클립보드 동기화 상태 카드 (#g-clipstat 있는 페이지에서만)
+ * "jpg 5개 복사완료 · MacBook · 방금" — 탭하면 설정(클립보드 섹션)
+ * ------------------------------------------------------------ */
+async function dtClipStat() {
+  const box = document.getElementById("g-clipstat");
+  if (!box || typeof supabaseClient === "undefined") return;
+  const txt = document.getElementById("g-clipstat-txt");
+  const meta = document.getElementById("g-clipstat-meta");
+  const escC = (s) => String(s ?? "").replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const ago = (iso) => {
+    const m = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
+    if (m < 1) return dtT("방금", "now");
+    if (m < 60) return m + dtT("분 전", "m ago");
+    return Math.floor(m / 60) + dtT("시간 전", "h ago");
+  };
+  const render = (row) => {
+    if (!row || !row.created_at) return;
+    if (Date.now() - new Date(row.created_at).getTime() > 24 * 3600 * 1000) return;
+    let head;
+    if (row.kind === "image") head = dtT("캡처", "Screenshot");
+    else if (row.kind === "file") head = escC(row.content || dtT("파일", "File"));
+    else head = dtT("텍스트", "Text");
+    txt.innerHTML = "<b>" + head + "</b> " + dtT("복사완료", "copied");
+    meta.textContent = (row.device || "PC") + " · " + ago(row.created_at);
+    box.hidden = false;
+  };
+  try {
+    const { data: s } = await supabaseClient.auth.getSession();
+    if (!s || !s.session) return;
+    box.addEventListener("click", () => { window.location.href = "/settings.html"; });
+    const { data } = await supabaseClient.from("clips")
+      .select("content,kind,device,created_at")
+      .order("created_at", { ascending: false })
+      .limit(1);
+    if (data && data[0]) render(data[0]);
+    try {
+      supabaseClient.channel("dt-clipstat")
+        .on("postgres_changes",
+          { event: "INSERT", schema: "public", table: "clips", filter: "user_id=eq." + s.session.user.id },
+          (p) => render(p.new))
+        .subscribe();
+    } catch (e) {}
+  } catch (e) {}
+}
+document.addEventListener("DOMContentLoaded", () => { dtClipStat(); });
