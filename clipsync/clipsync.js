@@ -2,9 +2,10 @@
 /*
  * 핀로그 클립싱크 에이전트 (macOS / Windows / Linux, Node 18+)
  * ------------------------------------------------------------
- * OS 클립보드(텍스트·이미지)를 감시해 변경되면 핀로그로 업로드하고,
+ * OS 클립보드(텍스트·이미지·파일)를 감시해 변경되면 핀로그로 업로드하고,
  * 다른 기기에서 올라온 새 클립은 이 기기의 클립보드에 자동 반영한다.
- * → 맥북에서 ⌘C(스크린샷 포함) 하면 윈도우에서 바로 Ctrl+V.
+ * → 맥북에서 ⌘C(스크린샷·파인더 파일 포함) 하면 윈도우에서 바로 Ctrl+V.
+ *   파일(jpg·pdf·md 등)은 원본 바이트 그대로 전송 — 변환 없음.
  *
  * 설정: ~/.pinlog-clipsync.json
  *   { "email": "...", "password": "...", "twoWay": true, "notify": true }
@@ -23,6 +24,7 @@ const POLL_LOCAL_MS = 1200;
 const POLL_REMOTE_MS = 2500;
 const MAX_TEXT = 10000;
 const MAX_IMG = 8 * 1024 * 1024;   // 8MB
+const MAX_FILE = 25 * 1024 * 1024; // 25MB — 파일 복사 동기화 상한
 
 const DEVICE = process.platform === "darwin" ? "Mac"
   : process.platform === "win32" ? "Windows" : "Linux";
@@ -160,6 +162,51 @@ function writeImage(buf) {
 }
 const sha1 = (buf) => crypto.createHash("sha1").update(buf).digest("hex");
 
+/* ---------- OS 클립보드: 파일 (파인더/탐색기에서 ⌘C·Ctrl+C 한 파일) ---------- */
+const RECV_DIR = path.join(os.tmpdir(), "pinlog-clips");
+function readFilePath() {
+  try {
+    let p = null;
+    if (process.platform === "darwin") {
+      p = execFileSync("osascript",
+        ["-e", "try",
+         "-e", "POSIX path of (the clipboard as «class furl»)",
+         "-e", "on error",
+         "-e", 'return ""',
+         "-e", "end try"],
+        { encoding: "utf8", env: ENV }).trim();
+    } else if (process.platform === "win32") {
+      p = execFileSync("powershell", ["-NoProfile", "-STA", "-Command",
+        "Add-Type -AssemblyName System.Windows.Forms;" +
+        "if([System.Windows.Forms.Clipboard]::ContainsFileDropList()){[System.Windows.Forms.Clipboard]::GetFileDropList()[0]}"],
+        { encoding: "utf8" }).trim();
+    }
+    if (!p) return null;
+    const st = fs.statSync(p);
+    if (!st.isFile() || !st.size || st.size > MAX_FILE) return null;
+    return p;
+  } catch (e) { return null; }
+}
+function writeFileClip(localPath) {
+  try {
+    if (process.platform === "darwin") {
+      execFileSync("osascript", ["-e", "set the clipboard to (POSIX file " + JSON.stringify(localPath) + ")"], { env: ENV });
+    } else if (process.platform === "win32") {
+      execFileSync("powershell", ["-NoProfile", "-STA", "-Command",
+        "Add-Type -AssemblyName System.Windows.Forms;" +
+        "$sc=New-Object System.Collections.Specialized.StringCollection;" +
+        "$sc.Add('" + localPath.replace(/'/g, "''") + "')|Out-Null;" +
+        "[System.Windows.Forms.Clipboard]::SetFileDropList($sc)"]);
+    } else return false;
+    return true;
+  } catch (e) { return false; }
+}
+/* 저장 키는 ASCII로 안전하게 — 실제 파일명은 clips.content 에 보관 */
+function safeExt(name) {
+  const e = path.extname(name).slice(1).toLowerCase().replace(/[^a-z0-9]/g, "");
+  return e && e.length <= 10 ? e : "bin";
+}
+
 /* ---------- Supabase ---------- */
 let session = null;
 async function login() {
@@ -189,6 +236,7 @@ async function api(pathname, opts = {}, retry = true) {
 /* ---------- 동기화 ---------- */
 let lastText = null;
 let lastImgHash = null;
+let lastFileHash = null;
 let lastRemoteAt = new Date().toISOString();
 
 async function insertRow(row) {
@@ -207,7 +255,34 @@ async function insertRow(row) {
 }
 
 async function uploadIfChanged() {
-  /* 텍스트 우선 — 텍스트가 있으면 텍스트, 텍스트 없이 이미지만 있으면(스크린샷 등) 이미지 */
+  /* 파일 최우선 — 파인더 파일 복사는 파일명이 텍스트로도 들어오므로 먼저 확인 */
+  const fileLocal = readFilePath();
+  if (fileLocal) {
+    let buf = null;
+    try { buf = fs.readFileSync(fileLocal); } catch (e) {}
+    if (buf && buf.length && buf.length <= MAX_FILE) {
+      const h = sha1(buf);
+      if (h !== lastFileHash) {
+        lastFileHash = h;
+        const t = readText();
+        if (t !== null) lastText = t.slice(0, MAX_TEXT);   // 파일명 텍스트 중복 업로드 방지
+        const name = path.basename(fileLocal);
+        const fp = session.user.id + "/" + Date.now() + "-" + h.slice(0, 8) + "." + safeExt(name);
+        const up = await api("/storage/v1/object/clips/" + fp, {
+          method: "POST",
+          headers: { "Content-Type": "application/octet-stream" },
+          body: buf,
+        });
+        if (!up.ok) { log("파일 업로드 실패", up.status); return; }
+        if (await insertRow({ content: name, kind: "file", file_path: fp })) {
+          log("업로드(파일):", name, Math.round(buf.length / 1024) + "KB");
+          notify("복사한 파일을 다른 기기로 보냈어요 ✓ (" + name + ")");
+        }
+      }
+    }
+    return;   /* 파일이 클립보드에 있는 동안 파일명 텍스트·이미지는 무시 */
+  }
+  /* 텍스트 — 텍스트 없이 이미지만 있으면(스크린샷 등) 이미지 */
   const text = readText();
   if (text !== null && text.trim()) {
     const t = text.slice(0, MAX_TEXT);
@@ -251,7 +326,22 @@ async function pullRemote() {
   if (!rows.length) return;
   const row = rows[0];
   lastRemoteAt = row.created_at;
-  if (row.kind === "image" && row.file_path) {
+  if (row.kind === "file" && row.file_path) {
+    const f = await api("/storage/v1/object/clips/" + row.file_path);
+    if (!f.ok) return;
+    const buf = Buffer.from(await f.arrayBuffer());
+    lastFileHash = sha1(buf);
+    const name = (row.content || "clip.bin").replace(/[\/\\:]/g, "_");
+    try {
+      fs.mkdirSync(RECV_DIR, { recursive: true });
+      const dest = path.join(RECV_DIR, name);
+      fs.writeFileSync(dest, buf);
+      if (writeFileClip(dest)) {
+        log("수신(파일) → 클립보드:", (row.device || "") + " · " + name + " · " + Math.round(buf.length / 1024) + "KB");
+        notify((row.device || "다른 기기") + "에서 파일이 도착했어요 — 바로 붙여넣기 하세요 (" + name + ")");
+      }
+    } catch (e) { log("파일 수신 실패", String(e).slice(0, 80)); }
+  } else if (row.kind === "image" && row.file_path) {
     const f = await api("/storage/v1/object/clips/" + row.file_path);
     if (!f.ok) return;
     const buf = Buffer.from(await f.arrayBuffer());
@@ -287,7 +377,9 @@ async function pullRemote() {
   if (t0 !== null) lastText = t0.slice(0, MAX_TEXT);
   const i0 = readImage();
   if (i0) lastImgHash = sha1(i0);
-  log("클립보드 감시 시작 — 텍스트·이미지 (양방향: " + (TWO_WAY ? "켬" : "끔") + ")");
+  const f0 = readFilePath();
+  if (f0) { try { lastFileHash = sha1(fs.readFileSync(f0)); } catch (e) {} }
+  log("클립보드 감시 시작 — 텍스트·이미지·파일 (양방향: " + (TWO_WAY ? "켬" : "끔") + ")");
   setInterval(() => uploadIfChanged().catch((e) => log("err", String(e).slice(0, 120))), POLL_LOCAL_MS);
   setInterval(() => pullRemote().catch((e) => log("err", String(e).slice(0, 120))), POLL_REMOTE_MS);
 })();

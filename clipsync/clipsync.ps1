@@ -10,6 +10,8 @@ $KEY = "sb_publishable_TUVifI_U6Ht2PFN6BfOGEw_RDKjmUEE"
 $CFG = Join-Path $HOME ".pinlog-clipsync.json"
 $DEVICE = "Windows"
 $MAXIMG = 8MB
+$MAXFILE = 25MB
+$RECVDIR = Join-Path $env:TEMP "pinlog-clips"
 
 if (!(Test-Path $CFG)) {
   Write-Host "Config file required: $CFG"
@@ -51,6 +53,23 @@ Login
 $sha1 = [System.Security.Cryptography.SHA1]::Create()
 function Get-Hash([byte[]]$bytes) { [BitConverter]::ToString($sha1.ComputeHash($bytes)) -replace "-", "" }
 
+function Get-ClipFilePath {
+  # 탐색기에서 Ctrl+C 한 파일 (첫 번째 1개, 25MB 이하)
+  if (-not [System.Windows.Forms.Clipboard]::ContainsFileDropList()) { return $null }
+  $list = [System.Windows.Forms.Clipboard]::GetFileDropList()
+  if ($null -eq $list -or $list.Count -eq 0) { return $null }
+  $p = $list[0]
+  if (-not (Test-Path $p -PathType Leaf)) { return $null }
+  $len = (Get-Item $p).Length
+  if ($len -eq 0 -or $len -gt $MAXFILE) { return $null }
+  return $p
+}
+
+function Get-SafeExt($name) {
+  $e = [System.IO.Path]::GetExtension($name).TrimStart('.').ToLower() -replace '[^a-z0-9]', ''
+  if ($e -and $e.Length -le 10) { return $e } else { return "bin" }
+}
+
 function Get-ClipImageBytes {
   if (-not [System.Windows.Forms.Clipboard]::ContainsImage()) { return $null }
   $img = [System.Windows.Forms.Clipboard]::GetImage()
@@ -76,17 +95,47 @@ function Insert-Row($obj) {
 
 $lastText = Get-Clipboard -Raw
 $lastImgHash = $null
+$lastFileHash = $null
 $img0 = Get-ClipImageBytes
 if ($img0) { $lastImgHash = Get-Hash $img0 }
+$file0 = Get-ClipFilePath
+if ($file0) { $lastFileHash = Get-Hash ([System.IO.File]::ReadAllBytes($file0)) }
 $lastRemoteAt = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
-Write-Host "Watching clipboard - text & image (two-way: $twoWay)"
+Write-Host "Watching clipboard - text, image & file (two-way: $twoWay)"
 
 while ($true) {
   Start-Sleep -Milliseconds 1200
 
-  # 1) 로컬 변경 → 업로드 (텍스트 우선, 텍스트 없으면 이미지)
+  # 0) 파일 복사 최우선 — 원본 바이트 그대로 업로드
+  $fpath = Get-ClipFilePath
+  if ($fpath) {
+    $bytes = $null
+    try { $bytes = [System.IO.File]::ReadAllBytes($fpath) } catch { }
+    if ($bytes -and $bytes.Length -gt 0 -and $bytes.Length -le $MAXFILE) {
+      $h = Get-Hash $bytes
+      if ($h -ne $lastFileHash) {
+        $lastFileHash = $h
+        $lastText = Get-Clipboard -Raw   # 파일명 텍스트 중복 업로드 방지
+        $name = [System.IO.Path]::GetFileName($fpath)
+        $ext = Get-SafeExt $name
+        $fp = "$uid/$([DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds())-$($h.Substring(0,8).ToLower()).$ext"
+        try {
+          Invoke-RestMethod -Method Post -Uri "$URL/storage/v1/object/clips/$fp" `
+            -Headers @{ apikey = $KEY; Authorization = "Bearer $token" } `
+            -ContentType "application/octet-stream" -Body $bytes | Out-Null
+          if (Insert-Row @{ user_id = $uid; content = $name; kind = "file"; file_path = $fp; device = $DEVICE }) {
+            Write-Host "Uploaded(file): $name $([Math]::Round($bytes.Length/1024))KB"
+            Show-Note "복사한 파일을 다른 기기로 보냈어요 - $name"
+          }
+        } catch { Login }
+      }
+    }
+  }
+
+  # 1) 로컬 변경 → 업로드 (파일이 클립보드에 있으면 파일명 텍스트·이미지는 무시)
   $text = Get-Clipboard -Raw
-  if ($text -and $text.Trim() -ne "" -and $text -ne $lastText) {
+  if ($fpath) { }
+  elseif ($text -and $text.Trim() -ne "" -and $text -ne $lastText) {
     $lastText = $text
     if ($text.Length -gt 10000) { $text = $text.Substring(0, 10000) }
     if (Insert-Row @{ user_id = $uid; content = $text; kind = "text"; device = $DEVICE }) {
@@ -124,7 +173,21 @@ while ($true) {
       if ($rows -and $rows.Count -gt 0) {
         $row = $rows[0]
         $lastRemoteAt = $row.created_at
-        if ($row.kind -eq "image" -and $row.file_path) {
+        if ($row.kind -eq "file" -and $row.file_path) {
+          if (!(Test-Path $RECVDIR)) { New-Item -ItemType Directory -Path $RECVDIR | Out-Null }
+          $name = ($row.content -replace '[\\/:*?"<>|]', '_')
+          if (-not $name) { $name = "clip.bin" }
+          $dest = Join-Path $RECVDIR $name
+          Invoke-WebRequest -Uri "$URL/storage/v1/object/clips/$($row.file_path)" `
+            -Headers @{ apikey = $KEY; Authorization = "Bearer $token" } -OutFile $dest
+          $lastFileHash = Get-Hash ([System.IO.File]::ReadAllBytes($dest))
+          $sc = New-Object System.Collections.Specialized.StringCollection
+          $sc.Add($dest) | Out-Null
+          [System.Windows.Forms.Clipboard]::SetFileDropList($sc)
+          Write-Host "Received(file) -> clipboard: $($row.device) - $name"
+          Show-Note "$($row.device)에서 파일이 도착했어요 - $name (바로 붙여넣기)"
+        }
+        elseif ($row.kind -eq "image" -and $row.file_path) {
           $tmp = Join-Path $env:TEMP "pinlog-clip-recv.png"
           Invoke-WebRequest -Uri "$URL/storage/v1/object/clips/$($row.file_path)" `
             -Headers @{ apikey = $KEY; Authorization = "Bearer $token" } -OutFile $tmp
