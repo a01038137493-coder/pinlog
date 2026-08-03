@@ -31,14 +31,47 @@ const TMP_OUT = path.join(os.tmpdir(), "pinlog-clip-out.png");
 
 function log(...a) { console.log(new Date().toISOString().slice(11, 19), ...a); }
 
-let cfg;
+/* 설정 로드 — 맥에서 설정이 없으면 GUI 대화상자로 물어봄 (pkg 설치 직후 첫 실행) */
+function macAsk(msg, hidden) {
+  return execFileSync("osascript", ["-e",
+    "text returned of (display dialog " + JSON.stringify(msg) +
+    ' default answer "" ' + (hidden ? "with hidden answer " : "") +
+    'with title "핀로그 클립보드" buttons {"확인"} default button 1)'],
+    { encoding: "utf8" }).trim();
+}
+function macPromptConfig() {
+  try {
+    const email = macAsk("핀로그 계정 이메일을 입력하세요");
+    const password = macAsk("연결 암호를 입력하세요\n(핀로그 → 설정 → 클립보드 → 연결 암호)", true);
+    if (!email || !password) throw new Error("empty");
+    const c = { email, password, twoWay: true, notify: true };
+    fs.writeFileSync(CFG_PATH, JSON.stringify(c, null, 2));
+    try { fs.chmodSync(CFG_PATH, 0o600); } catch (e) {}
+    return c;
+  } catch (e) {
+    /* 취소 → 조용히 비활성 (launchd 재시작 루프에서 대화상자 폭탄 방지) */
+    try { fs.writeFileSync(CFG_PATH, JSON.stringify({ disabled: true }, null, 2)); } catch (e2) {}
+    try {
+      execFileSync("osascript", ["-e",
+        'display notification "설정이 취소됐어요. 핀로그 클립보드 페이지에서 다시 설치할 수 있어요." with title "핀로그 클립보드"']);
+    } catch (e2) {}
+    return null;
+  }
+}
+
+let cfg = null;
 try {
   cfg = JSON.parse(fs.readFileSync(CFG_PATH, "utf8"));
-  if (!cfg.email || !cfg.password) throw new Error("email/password 누락");
-} catch (e) {
-  console.error("설정 파일이 필요합니다: " + CFG_PATH);
-  console.error('내용 예시: { "email": "you@example.com", "password": "****", "twoWay": true }');
-  process.exit(1);
+} catch (e) {}
+if (cfg && cfg.disabled) { log("비활성 상태 (config disabled)"); process.exit(0); }
+if (!cfg || !cfg.email || !cfg.password) {
+  if (process.platform === "darwin") cfg = macPromptConfig();
+  else {
+    console.error("설정 파일이 필요합니다: " + CFG_PATH);
+    console.error('내용 예시: { "email": "you@example.com", "password": "****", "twoWay": true }');
+    process.exit(1);
+  }
+  if (!cfg) process.exit(0);
 }
 const TWO_WAY = cfg.twoWay !== false;
 const NOTIFY = cfg.notify !== false;
@@ -234,7 +267,19 @@ async function pullRemote() {
 }
 
 (async () => {
-  await login();
+  try {
+    await login();
+  } catch (e) {
+    log(String(e).slice(0, 150));
+    if (process.platform === "darwin") {
+      try {
+        execFileSync("osascript", ["-e",
+          'display dialog "로그인에 실패했어요. 이메일·연결 암호를 다시 확인해주세요." with title "핀로그 클립보드" buttons {"다시 입력"} default button 1']);
+      } catch (e2) {}
+      try { fs.unlinkSync(CFG_PATH); } catch (e2) {}
+    }
+    process.exit(1);
+  }
   const t0 = readText();
   if (t0 !== null) lastText = t0.slice(0, MAX_TEXT);
   const i0 = readImage();

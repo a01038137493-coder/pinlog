@@ -3396,3 +3396,5 @@ main.container.clip { max-width: 720px; margin: 0 auto; }
 .clip__pc-cred p { font-size: 0.74rem; color: var(--muted-soft); margin-top: 6px; }
 .clip__pc-note { font-size: 0.76rem; color: var(--muted-soft); margin-top: 4px; }
 .clip__img { display: block; max-width: 100%; max-height: 150px; border-radius: 8px; }
+a.clip__pc-btn { display: block; text-decoration: none; color: var(--text); box-sizing: border-box; }
+.clip__pc-alt { display: block; margin-top: 8px; border: none; background: none; font: inherit; font-size: 0.76rem; font-weight: 700; color: var(--muted); text-decoration: underline; cursor: pointer; padding: 0; }
