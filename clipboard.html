@@ -9,7 +9,7 @@
   <link rel="manifest" href="/manifest.json" />
   <meta name="theme-color" content="#f04438" />
   <script>document.documentElement.classList.add(window.Capacitor ? "dt-app" : "dt-web");</script>
-  <link rel="stylesheet" href="/css/style.css?v=260" />
+  <link rel="stylesheet" href="/css/style.css?v=261" />
 </head>
 <body class="app-bg">
   <header class="topbar">
@@ -33,6 +33,32 @@
     </section>
 
     <p class="clip__hint" data-en="Copy on one device, click an item on another to copy it there. Syncs instantly.">한 기기에서 저장하면 다른 기기 목록에 바로 떠요. 항목을 누르면 그 기기의 클립보드로 복사됩니다.</p>
+
+    <!-- PC 상시 동기화 프로그램 설치 -->
+    <section class="card clip__pc">
+      <button type="button" class="clip__pc-head" id="clip-pc-toggle">
+        <span>💻 <b data-en="Always-on sync for Mac & Windows">맥·윈도우 상시 동기화 설치</b></span>
+        <span class="clip__pc-chev">›</span>
+      </button>
+      <div class="clip__pc-body" id="clip-pc-body" hidden>
+        <p class="clip__pc-desc" data-en="Install a tiny background program on each computer — then just Ctrl+C on one and Ctrl+V on the other. Starts automatically with your computer.">각 컴퓨터에 작은 상시 프로그램을 설치하면, 한쪽에서 복사(⌘C/Ctrl+C)만 해도 다른 쪽에서 바로 붙여넣기(Ctrl+V)가 됩니다. 컴퓨터를 켜면 자동 시작돼요.</p>
+
+        <p class="clip__pc-step"><b>1.</b> <span data-en="Create a connect password (needed once — social accounts have no password)">연결 암호 만들기 (한 번만 — 소셜 로그인 계정은 비밀번호가 없어서 필요해요)</span></p>
+        <button type="button" class="clip__pc-btn" id="clip-pw-btn" data-en="Create connect password">연결 암호 만들기</button>
+        <div class="clip__pc-cred" id="clip-cred" hidden>
+          <div><em data-en="Email">이메일</em><b id="clip-cred-email"></b></div>
+          <div><em data-en="Connect password">연결 암호</em><b id="clip-cred-pw"></b><button type="button" id="clip-cred-copy" data-en="Copy">복사</button></div>
+          <p data-en="Shown only once — enter these when the installer asks.">이 화면에서만 보여요. 설치 중에 물어보면 입력하세요.</p>
+        </div>
+
+        <p class="clip__pc-step"><b>2.</b> <span data-en="Run the installer on each computer">각 컴퓨터에서 설치 명령 실행</span></p>
+        <div class="clip__pc-cmds">
+          <button type="button" class="clip__pc-btn" id="clip-cmd-mac"> Mac <span data-en="— copy command (paste in Terminal)">— 설치 명령 복사 (터미널에 붙여넣기)</span></button>
+          <button type="button" class="clip__pc-btn" id="clip-cmd-win">🪟 Windows <span data-en="— copy command (paste in PowerShell)">— 설치 명령 복사 (PowerShell에 붙여넣기)</span></button>
+        </div>
+        <p class="clip__pc-note" data-en="Mac needs Node.js (nodejs.org). Windows needs nothing extra.">맥은 Node.js(nodejs.org)가 필요하고, 윈도우는 추가 설치가 없습니다.</p>
+      </div>
+    </section>
 
     <div id="clip-list"></div>
 
@@ -177,6 +203,37 @@
       }
       window.addEventListener("focus", autoGrab);
       document.addEventListener("visibilitychange", () => { if (!document.hidden) autoGrab(); });
+
+      /* ---------- PC 상시 동기화 설치 도우미 ---------- */
+      document.getElementById("clip-pc-toggle").addEventListener("click", () => {
+        const b = document.getElementById("clip-pc-body");
+        b.hidden = !b.hidden;
+      });
+      document.getElementById("clip-pw-btn").addEventListener("click", async () => {
+        if (!confirm(dtT("이 계정에 PC 연결용 비밀번호를 새로 만듭니다. 계속할까요?",
+                         "This creates a new connect password for this account. Continue?"))) return;
+        const pw = Array.from(crypto.getRandomValues(new Uint8Array(9)))
+          .map((b) => "abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789"[b % 56]).join("");
+        const { error } = await supabaseClient.auth.updateUser({ password: pw });
+        if (error) { showToast(dtT("암호를 만들지 못했어요", "Couldn't create password"), "error"); return; }
+        document.getElementById("clip-cred-email").textContent = user.email;
+        document.getElementById("clip-cred-pw").textContent = pw;
+        document.getElementById("clip-cred").hidden = false;
+      });
+      document.getElementById("clip-cred-copy").addEventListener("click", async () => {
+        try {
+          await navigator.clipboard.writeText(document.getElementById("clip-cred-pw").textContent);
+          showToast(dtT("복사했어요", "Copied"), "success");
+        } catch (e) {}
+      });
+      const copyCmd = async (cmd) => {
+        try { await navigator.clipboard.writeText(cmd); showToast(dtT("설치 명령을 복사했어요", "Installer command copied"), "success"); }
+        catch (e) { prompt(dtT("아래 명령을 복사하세요", "Copy this command"), cmd); }
+      };
+      document.getElementById("clip-cmd-mac").addEventListener("click", () =>
+        copyCmd('bash -c "$(curl -fsSL https://www.pinlog.kr/clipsync/setup-mac.sh)"'));
+      document.getElementById("clip-cmd-win").addEventListener("click", () =>
+        copyCmd("irm https://www.pinlog.kr/clipsync/setup-win.ps1 | iex"));
 
       /* 실시간: 다른 기기에서 추가·삭제되면 즉시 반영 */
       try {

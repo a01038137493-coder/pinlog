@@ -42,6 +42,8 @@ const COPY = [
   "weekly-review.html",
   "my-history.html",
   "admin.html",
+  "alerts.html",
+  "clipboard.html",
   "student-detail.html",
   "css",
   "js",
