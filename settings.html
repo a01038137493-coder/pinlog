@@ -69,12 +69,12 @@
       <div class="clip__pc-body" id="clip-pc-body" hidden>
         <p class="clip__pc-desc" data-en="Install a tiny background program on each computer — copy on one (Ctrl+C), paste on the other (Ctrl+V). Text and images, with a confirmation alert.">각 컴퓨터에 작은 상시 프로그램을 설치하면, 한쪽에서 복사(⌘C/Ctrl+C)만 해도 다른 쪽에서 바로 붙여넣기(Ctrl+V)가 됩니다. 텍스트·이미지 지원, 동기화될 때마다 알림.</p>
 
-        <p class="clip__pc-step"><b>1.</b> <span data-en="Connect password (needed once — social accounts have no password)">연결 암호 (한 번만 — 소셜 로그인 계정은 비밀번호가 없어서 필요해요)</span></p>
-        <button type="button" class="clip__pc-btn" id="clip-pw-btn" data-en="Create connect password">연결 암호 만들기</button>
+        <p class="clip__pc-step"><b>1.</b> <span data-en="Your connect password (unique to this account — never changes)">내 연결 암호 (계정 고유 값 — 바뀌지 않아요)</span></p>
+        <button type="button" class="clip__pc-btn" id="clip-pw-btn" hidden data-en="Create connect password">연결 암호 만들기</button>
         <div class="clip__pc-cred" id="clip-cred" hidden>
           <div><em data-en="Email">이메일</em><b id="clip-cred-email"></b></div>
           <div><em data-en="Connect password">연결 암호</em><b id="clip-cred-pw"></b><button type="button" id="clip-cred-copy" data-en="Copy">복사</button></div>
-          <p data-en="Visible on any device where you're logged in — enter these when the installer asks.">로그인된 내 기기 어디서든 보여요. 설치 중에 물어보면 입력하세요.</p>
+          <p data-en="Fixed for this account and visible on any device where you're logged in — enter these when the installer asks.">계정 고유 값이라 항상 같아요. 로그인된 기기 어디서든 보이고, 설치 중에 물어보면 입력하세요.</p>
         </div>
 
         <p class="clip__pc-step"><b>2.</b> <span data-en="Install on each computer">각 컴퓨터에 설치</span></p>
@@ -226,7 +226,7 @@
           document.getElementById("clip-cred-email").textContent = user.email;
           document.getElementById("clip-cred-pw").textContent = pw;
           document.getElementById("clip-cred").hidden = false;
-          pwBtn.textContent = dtT("연결 암호 다시 만들기", "Regenerate connect password");
+          pwBtn.hidden = true;
           winBtn.disabled = false;
         }
         (async () => {
@@ -234,22 +234,19 @@
             const { data: ck } = await supabaseClient.from("connect_keys")
               .select("password").eq("user_id", user.id).maybeSingle();
             if (ck && ck.password) showCred(ck.password);
-          } catch (e) {}
+            else pwBtn.hidden = false;   // 예전 비밀번호 계정만 수동 생성 (한 번, 이후 고정)
+          } catch (e) { pwBtn.hidden = false; }
         })();
         pwBtn.addEventListener("click", async () => {
-          const has = !document.getElementById("clip-cred").hidden;
-          if (!confirm(has
-            ? dtT("연결 암호를 새로 만들면 기존 암호로 설치한 컴퓨터는 다시 설치해야 해요. 계속할까요?",
-                  "Regenerating invalidates the old password — installed computers must be set up again. Continue?")
-            : dtT("이 계정에 PC 연결용 비밀번호를 만듭니다. 계속할까요?",
-                  "This creates a connect password for this account. Continue?"))) return;
-          const pw = Array.from(crypto.getRandomValues(new Uint8Array(9)))
+          if (!confirm(dtT("이 계정의 고유 연결 암호를 만듭니다. 한 번 만들면 바뀌지 않아요. 계속할까요?",
+                           "This creates this account's permanent connect password. Continue?"))) return;
+          const pw = Array.from(crypto.getRandomValues(new Uint8Array(10)))
             .map((b) => "abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789"[b % 56]).join("");
           const { error } = await supabaseClient.auth.updateUser({ password: pw });
           if (error) { showToast(dtT("암호를 만들지 못했어요", "Couldn't create password"), "error"); return; }
           await supabaseClient.from("connect_keys").upsert({ user_id: user.id, password: pw, updated_at: new Date().toISOString() });
           showCred(pw);
-          showToast(dtT("연결 암호를 만들었어요 — 다른 기기에서도 보여요", "Connect password created — visible on your other devices"), "success");
+          showToast(dtT("연결 암호가 만들어졌어요 — 이 값은 바뀌지 않아요", "Connect password created — it never changes"), "success");
         });
         document.getElementById("clip-cred-copy").addEventListener("click", async () => {
           try {
