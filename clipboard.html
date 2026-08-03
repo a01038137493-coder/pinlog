@@ -9,7 +9,7 @@
   <link rel="manifest" href="/manifest.json" />
   <meta name="theme-color" content="#f04438" />
   <script>document.documentElement.classList.add(window.Capacitor ? "dt-app" : "dt-web");</script>
-  <link rel="stylesheet" href="/css/style.css?v=261" />
+  <link rel="stylesheet" href="/css/style.css?v=262" />
 </head>
 <body class="app-bg">
   <header class="topbar">
@@ -110,22 +110,36 @@
         listEl.innerHTML = sorted.map((c) => `
           <div class="card clip__row${c.pinned ? " is-pinned" : ""}" data-id="${c.id}">
             <button type="button" class="clip__body" data-act="copy" title="${dtT("클립보드로 복사", "Copy to clipboard")}">
-              <span class="clip__text">${esc(c.content)}</span>
-              <span class="clip__meta">${c.pinned ? "📌 " : ""}${esc(c.device || "")} · ${when(c.created_at)}</span>
+              ${c.kind === "image"
+                ? `<img class="clip__img" data-path="${esc(c.file_path || "")}" alt="image" />`
+                : `<span class="clip__text">${esc(c.content)}</span>`}
+              <span class="clip__meta">${c.pinned ? "📌 " : ""}${c.kind === "image" ? "🖼 " : ""}${esc(c.device || "")} · ${when(c.created_at)}</span>
             </button>
             <span class="clip__acts">
               <button type="button" data-act="pin" title="${dtT("고정", "Pin")}">${c.pinned ? "📌" : "📍"}</button>
               <button type="button" data-act="del" title="${dtT("삭제", "Delete")}">✕</button>
             </span>
           </div>`).join("");
+        listEl.querySelectorAll("img.clip__img:not([src])").forEach(async (im) => {
+          try {
+            const { data } = await supabaseClient.storage.from("clips").createSignedUrl(im.dataset.path, 3600);
+            if (data && data.signedUrl) im.src = data.signedUrl;
+          } catch (e) {}
+        });
         listEl.querySelectorAll(".clip__row").forEach((row) => {
           const id = row.dataset.id;
           row.querySelector('[data-act="copy"]').addEventListener("click", async () => {
             const c = clips.find((x) => x.id === id);
             if (!c) return;
             try {
-              await navigator.clipboard.writeText(c.content);
-              lastSaved = c.content;                     // 복사해온 걸 자동 저장이 다시 올리지 않게
+              if (c.kind === "image" && c.file_path) {
+                const { data, error } = await supabaseClient.storage.from("clips").download(c.file_path);
+                if (error || !data) throw error;
+                await navigator.clipboard.write([new ClipboardItem({ "image/png": data })]);
+              } else {
+                await navigator.clipboard.writeText(c.content);
+                lastSaved = c.content;                   // 복사해온 걸 자동 저장이 다시 올리지 않게
+              }
               showToast(dtT("클립보드로 복사했어요", "Copied to clipboard"), "success");
             } catch (e) { showToast(dtT("복사하지 못했어요", "Couldn't copy"), "error"); }
           });
@@ -137,9 +151,13 @@
             await supabaseClient.from("clips").update({ pinned: c.pinned }).eq("id", id);
           });
           row.querySelector('[data-act="del"]').addEventListener("click", async () => {
+            const c = clips.find((x) => x.id === id);
             clips = clips.filter((x) => x.id !== id);
             render();
             await supabaseClient.from("clips").delete().eq("id", id);
+            if (c && c.kind === "image" && c.file_path) {
+              try { await supabaseClient.storage.from("clips").remove([c.file_path]); } catch (e) {}
+            }
           });
         });
       }
@@ -155,7 +173,7 @@
       async function add(text, silent) {
         const content = String(text || "").trim().slice(0, 10000);
         if (!content) return false;
-        if (clips.some((c) => c.content === content)) {     // 동일 내용 중복 방지
+        if (clips.some((c) => c.kind !== "image" && c.content === content)) {   // 동일 텍스트 중복 방지
           if (!silent) showToast(dtT("이미 저장돼 있어요", "Already saved"), "info");
           return false;
         }
@@ -169,7 +187,29 @@
         return true;
       }
 
+      async function addImage(blob) {
+        if (blob.size > 8 * 1024 * 1024) { showToast(dtT("이미지가 너무 커요 (8MB 제한)", "Image too large (8MB max)"), "error"); return false; }
+        const fp = user.id + "/" + Date.now() + "-" + Math.random().toString(36).slice(2, 8) + ".png";
+        const { error: upErr } = await supabaseClient.storage.from("clips").upload(fp, blob, { contentType: "image/png" });
+        if (upErr) { showToast(dtT("이미지를 저장하지 못했어요", "Couldn't save image"), "error"); return false; }
+        const { data, error } = await supabaseClient.from("clips")
+          .insert({ user_id: user.id, content: "[이미지]", kind: "image", file_path: fp, device: DEVICE }).select().single();
+        if (error) return false;
+        if (!clips.some((c) => c.id === data.id)) clips.unshift(data);
+        render();
+        showToast(dtT("이미지를 저장했어요 — 다른 기기에서 바로 보여요", "Image saved — visible on your other devices"), "success");
+        return true;
+      }
+
       document.getElementById("clip-grab").addEventListener("click", async () => {
+        /* 이미지가 클립보드에 있으면 이미지부터 */
+        try {
+          const items = await navigator.clipboard.read();
+          for (const it of items) {
+            const t = (it.types || []).find((x) => x.startsWith("image/"));
+            if (t) { const blob = await it.getType(t); await addImage(blob); return; }
+          }
+        } catch (e) {}
         try {
           const text = await navigator.clipboard.readText();
           if (!text || !text.trim()) { showToast(dtT("클립보드가 비어 있어요", "Clipboard is empty"), "info"); return; }
