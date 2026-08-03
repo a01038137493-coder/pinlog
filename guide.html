@@ -52,6 +52,25 @@
     .gm__swipe-row { position: relative; background: var(--bg); padding: 10px 12px; font-size: 0.83rem; font-weight: 700; transform: translateX(-72px); border-radius: 11px; }
     .gtip { display: flex; align-items: center; gap: 10px; text-align: left; font-size: 0.86rem; font-weight: 600; padding: 7px 0; }
     .gtip i { font-style: normal; flex: none; }
+
+    /* 잠금화면 위젯 목업 (다크) */
+    .gm--dark { background: #1c1c1e; border-color: #1c1c1e; }
+    .gw__msg { color: #fff; font-size: 0.9rem; font-weight: 800; line-height: 1.45; margin-bottom: 7px; }
+    .gw__sub { color: rgba(255, 255, 255, 0.62); font-size: 0.76rem; font-weight: 700; }
+
+    /* 데스크탑·태블릿 전체화면: 카드 그리드 */
+    @media (min-width: 768px) and (min-height: 500px) {
+      main.container.guide, html.dt-web main.container.guide { max-width: 1200px; margin-left: auto; margin-right: auto; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; align-items: stretch; }
+      .guide > .period { grid-column: 1 / -1; justify-self: center; }
+      .guide__sec { margin-bottom: 0; display: flex; flex-direction: column; }
+      .guide__sec[hidden] { display: none; }
+      .guide__art { flex: 1; align-items: center; }
+      .guide__sec--tips { grid-column: 1 / -1; }
+      .guide__sec--tips .gtip { justify-content: center; }
+    }
+    @media (min-width: 1160px) and (min-height: 500px) {
+      main.container.guide, html.dt-web main.container.guide { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
   </style>
 </head>
 <body class="app-bg">
@@ -185,6 +204,53 @@
       </div>
     </section>
 
+    <section class="card guide__sec">
+      <h2 class="guide__title">📝 메모</h2>
+      <p class="guide__desc">오른쪽 아래 ＋로 추가 · 폴더로 정리 · 핀 고정</p>
+      <div class="guide__art">
+        <div class="gm">
+          <div class="gm__head"><span class="gm__dot" style="background:#12b76a"></span>아이디어</div>
+          <div class="gm__file"><em>📌</em><div><p>자주 쓰는 계좌번호</p><span>길게 눌러 맨 위 고정</span></div></div>
+          <div class="gm__file"><em>📝</em><div><p>회의 메모</p><span>방금 · 자동 저장</span></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card guide__sec">
+      <h2 class="guide__title">🔒 잠금화면 위젯 (iPhone)</h2>
+      <p class="guide__desc">잠금화면에 오늘의 한 문장과 남은 할 일이 떠요</p>
+      <div class="guide__art">
+        <div class="gm gm--dark">
+          <div class="gw__msg">☔ 오늘 비 소식이 있어요 — 우산 챙기세요</div>
+          <div class="gw__sub">할 일 3/8 · 오후 2:00 팀 미팅</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card guide__sec">
+      <h2 class="guide__title">🔔 똑똑한 리마인더</h2>
+      <p class="guide__desc">상황에 맞는 문구가 자동으로 · 요일별 내 문구는 알림 설정에서</p>
+      <div class="guide__art">
+        <div class="gm">
+          <div class="gm__ev"><span>☔</span>비 예보 — 우산 챙기세요</div>
+          <div class="gm__ev"><span>⏰</span>내일 첫 일정이 일러요</div>
+          <div class="gm__ev"><span>📌</span>월요일마다 — 아맞다 유니폼!</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card guide__sec">
+      <h2 class="guide__title">📋 클립보드 동기화 (맥·윈도우)</h2>
+      <p class="guide__desc">복사만 하면 다른 컴퓨터로 자동 전송 — 설정에서 설치</p>
+      <div class="guide__art">
+        <div class="gm">
+          <div class="gm__file"><em>💻</em><div><p>MacBook에서 ⌘C</p><span>텍스트·이미지 복사</span></div></div>
+          <div class="gm__arrow">↓ 자동 동기화</div>
+          <div class="gm__file"><em>🖥️</em><div><p>Windows에서 Ctrl+V</p><span>바로 붙여넣기</span></div></div>
+        </div>
+      </div>
+    </section>
+
     <section class="card guide__sec" data-mode="exam" hidden>
       <h2 class="guide__title">📊 내 기록</h2>
       <p class="guide__desc">막대를 탭하면 그날 상세가 펼쳐져요</p>
@@ -208,10 +274,11 @@
       </div>
     </section>
 
-    <section class="card guide__sec">
+    <section class="card guide__sec guide__sec--tips">
       <h2 class="guide__title">✨ 팁</h2>
       <div class="gtip"><i>👈</i>왼쪽 가장자리에서 밀면 뒤로 가기</div>
       <div class="gtip"><i>🎨</i>폴더 관리에서 색 동그라미 탭 → 색 변경</div>
+      <div class="gtip"><i>🔒</i>잠금화면 위젯은 잠금화면 길게 눌러 → 위젯 추가 → 핀로그</div>
       <div class="gtip"><i>🔄</i>수험생/일반 전환은 설정에서 언제든</div>
     </section>
   </main>
