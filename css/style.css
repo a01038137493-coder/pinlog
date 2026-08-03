@@ -3343,3 +3343,14 @@ html.dt-app body.memo-page main.container #memo-list { padding-top: 16px !import
 }
 .lm-days button.is-on { background: #191919; border-color: #191919; color: #fff; }
 .lm-days .lm-addbtn { margin-left: auto; background: var(--primary, #f04438); border-color: var(--primary, #f04438); color: #fff; padding: 6px 16px; }
+
+/* 빈 요약 카드 (할 일 0개): 유도 문구만 컴팩트하게 */
+.msum--empty { padding-bottom: 18px; }
+
+/* 전역 오프라인 배너 */
+.dt-offline {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 999;
+  padding: calc(env(safe-area-inset-top, 0px) + 10px) 16px 10px;
+  background: #191919; color: #fff; text-align: center;
+  font-size: 0.82rem; font-weight: 700;
+}

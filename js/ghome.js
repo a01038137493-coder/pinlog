@@ -118,13 +118,23 @@
       if (!box) return;
       const n = todos.length;
       const done = todos.filter((t) => t.done).length;
-      const C = 188.5;
-      const pct = n ? done / n : 0;
-      if (!n) {
-        box.hidden = true;              // 할 일이 없으면 0/0 카드 대신 아래 추가 유도만
+      const empty = n === 0;
+
+      /* 할 일이 하나도 없으면 진행률 대신 시작 유도 카드로 */
+      box.classList.toggle("msum--empty", empty);
+      box.querySelector(".msum__ring").style.display = empty ? "none" : "";
+      box.querySelector(".msum__stats").style.display = empty ? "none" : "";
+      box.querySelector(".msum__label").textContent = empty ? "오늘의 시작" : "오늘의 진행률";
+      const titleEl = box.querySelector(".msum__title");
+      if (empty) {
+        titleEl.textContent = "오늘 할 일을 추가해볼까요?";
+        document.getElementById("g-sum-sub").textContent =
+          smartSub || "작게 시작할수록 꾸준해져요";
       } else {
+        const C = 188.5;
+        const pct = done / n;
+        titleEl.innerHTML = "오늘 할 일 <em>" + done + "개</em> 완료했어요";
         document.getElementById("g-sum-frac").textContent = done + "/" + n;
-        document.getElementById("g-sum-done").textContent = done + "개";
         document.getElementById("g-sum-left").textContent = n - done;
         document.getElementById("g-sum-imp").textContent = todos.filter((t) => t.important && !t.done).length;
         document.getElementById("g-sum-arc").style.strokeDashoffset = (C * (1 - pct)).toFixed(1);
@@ -133,8 +143,8 @@
           : smartSub ? smartSub
           : pct >= 0.5 ? "절반 넘게 왔어요, 이 흐름 그대로!"
           : "작은 시작이 큰 변화를 만듭니다";
-        box.hidden = false;
       }
+      box.hidden = false;
 
       /* iOS 잠금화면·홈 위젯에 오늘 요약 전달 */
       try {
