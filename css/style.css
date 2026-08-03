@@ -3354,3 +3354,24 @@ html.dt-app body.memo-page main.container #memo-list { padding-top: 16px !import
   background: #191919; color: #fff; text-align: center;
   font-size: 0.82rem; font-weight: 700;
 }
+
+/* 클립보드 (clipboard.html) — 기기 간 복사 브리지 */
+.clip__composer { padding: 14px; }
+.clip__grab { display: flex; align-items: center; justify-content: center; gap: 8px; }
+.clip__grab svg { width: 18px; height: 18px; }
+.clip__input { width: 100%; box-sizing: border-box; margin-top: 10px; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; font: inherit; font-size: 0.9rem; resize: vertical; min-height: 44px; }
+.clip__input:focus { outline: 2px solid #ffd9d4; border-color: var(--primary, #f04438); }
+.clip__composer-foot { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+.clip__auto { flex: 1; display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: var(--muted); font-weight: 600; }
+.clip__addbtn { border: none; background: #191919; color: #fff; border-radius: 9px; padding: 8px 16px; font: inherit; font-size: 0.85rem; font-weight: 700; cursor: pointer; }
+.clip__hint { font-size: 0.78rem; color: var(--muted-soft); margin: 12px 4px; word-break: keep-all; }
+.clip__row { display: flex; align-items: stretch; padding: 0; overflow: hidden; margin-bottom: 10px; }
+.clip__row.is-pinned { border: 1px solid #f6b9b2; }
+.clip__body { flex: 1; min-width: 0; text-align: left; border: none; background: none; font: inherit; padding: 12px 14px; cursor: pointer; }
+.clip__body:hover { background: #faf9f7; }
+.clip__text { display: block; font-size: 0.9rem; color: var(--text); word-break: break-all; white-space: pre-wrap; max-height: 110px; overflow: hidden; }
+.clip__meta { display: block; margin-top: 5px; font-size: 0.72rem; color: var(--muted-soft); font-weight: 600; }
+.clip__acts { display: flex; flex-direction: column; border-left: 1px solid var(--line); }
+.clip__acts button { flex: 1; border: none; background: none; padding: 0 13px; font-size: 0.85rem; cursor: pointer; color: var(--muted); }
+.clip__acts button:hover { background: #f4f4f2; }
+main.container.clip { max-width: 720px; margin: 0 auto; }

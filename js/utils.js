@@ -828,3 +828,24 @@ document.addEventListener("DOMContentLoaded", () => {
     if (NAV[s.textContent.trim()]) s.textContent = NAV[s.textContent.trim()];
   });
 });
+
+/* ------------------------------------------------------------
+ * 웹 데스크톱 사이드바에 클립보드 항목 추가 (설정 위)
+ * ------------------------------------------------------------ */
+(function () {
+  try {
+    if (window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) return;
+    if (!window.matchMedia("(min-width: 1100px)").matches) return;
+    document.addEventListener("DOMContentLoaded", () => {
+      const bar = document.querySelector(".tabbar");
+      if (!bar || bar.querySelector('a[href="/clipboard.html"]')) return;
+      const set = bar.querySelector('a[href="/settings.html"]');
+      const a = document.createElement("a");
+      a.href = "/clipboard.html";
+      a.className = "tabbar__item";
+      a.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="2.5" width="8" height="4" rx="1.4"/><path d="M16 4.5h2.6A1.4 1.4 0 0 1 20 5.9v14.2a1.4 1.4 0 0 1-1.4 1.4H5.4A1.4 1.4 0 0 1 4 20.1V5.9a1.4 1.4 0 0 1 1.4-1.4H8"/><path d="M9 12h6M9 16h4"/></svg><span>' +
+        (typeof dtT === "function" ? dtT("클립보드", "Clipboard") : "클립보드") + "</span>";
+      bar.insertBefore(a, set || null);
+    });
+  } catch (e) {}
+})();

@@ -9,7 +9,7 @@
   <link rel="manifest" href="/manifest.json" />
   <meta name="theme-color" content="#f04438" />
   <script>document.documentElement.classList.add(window.Capacitor ? "dt-app" : "dt-web");</script>
-  <link rel="stylesheet" href="/css/style.css?v=258" />
+  <link rel="stylesheet" href="/css/style.css?v=260" />
 </head>
 <body class="app-bg has-tabbar">
   <header class="topbar">
@@ -44,6 +44,10 @@
       </a>
       <a href="/notifications.html" class="settings-row" id="ntf-link" hidden>
         <span data-en="Notifications">알림</span>
+        <span class="settings-row__chevron" aria-hidden="true">›</span>
+      </a>
+      <a href="/clipboard.html" class="settings-row">
+        <span data-en="Clipboard">클립보드</span>
         <span class="settings-row__chevron" aria-hidden="true">›</span>
       </a>
       <a href="/guide.html" class="settings-row">
@@ -127,7 +131,7 @@
 
   <script src="/js/vendor/supabase.js"></script>
   <script src="/js/supabaseClient.js?v=mock19"></script>
-  <script src="/js/utils.js?v=46"></script>
+  <script src="/js/utils.js?v=47"></script>
   <script src="/js/notify.js?v=5"></script>
   <script>
     document.addEventListener("DOMContentLoaded", async () => {
