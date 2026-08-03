@@ -176,6 +176,11 @@ function getDdayToSuneung() {
 /* 날짜를 'M월 D일 (요일)' 형식으로 보기 좋게 */
 function formatKoreanDate(dateString) {
   const date = dateString ? new Date(dateString) : new Date();
+  if (typeof DT_EN !== "undefined" && DT_EN) {
+    const mons = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const dows = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    return `${mons[date.getMonth()]} ${date.getDate()} (${dows[date.getDay()]})`;
+  }
   const days = ["일", "월", "화", "수", "목", "금", "토"];
   return `${date.getMonth() + 1}월 ${date.getDate()}일 (${days[date.getDay()]})`;
 }
@@ -716,17 +721,19 @@ function dtSkeleton(el, rows) {
 /* 시간대별 친근한 인사말 (모바일 홈 헤더용) */
 function dtGreeting(name) {
   const h = new Date().getHours();
+  const en = typeof DT_EN !== "undefined" && DT_EN;
   let msg;
-  if (h >= 1 && h < 5) msg = "새벽까지 수고하십니다.. 무리하지 마세요!";
-  else if (h >= 5 && h < 8) msg = "일찍 시작하는 하루네요! 오늘도 화이팅 ☀️";
-  else if (h >= 8 && h < 11) msg = "좋은 아침이에요! 가볍게 시작해봐요";
-  else if (h >= 11 && h < 13) msg = "오늘 점심 메뉴는 뭐예요? ㅎㅎ";
-  else if (h >= 13 && h < 17) msg = "나른한 오후네요, 잠깐 스트레칭 어때요?";
-  else if (h >= 17 && h < 19) msg = "오늘 하루도 수고 많았어요!";
-  else if (h >= 19 && h < 22) msg = "하루 마무리 잘 하고 있나요? 🌙";
-  else msg = "슬슬 잘 준비 해볼까요? 😴";
+  if (h >= 1 && h < 5) msg = en ? "Up late? Take it easy tonight!" : "새벽까지 수고하십니다.. 무리하지 마세요!";
+  else if (h >= 5 && h < 8) msg = en ? "An early start — go get it! ☀️" : "일찍 시작하는 하루네요! 오늘도 화이팅 ☀️";
+  else if (h >= 8 && h < 11) msg = en ? "Good morning! Ease into the day" : "좋은 아침이에요! 가볍게 시작해봐요";
+  else if (h >= 11 && h < 13) msg = en ? "What's for lunch today? :)" : "오늘 점심 메뉴는 뭐예요? ㅎㅎ";
+  else if (h >= 13 && h < 17) msg = en ? "Afternoon slump? Stretch it out" : "나른한 오후네요, 잠깐 스트레칭 어때요?";
+  else if (h >= 17 && h < 19) msg = en ? "Great work today!" : "오늘 하루도 수고 많았어요!";
+  else if (h >= 19 && h < 22) msg = en ? "Wrapping up the day nicely? 🌙" : "하루 마무리 잘 하고 있나요? 🌙";
+  else msg = en ? "Time to wind down soon 😴" : "슬슬 잘 준비 해볼까요? 😴";
   const who = name ? String(name).trim() : "";
-  return (who ? who + "님, " : "") + msg;
+  if (!who) return msg;
+  return en ? who + ", " + msg.charAt(0).toLowerCase() + msg.slice(1) : who + "님, " + msg;
 }
 
 /* ------------------------------------------------------------
@@ -750,7 +757,8 @@ async function dtSmartSub(profile) {
       if (!ev) return null;
       const st = new Date(ev.start_at);
       if (st.getHours() > 9) return null;
-      return `내일 ${fmtTime12(st)} 일정이 있어요. 내일을 위해 일찍 쉬어요 🌙`;
+      return dtT(`내일 ${fmtTime12(st)} 일정이 있어요. 내일을 위해 일찍 쉬어요 🌙`,
+                 `You have a ${fmtTime12(st)} event tomorrow. Get some rest tonight 🌙`);
     } catch (e2) { return null; }
   };
 
@@ -776,7 +784,7 @@ async function dtSmartSub(profile) {
         p = prob >= 60 || (code >= 51 && code <= 99);       // WMO 51+: 비·소나기·뇌우·눈
         localStorage.setItem(KEY, JSON.stringify({ t: Date.now(), p }));
       }
-      return p ? "오늘 비 소식이 있어요. 우산 챙기는 거 잊지 마세요 ☔" : null;
+      return p ? dtT("오늘 비 소식이 있어요. 우산 챙기는 거 잊지 마세요 ☔", "Rain is expected today — don't forget your umbrella ☔") : null;
     } catch (e2) { return null; }
   };
 
@@ -803,3 +811,20 @@ async function dtSmartSub(profile) {
   window.addEventListener("online", hide);
   document.addEventListener("DOMContentLoaded", () => { if (navigator.onLine === false) show(); });
 })();
+
+/* ------------------------------------------------------------
+ * 초경량 로컬라이즈 — 기기 언어가 한국어가 아니면 영어로.
+ * 정적 문구: data-en / data-en-ph 속성, 동적 문구: dtT(ko, en)
+ * ------------------------------------------------------------ */
+const DT_EN = !String(navigator.language || "ko").toLowerCase().startsWith("ko");
+function dtT(ko, en) { return DT_EN ? en : ko; }
+document.addEventListener("DOMContentLoaded", () => {
+  if (!DT_EN) return;
+  document.querySelectorAll("[data-en]").forEach((el) => { el.textContent = el.dataset.en; });
+  document.querySelectorAll("[data-en-ph]").forEach((el) => { el.placeholder = el.dataset.enPh; });
+  /* 하단 탭바·공통 내비 라벨 */
+  const NAV = { "홈": "Home", "캘린더": "Calendar", "메모": "Notes", "파일": "Files", "설정": "Settings", "타임박스": "Timebox" };
+  document.querySelectorAll(".tabbar__item span:last-child").forEach((s) => {
+    if (NAV[s.textContent.trim()]) s.textContent = NAV[s.textContent.trim()];
+  });
+});

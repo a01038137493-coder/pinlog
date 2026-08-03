@@ -142,7 +142,7 @@
             <div class="mock__row"><i></i><b>★</b>프로젝트 회의 준비</div>
           </div>
         </div>
-        <p class="tour__title">계획으로 방향성을 잡고,<br />핀로그에 오늘의 로그를 남기세요!</p>
+        <p class="tour__title" data-en="Plan your day, then log it in Pinlog!">계획으로 방향성을 잡고,<br />핀로그에 오늘의 로그를 남기세요!</p>
         <p class="tour__desc">오늘 할 일을 몇 초 만에 계획하고 기록해요</p>
       </section>
 
@@ -164,7 +164,7 @@
             </div>
           </div>
         </div>
-        <p class="tour__title">태블릿은 책상 위 대시보드</p>
+        <p class="tour__title" data-en="Your tablet becomes a desk dashboard">태블릿은 책상 위 대시보드</p>
         <p class="tour__desc">화면이 꺼지지 않는 상시 모드 — 시계·할 일·일정을 한눈에</p>
       </section>
 
@@ -179,7 +179,7 @@
             <div class="mock__ev"><span>오후 3:00</span>성수 사무실 미팅</div>
           </div>
         </div>
-        <p class="tour__title">일정은 캘린더에서 한눈에</p>
+        <p class="tour__title" data-en="See every event at a glance">일정은 캘린더에서 한눈에</p>
         <p class="tour__desc">Apple 캘린더와 연동돼 어디서든 같은 일정</p>
       </section>
 
@@ -191,7 +191,7 @@
             <div class="mock__ev"><span>내일 오후 3:00</span>성수 약속<b>자동 등록</b></div>
           </div>
         </div>
-        <p class="tour__title">캡처하면 일정이 자동으로</p>
+        <p class="tour__title" data-en="Screenshots turn into events">캡처하면 일정이 자동으로</p>
         <p class="tour__desc">카톡 스크린샷을 공유하면 날짜·시간을 읽어 등록해요</p>
       </section>
 
@@ -207,7 +207,7 @@
             <div class="mock__file"><em>🖼️</em><div><p>레퍼런스.jpg</p><span>1.1 MB · 어제</span></div></div>
           </div>
         </div>
-        <p class="tour__title">메모와 파일도 한곳에</p>
+        <p class="tour__title" data-en="Notes and files, all in one place">메모와 파일도 한곳에</p>
         <p class="tour__desc">메모장처럼 쓰고, 문서·이미지는 폴더로 정리해요</p>
       </section>
 
@@ -219,7 +219,7 @@
             <div class="mock__streak">🔥 7일 연속 기록 중</div>
           </div>
         </div>
-        <p class="tour__title">매일의 로그가 쌓입니다</p>
+        <p class="tour__title" data-en="Your daily logs add up">매일의 로그가 쌓입니다</p>
         <p class="tour__desc">기록이 모여 나만의 데이터가 돼요</p>
       </section>
     </div>
@@ -227,27 +227,28 @@
   </main>
 
   <div class="welcome__actions" id="welcome-next">
-    <button type="button" class="welcome__btn welcome__btn--start" id="tour-next">다음</button>
-    <button type="button" class="welcome__skip" id="tour-skip">건너뛰기</button>
+    <button type="button" class="welcome__btn welcome__btn--start" id="tour-next" data-en="Next">다음</button>
+    <button type="button" class="welcome__skip" id="tour-skip" data-en="Skip">건너뛰기</button>
   </div>
 
   <div class="welcome__actions" id="welcome-auth" hidden>
-    <button type="button" class="btn btn--social btn--apple btn--block btn--lg" onclick="signInWithProvider('apple')"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:18px;height:18px"><path fill="currentColor" d="M16.36 12.76c.03 3.26 2.86 4.34 2.9 4.36-.03.08-.46 1.56-1.5 3.09-.9 1.32-1.84 2.64-3.32 2.66-1.45.03-1.92-.86-3.58-.86-1.66 0-2.18.84-3.55.9-1.43.05-2.51-1.43-3.42-2.75-1.86-2.7-3.28-7.6-1.37-10.93.95-1.65 2.64-2.69 4.48-2.72 1.4-.03 2.72.94 3.58.94.85 0 2.46-1.16 4.15-1 .7.03 2.68.29 3.95 2.15-.1.06-2.36 1.38-2.32 4.16zM13.65 4.66c.75-.91 1.26-2.18 1.12-3.45-1.08.05-2.4.73-3.18 1.64-.7.8-1.31 2.1-1.15 3.34 1.21.1 2.45-.62 3.21-1.53z"/></svg>Apple로 시작하기</button>
+    <button type="button" class="btn btn--social btn--apple btn--block btn--lg" onclick="signInWithProvider('apple')"><svg viewBox="0 0 24 24" aria-hidden="true" style="width:18px;height:18px"><path fill="currentColor" d="M16.36 12.76c.03 3.26 2.86 4.34 2.9 4.36-.03.08-.46 1.56-1.5 3.09-.9 1.32-1.84 2.64-3.32 2.66-1.45.03-1.92-.86-3.58-.86-1.66 0-2.18.84-3.55.9-1.43.05-2.51-1.43-3.42-2.75-1.86-2.7-3.28-7.6-1.37-10.93.95-1.65 2.64-2.69 4.48-2.72 1.4-.03 2.72.94 3.58.94.85 0 2.46-1.16 4.15-1 .7.03 2.68.29 3.95 2.15-.1.06-2.36 1.38-2.32 4.16zM13.65 4.66c.75-.91 1.26-2.18 1.12-3.45-1.08.05-2.4.73-3.18 1.64-.7.8-1.31 2.1-1.15 3.34 1.21.1 2.45-.62 3.21-1.53z"/></svg><span data-en="Continue with Apple">Apple로 시작하기</span></button>
     <button type="button" class="btn btn--social btn--kakao btn--block btn--lg" onclick="signInWithProvider('kakao')">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3C6.48 3 2 6.54 2 10.9c0 2.8 1.86 5.26 4.66 6.65-.15.52-.97 3.36-1 3.58 0 0-.02.17.09.24.11.07.24.02.24.02.32-.04 3.66-2.4 4.24-2.81.57.08 1.16.13 1.77.13 5.52 0 10-3.54 10-7.9S17.52 3 12 3z"/></svg>
-      카카오로 시작하기
+      <span data-en="Continue with Kakao">카카오로 시작하기</span>
     </button>
     <button type="button" class="btn btn--social btn--google btn--block btn--lg" onclick="signInWithProvider('google')">
       <svg viewBox="0 0 18 18" aria-hidden="true"><path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.92c1.7-1.57 2.68-3.88 2.68-6.62z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.26c-.8.54-1.84.86-3.04.86-2.34 0-4.32-1.58-5.03-3.7H.96v2.33A9 9 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.97 10.72a5.41 5.41 0 0 1 0-3.44V4.95H.96a9 9 0 0 0 0 8.1l3.01-2.33z"/><path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.59A9 9 0 0 0 .96 4.95l3.01 2.33C4.68 5.16 6.66 3.58 9 3.58z"/></svg>
-      Google로 시작하기
+      <span data-en="Continue with Google">Google로 시작하기</span>
     </button>
-    <a href="/signup.html" class="welcome__btn welcome__btn--start">이메일로 시작하기</a>
+    <a href="/signup.html" class="welcome__btn welcome__btn--start" data-en="Continue with email">이메일로 시작하기</a>
     <p id="login-error" class="form__error" role="alert"></p>
-    <p class="auth-alt">이미 계정이 있나요? <a href="/login.html">로그인</a></p>
+    <p class="auth-alt"><span data-en="Already have an account?">이미 계정이 있나요?</span> <a href="/login.html" data-en="Log in">로그인</a></p>
   </div>
 
   <script src="/js/vendor/supabase.js"></script>
   <script src="/js/supabaseClient.js?v=mock19"></script>
+  <script src="/js/utils.js?v=46"></script>
   <script>
     // Apple 로그인은 iOS 전용 — Android 앱에서는 버튼 숨김
     if (window.Capacitor && window.Capacitor.getPlatform && window.Capacitor.getPlatform() === "android") {

@@ -13,40 +13,40 @@
 </head>
 <body class="app-bg onb-page">
   <main class="container onb">
-    <h1 class="onb__title">어떤 용도로 쓰시나요?</h1>
-    <p class="onb__desc">선택에 맞춰 화면이 달라집니다. 나중에 설정에서 바꿀 수 있어요.</p>
+    <h1 class="onb__title" data-en="How will you use Pinlog?">어떤 용도로 쓰시나요?</h1>
+    <p class="onb__desc" data-en="Your home screen adapts to your choice. You can change this later in Settings.">선택에 맞춰 화면이 달라집니다. 나중에 설정에서 바꿀 수 있어요.</p>
 
     <button type="button" class="card onb__opt" data-type="exam">
-      <span class="onb__opt-title">수험생</span>
-      <span class="onb__opt-desc">수능 D-Day, 과목별 과제, 주간 목표·회고까지 학습 관리에 필요한 기능을 모두 사용합니다</span>
+      <span class="onb__opt-title" data-en="Student (exam prep)">수험생</span>
+      <span class="onb__opt-desc" data-en="D-Day countdown, subject tasks, weekly goals and reviews — everything for study management">수능 D-Day, 과목별 과제, 주간 목표·회고까지 학습 관리에 필요한 기능을 모두 사용합니다</span>
     </button>
 
     <button type="button" class="card onb__opt" data-type="general">
-      <span class="onb__opt-title">일반 사용자</span>
-      <span class="onb__opt-desc">할 일·일정·메모·파일 중심으로 단순하게. 원하면 목표일을 직접 정할 수 있어요</span>
+      <span class="onb__opt-title" data-en="Everyday planner">일반 사용자</span>
+      <span class="onb__opt-desc" data-en="Keep it simple with tasks, events, notes and files. Set your own goal date if you like">할 일·일정·메모·파일 중심으로 단순하게. 원하면 목표일을 직접 정할 수 있어요</span>
     </button>
 
     <!-- 일반 선택 시에만 노출 -->
     <section class="card onb__goal" id="onb-goal" hidden>
-      <p class="onb__goal-title">목표일이 있나요? <span class="onb__goal-opt">(선택)</span></p>
+      <p class="onb__goal-title"><span data-en="Do you have a goal date?">목표일이 있나요?</span> <span class="onb__goal-opt" data-en="(optional)">(선택)</span></p>
       <label class="field">
-        <span class="field__label">목표 이름</span>
-        <input type="text" id="onb-goal-label" class="field__input" placeholder="예: 자격증 시험, 프로젝트 마감" maxlength="20" />
+        <span class="field__label" data-en="Goal name">목표 이름</span>
+        <input type="text" id="onb-goal-label" class="field__input" placeholder="예: 자격증 시험, 프로젝트 마감" data-en-ph="e.g. Exam day, project deadline" maxlength="20" />
       </label>
       <label class="field">
-        <span class="field__label">날짜</span>
+        <span class="field__label" data-en="Date">날짜</span>
         <input type="date" id="onb-goal-date" class="field__input" />
       </label>
-      <p class="onb__hint">비워두면 홈에 D-Day가 표시되지 않습니다.</p>
+      <p class="onb__hint" data-en="Leave empty to hide the D-Day on your home screen.">비워두면 홈에 D-Day가 표시되지 않습니다.</p>
     </section>
 
-    <button type="button" class="btn btn--primary btn--block btn--lg onb__start" id="onb-start" disabled>시작하기</button>
+    <button type="button" class="btn btn--primary btn--block btn--lg onb__start" id="onb-start" disabled data-en="Get started">시작하기</button>
     <p class="form__error" id="onb-error" role="alert"></p>
   </main>
 
   <script src="/js/vendor/supabase.js"></script>
   <script src="/js/supabaseClient.js?v=mock19"></script>
-  <script src="/js/utils.js?v=45"></script>
+  <script src="/js/utils.js?v=46"></script>
   <script>
     document.addEventListener("DOMContentLoaded", async () => {
       const user = await requireAuth();

@@ -68,7 +68,7 @@
       todos.find((t) => t.id === id) || upcoming.find((t) => t.id === id);
 
     const dateLabel = (dateStr) => {
-      if (dateStr === tomorrow) return "내일";
+      if (dateStr === tomorrow) return dtT("내일", "Tomorrow");
       const [y, m, d] = dateStr.split("-").map(Number);
       const dt = new Date(y, m - 1, d);
       return `${m}/${d} (${["일", "월", "화", "수", "목", "금", "토"][dt.getDay()]})`;
@@ -78,8 +78,8 @@
     const rowHtml = (t, dateLbl) => `
       <div class="gtodo__row memo-row${t.id === noteId ? " is-note" : ""}" data-id="${t.id}">
         <div class="memo-row__actions">
-          <button type="button" class="memo-act memo-act--imp" data-act="imp">${STAR_SVG}<span>중요</span></button>
-          <button type="button" class="memo-act memo-act--del" data-act="del">${DEL_SVG}<span>삭제</span></button>
+          <button type="button" class="memo-act memo-act--imp" data-act="imp">${STAR_SVG}<span>${dtT("중요", "Star")}</span></button>
+          <button type="button" class="memo-act memo-act--del" data-act="del">${DEL_SVG}<span>${dtT("삭제", "Delete")}</span></button>
         </div>
         <button type="button" class="gtodo__item${t.done ? " is-done" : ""}">
           <span class="gtodo__check">${t.done ? "✓" : ""}</span>
@@ -98,10 +98,10 @@
     function render() {
       const done = todos.filter((t) => t.done).length;
       countEl.hidden = todos.length === 0;
-      countEl.textContent = `${done}/${todos.length} 완료`;
+      countEl.textContent = done + "/" + todos.length + dtT(" 완료", " done");
 
       if (!todos.length) {
-        listEl.innerHTML = `<p class="gtodo__empty">오늘 할 일을 적어보세요</p>`;
+        listEl.innerHTML = `<p class="gtodo__empty">${dtT("오늘 할 일을 적어보세요", "Write down what you'll do today")}</p>`;
         return;
       }
       // 미완료 먼저(그 안에서 중요 먼저) → 완료는 맨 아래
@@ -137,25 +137,25 @@
       box.classList.toggle("msum--empty", empty);
       box.querySelector(".msum__ring").style.display = empty ? "none" : "";
       box.querySelector(".msum__stats").style.display = empty ? "none" : "";
-      box.querySelector(".msum__label").textContent = empty ? "오늘의 시작" : "오늘의 진행률";
+      box.querySelector(".msum__label").textContent = empty ? dtT("오늘의 시작", "Start your day") : dtT("오늘의 진행률", "Today's progress");
       const titleEl = box.querySelector(".msum__title");
       if (empty) {
-        titleEl.textContent = "오늘 할 일을 추가해볼까요?";
+        titleEl.textContent = dtT("오늘 할 일을 추가해볼까요?", "Ready to add your first task?");
         document.getElementById("g-sum-sub").textContent =
-          smartSub || "작게 시작할수록 꾸준해져요";
+          smartSub || dtT("작게 시작할수록 꾸준해져요", "Small starts build big habits");
       } else {
         const C = 188.5;
         const pct = done / n;
-        titleEl.innerHTML = "오늘 할 일 <em>" + done + "개</em> 완료했어요";
+        titleEl.innerHTML = DT_EN ? "<em>" + done + "</em> task" + (done === 1 ? "" : "s") + " done today" : "오늘 할 일 <em>" + done + "개</em> 완료했어요";
         document.getElementById("g-sum-frac").textContent = done + "/" + n;
         document.getElementById("g-sum-left").textContent = n - done;
         document.getElementById("g-sum-imp").textContent = todos.filter((t) => t.important && !t.done).length;
         document.getElementById("g-sum-arc").style.strokeDashoffset = (C * (1 - pct)).toFixed(1);
         document.getElementById("g-sum-sub").textContent =
-          pct >= 1 ? "오늘 할 일을 전부 끝냈어요! 🎉"
+          pct >= 1 ? dtT("오늘 할 일을 전부 끝냈어요! 🎉", "Everything done for today! 🎉")
           : smartSub ? smartSub
-          : pct >= 0.5 ? "절반 넘게 왔어요, 이 흐름 그대로!"
-          : "작은 시작이 큰 변화를 만듭니다";
+          : pct >= 0.5 ? dtT("절반 넘게 왔어요, 이 흐름 그대로!", "More than halfway — keep it up!")
+          : dtT("작은 시작이 큰 변화를 만듭니다", "Small steps make big changes");
       }
       box.hidden = false;
     }
@@ -625,7 +625,7 @@
       const box = document.getElementById("g-carry");
       if (carryover.length) {
         document.getElementById("g-carry-text").textContent =
-          `밀린 할 일 ${carryover.length}개가 있어요`;
+          dtT(`밀린 할 일 ${carryover.length}개가 있어요`, `${carryover.length} overdue task${carryover.length === 1 ? "" : "s"} waiting`);
         box.hidden = false;
       } else {
         box.hidden = true;

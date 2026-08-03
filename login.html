@@ -88,15 +88,15 @@
   <main class="nlogin">
     <div class="nlogin__inner">
       <img src="/assets/logo.png" alt="핀로그" class="nlogin__logo" onerror="this.style.display='none'" />
-      <h1 class="nlogin__title">계획하고 기록하는 나만의 하루</h1>
-      <p class="nlogin__sub">핀로그 계정에 로그인</p>
+      <h1 class="nlogin__title" data-en="Your day, planned and logged">계획하고 기록하는 나만의 하루</h1>
+      <p class="nlogin__sub" data-en="Log in to Pinlog">핀로그 계정에 로그인</p>
 
       <!-- 1단계: 이메일 -->
       <form id="li-email-form">
-        <span class="nlogin__label">이메일</span>
-        <input type="email" id="li-email" class="linput" placeholder="이메일 주소를 입력하세요" required autocomplete="email" />
-        <div class="ntip"><b>팁:</b> 비밀번호가 필요 없어요. 이 주소로 전송되는 6자리 인증 코드로 로그인합니다.</div>
-        <button type="submit" class="nlogin__go" id="li-go">계속</button>
+        <span class="nlogin__label" data-en="Email">이메일</span>
+        <input type="email" id="li-email" class="linput" placeholder="이메일 주소를 입력하세요" data-en-ph="Enter your email" required autocomplete="email" />
+        <div class="ntip" data-en="Tip: no password needed — we'll email you a 6-digit code to log in."><b>팁:</b> 비밀번호가 필요 없어요. 이 주소로 전송되는 6자리 인증 코드로 로그인합니다.</div>
+        <button type="submit" class="nlogin__go" id="li-go" data-en="Continue">계속</button>
       </form>
 
       <!-- 2단계: 인증 코드 -->
@@ -110,26 +110,26 @@
           <input type="text" class="otp-d" inputmode="numeric" maxlength="1" />
           <input type="text" class="otp-d" inputmode="numeric" maxlength="1" />
         </div>
-        <button type="submit" class="nlogin__go" id="otp-go">로그인</button>
+        <button type="submit" class="nlogin__go" id="otp-go" data-en="Log in">로그인</button>
         <div class="otp-actions">
-          <button type="button" id="otp-edit">이메일 수정</button>
-          <button type="button" id="otp-resend">코드 재전송</button>
+          <button type="button" id="otp-edit" data-en="Edit email">이메일 수정</button>
+          <button type="button" id="otp-resend" data-en="Resend code">코드 재전송</button>
         </div>
       </form>
 
       <!-- 내부 계정(@pinlog.app — 데모·앱스토어 심사용): 비밀번호 로그인 -->
       <form id="li-pw-form" hidden>
-        <span class="nlogin__label">비밀번호</span>
-        <input type="password" id="li-pw" class="linput" placeholder="비밀번호를 입력하세요" autocomplete="current-password" />
-        <button type="submit" class="nlogin__go" id="pw-go">로그인</button>
+        <span class="nlogin__label" data-en="Password">비밀번호</span>
+        <input type="password" id="li-pw" class="linput" placeholder="비밀번호를 입력하세요" data-en-ph="Enter your password" autocomplete="current-password" />
+        <button type="submit" class="nlogin__go" id="pw-go" data-en="Log in">로그인</button>
         <div class="otp-actions">
-          <button type="button" id="pw-edit">이메일 수정</button>
+          <button type="button" id="pw-edit" data-en="Edit email">이메일 수정</button>
         </div>
       </form>
 
       <p id="login-error" role="alert"></p>
 
-      <div class="nlogin__div">또는 다음으로 계속하기</div>
+      <div class="nlogin__div" data-en="or continue with">또는 다음으로 계속하기</div>
 
       <div class="nlogin__provs">
         <button type="button" class="nprov" onclick="signInWithProvider('google')">
@@ -142,17 +142,18 @@
         </button>
         <button type="button" class="nprov" onclick="signInWithProvider('kakao')">
           <svg viewBox="0 0 26 26" aria-hidden="true"><rect width="26" height="26" rx="6.5" fill="#FEE500"/><path fill="#3C1E1E" d="M13 6.2c-4 0-7.2 2.5-7.2 5.6 0 2 1.3 3.7 3.3 4.7-.1.4-.7 2.4-.7 2.5 0 0 0 .12.06.17.08.05.17.01.17.01.23-.03 2.6-1.7 3-2 .45.06.9.1 1.37.1 4 0 7.2-2.5 7.2-5.6S17 6.2 13 6.2z"/></svg>
-          카카오
+          <span data-en="Kakao">카카오</span>
         </button>
       </div>
 
-      <p class="nlogin__alt">신규 사용자이신가요? <a href="/signup.html">가입하기</a></p>
-      <p class="nlogin__terms">계속 진행하면 핀로그의 <a href="/privacy.html">개인정보처리방침</a>을<br />이해했으며 이에 동의하는 것으로 간주됩니다.</p>
+      <p class="nlogin__alt"><span data-en="New to Pinlog?">신규 사용자이신가요?</span> <a href="/signup.html" data-en="Sign up">가입하기</a></p>
+      <p class="nlogin__terms"><span data-en="By continuing, you agree to Pinlog's ">계속 진행하면 핀로그의 </span><a href="/privacy.html" data-en="Privacy Policy">개인정보처리방침</a><span data-en=".">을<br />이해했으며 이에 동의하는 것으로 간주됩니다.</span></p>
     </div>
   </main>
 
   <script src="/js/vendor/supabase.js"></script>
   <script src="/js/supabaseClient.js?v=mock19"></script>
+  <script src="/js/utils.js?v=46"></script>
   <script>
     // Apple 로그인 버튼은 iOS 앱에서만 노출 (심사 요건: 소셜 로그인 제공 시 필수. Android는 미제공)
     if (window.Capacitor && window.Capacitor.getPlatform && window.Capacitor.getPlatform() === "ios") {

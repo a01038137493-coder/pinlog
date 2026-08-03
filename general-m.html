@@ -55,32 +55,32 @@
         </div>
       </div>
       <div class="msum__stats">
-        <span><em>남은 할 일</em><b id="g-sum-left">0</b></span>
-        <span><em>우선순위</em><b id="g-sum-imp">0</b></span>
-        <span><em>오늘 일정</em><b id="g-sum-ev">0</b></span>
+        <span><em data-en="Remaining">남은 할 일</em><b id="g-sum-left">0</b></span>
+        <span><em data-en="Priority">우선순위</em><b id="g-sum-imp">0</b></span>
+        <span><em data-en="Events today">오늘 일정</em><b id="g-sum-ev">0</b></span>
       </div>
     </section>
 
     <!-- 오늘 할 일 -->
     <section class="card gtodo">
       <div class="gtodo__head">
-        <span class="gtodo__title">오늘 할 일</span>
+        <span class="gtodo__title" data-en="Today's tasks">오늘 할 일</span>
         <span class="gtodo__count" id="g-count" hidden>0/0 완료</span>
       </div>
       <div id="g-list"></div>
-      <button type="button" class="gtodo__addbtn" id="g-add-row">＋ 할 일 추가</button>
+      <button type="button" class="gtodo__addbtn" id="g-add-row" data-en="+ Add a task">＋ 할 일 추가</button>
     </section>
 
     <!-- 어제 미완료 이월 안내 -->
     <div class="gcarry" id="g-carry" hidden>
       <span id="g-carry-text"></span>
-      <button type="button" class="gcarry__btn" id="g-carry-btn">모두 오늘로</button>
+      <button type="button" class="gcarry__btn" id="g-carry-btn" data-en="Move all to today">모두 오늘로</button>
     </div>
 
     <!-- 예정: 오늘 이후 날짜의 할 일 -->
     <section class="card gtodo" id="g-upcoming" hidden>
       <div class="gtodo__head">
-        <span class="gtodo__title">예정</span>
+        <span class="gtodo__title" data-en="Upcoming">예정</span>
       </div>
       <div id="g-upcoming-list"></div>
     </section>
@@ -96,19 +96,19 @@
     <div class="evsheet__backdrop" data-gt-close></div>
     <div class="evsheet__panel">
       <div class="evsheet__head">
-        <button type="button" class="evsheet__cancel" data-gt-close>취소</button>
-        <span class="evsheet__title">새 할 일</span>
-        <button type="button" class="evsheet__save" id="gt-save">추가</button>
+        <button type="button" class="evsheet__cancel" data-gt-close data-en="Cancel">취소</button>
+        <span class="evsheet__title" data-en="New task">새 할 일</span>
+        <button type="button" class="evsheet__save" id="gt-save" data-en="Add">추가</button>
       </div>
-      <input type="text" id="gt-input" class="field__input gt-input" placeholder="무엇을 해야 하나요?"
+      <input type="text" id="gt-input" class="field__input gt-input" placeholder="무엇을 해야 하나요?" data-en-ph="What do you need to do?"
              maxlength="200" autocomplete="off" enterkeyhint="done" />
       <div class="gt-chips" id="gt-when">
-        <button type="button" class="gt-chip is-active" data-when="today">오늘</button>
-        <button type="button" class="gt-chip" data-when="tomorrow">내일</button>
-        <button type="button" class="gt-chip" data-when="pick">날짜 선택</button>
+        <button type="button" class="gt-chip is-active" data-when="today" data-en="Today">오늘</button>
+        <button type="button" class="gt-chip" data-when="tomorrow" data-en="Tomorrow">내일</button>
+        <button type="button" class="gt-chip" data-when="pick" data-en="Pick a date">날짜 선택</button>
       </div>
       <input type="date" id="gt-date" class="field__input" hidden />
-      <button type="button" class="gt-imp" id="gt-imp"><span class="gt-imp__star">★</span> 중요한 할 일</button>
+      <button type="button" class="gt-imp" id="gt-imp"><span class="gt-imp__star">★</span> <span data-en="Important">중요한 할 일</span></button>
       <div class="gt-tags" id="gt-tags"></div>
       <div class="catmgr__addrow" id="gt-tagadd" hidden>
         <input type="text" id="gt-tag-input" class="field__input" placeholder="새 태그 이름" maxlength="12" autocomplete="off" />
@@ -121,10 +121,10 @@
   <div class="fabmenu" id="fabmenu">
     <div class="fabmenu__backdrop" hidden></div>
     <div class="fabmenu__items" hidden>
-      <button type="button" class="fabmenu__item" id="fm-todo"><span>할 일 추가</span><i>✓</i></button>
-      <a href="/calendar.html?new=1" class="fabmenu__item"><span>일정 추가</span><i>🗓</i></a>
-      <a href="/memo-edit.html" class="fabmenu__item"><span>메모 추가</span><i>✏️</i></a>
-      <a href="/files.html?upload=1" class="fabmenu__item"><span>파일 업로드</span><i>📁</i></a>
+      <button type="button" class="fabmenu__item" id="fm-todo"><span data-en="Add task">할 일 추가</span><i>✓</i></button>
+      <a href="/calendar.html?new=1" class="fabmenu__item"><span data-en="Add event">일정 추가</span><i>🗓</i></a>
+      <a href="/memo-edit.html" class="fabmenu__item"><span data-en="Add note">메모 추가</span><i>✏️</i></a>
+      <a href="/files.html?upload=1" class="fabmenu__item"><span data-en="Upload file">파일 업로드</span><i>📁</i></a>
     </div>
     <button type="button" class="fab" id="fab-toggle" aria-label="빠른 추가">＋</button>
   </div>
@@ -173,8 +173,8 @@
 
   <script src="/js/vendor/supabase.js"></script>
   <script src="/js/supabaseClient.js?v=mock19"></script>
-  <script src="/js/utils.js?v=45"></script>
+  <script src="/js/utils.js?v=46"></script>
   <script src="/js/notify.js?v=5"></script>
-  <script src="/js/ghome.js?v=17"></script>
+  <script src="/js/ghome.js?v=18"></script>
 </body>
 </html>

@@ -87,15 +87,15 @@
   <main class="nlogin">
     <div class="nlogin__inner">
       <img src="/assets/logo.png" alt="핀로그" class="nlogin__logo" onerror="this.style.display='none'" />
-      <h1 class="nlogin__title">계획하고 기록하는 나만의 하루</h1>
-      <p class="nlogin__sub">핀로그 계정 만들기</p>
+      <h1 class="nlogin__title" data-en="Your day, planned and logged">계획하고 기록하는 나만의 하루</h1>
+      <p class="nlogin__sub" data-en="Create your Pinlog account">핀로그 계정 만들기</p>
 
       <!-- 1단계: 이메일 -->
       <form id="su-email-form">
-        <span class="nlogin__label">이메일</span>
-        <input type="email" id="su-email" class="linput" placeholder="이메일 주소를 입력하세요" required autocomplete="email" />
-        <div class="ntip"><b>팁:</b> 자주 확인하는 이메일을 사용해 보세요. 비밀번호 대신 이 주소로 인증 코드가 전송됩니다.</div>
-        <button type="submit" class="nlogin__go" id="su-go">계속</button>
+        <span class="nlogin__label" data-en="Email">이메일</span>
+        <input type="email" id="su-email" class="linput" placeholder="이메일 주소를 입력하세요" data-en-ph="Enter your email" required autocomplete="email" />
+        <div class="ntip" data-en="Tip: use an inbox you check often — we'll send a verification code instead of a password."><b>팁:</b> 자주 확인하는 이메일을 사용해 보세요. 비밀번호 대신 이 주소로 인증 코드가 전송됩니다.</div>
+        <button type="submit" class="nlogin__go" id="su-go" data-en="Continue">계속</button>
       </form>
 
       <!-- 2단계: 인증 코드 -->
@@ -109,10 +109,10 @@
           <input type="text" class="otp-d" inputmode="numeric" maxlength="1" />
           <input type="text" class="otp-d" inputmode="numeric" maxlength="1" />
         </div>
-        <button type="submit" class="nlogin__go" id="otp-go">가입 완료</button>
+        <button type="submit" class="nlogin__go" id="otp-go" data-en="Create account">가입 완료</button>
         <div class="otp-actions">
-          <button type="button" id="otp-edit">이메일 수정</button>
-          <button type="button" id="otp-resend">코드 재전송</button>
+          <button type="button" id="otp-edit" data-en="Edit email">이메일 수정</button>
+          <button type="button" id="otp-resend" data-en="Resend code">코드 재전송</button>
         </div>
       </form>
 
@@ -142,6 +142,7 @@
 
   <script src="/js/vendor/supabase.js"></script>
   <script src="/js/supabaseClient.js?v=mock19"></script>
+  <script src="/js/utils.js?v=46"></script>
   <script>
     // Apple 가입 버튼은 iOS 앱에서만 노출
     if (window.Capacitor && window.Capacitor.getPlatform && window.Capacitor.getPlatform() === "ios") {

@@ -31,31 +31,31 @@
     <!-- 일반 메뉴 -->
     <section class="card settings-menu">
       <button type="button" class="settings-row" id="utype-row">
-        <span>사용 유형</span>
+        <span data-en="Mode">사용 유형</span>
         <span class="settings-row__value"><span id="utype-label">—</span> <span class="settings-row__chevron" aria-hidden="true">›</span></span>
       </button>
       <a href="/my-history.html" class="settings-row" id="history-row">
-        내 기록
+        <span data-en="My records">내 기록</span>
         <span class="settings-row__chevron" aria-hidden="true">›</span>
       </a>
       <a href="/privacy.html" class="settings-row">
-        개인정보처리방침
+        <span data-en="Privacy Policy">개인정보처리방침</span>
         <span class="settings-row__chevron" aria-hidden="true">›</span>
       </a>
       <a href="/notifications.html" class="settings-row" id="ntf-link" hidden>
-        알림
+        <span data-en="Notifications">알림</span>
         <span class="settings-row__chevron" aria-hidden="true">›</span>
       </a>
       <a href="/guide.html" class="settings-row">
-        사용법
+        <span data-en="How to use">사용법</span>
         <span class="settings-row__chevron" aria-hidden="true">›</span>
       </a>
       <a href="/support.html" class="settings-row">
-        문의하기
+        <span data-en="Contact us">문의하기</span>
         <span class="settings-row__chevron" aria-hidden="true">›</span>
       </a>
       <button type="button" class="settings-row" onclick="logout()">
-        로그아웃
+        <span data-en="Log out">로그아웃</span>
         <span class="settings-row__chevron" aria-hidden="true">›</span>
       </button>
     </section>
@@ -63,10 +63,10 @@
     <!-- 위험 영역 -->
     <section class="card settings-menu">
       <button type="button" class="settings-row settings-row--danger" onclick="deleteMyAccount()">
-        계정 삭제
+        <span data-en="Delete account">계정 삭제</span>
         <span class="settings-row__chevron" aria-hidden="true">›</span>
       </button>
-      <p class="settings-menu__hint">계정을 삭제하면 모든 기록이 영구히 사라지며 복구할 수 없습니다.</p>
+      <p class="settings-menu__hint" data-en="Deleting your account permanently removes all your data. This cannot be undone.">계정을 삭제하면 모든 기록이 영구히 사라지며 복구할 수 없습니다.</p>
     </section>
 
     <p class="settings-version">핀로그 v1.0.0</p>
@@ -127,7 +127,7 @@
 
   <script src="/js/vendor/supabase.js"></script>
   <script src="/js/supabaseClient.js?v=mock19"></script>
-  <script src="/js/utils.js?v=45"></script>
+  <script src="/js/utils.js?v=46"></script>
   <script src="/js/notify.js?v=5"></script>
   <script>
     document.addEventListener("DOMContentLoaded", async () => {
