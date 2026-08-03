@@ -31,6 +31,9 @@ const TMP_OUT = path.join(os.tmpdir(), "pinlog-clip-out.png");
 
 function log(...a) { console.log(new Date().toISOString().slice(11, 19), ...a); }
 
+/* launchd 등 LANG 없는 환경에서 pbpaste/pbcopy가 한글을 깨뜨리는 것 방지 */
+const ENV = { ...process.env, LANG: "en_US.UTF-8", LC_ALL: "en_US.UTF-8" };
+
 /* 설정 로드 — 맥에서 설정이 없으면 GUI 대화상자로 물어봄 (pkg 설치 직후 첫 실행) */
 function macAsk(msg, hidden) {
   return execFileSync("osascript", ["-e",
@@ -94,7 +97,7 @@ function notify(msg) {
 function readText() {
   try {
     if (process.platform === "darwin")
-      return execSync("pbpaste", { encoding: "utf8", maxBuffer: 10 << 20 });
+      return execSync("pbpaste", { encoding: "utf8", maxBuffer: 10 << 20, env: ENV });
     if (process.platform === "win32")
       return execSync('powershell -NoProfile -Command "Get-Clipboard -Raw"', { encoding: "utf8", maxBuffer: 10 << 20 });
     return execSync("xclip -o -selection clipboard", { encoding: "utf8", maxBuffer: 10 << 20 });
@@ -102,7 +105,7 @@ function readText() {
 }
 function writeText(text) {
   try {
-    if (process.platform === "darwin") execFileSync("pbcopy", { input: text });
+    if (process.platform === "darwin") execFileSync("pbcopy", { input: text, env: ENV });
     else if (process.platform === "win32")
       execFileSync("powershell", ["-NoProfile", "-Command", "$input | Set-Clipboard"], { input: text });
     else execFileSync("xclip", ["-i", "-selection", "clipboard"], { input: text });
