@@ -785,3 +785,35 @@ async function dtSmartSub(profile) {
   for (const f of order) { const s = await f(); if (s) return s; }
   return null;
 }
+
+/* ------------------------------------------------------------
+ * 오프라인 배너 — 연결이 끊기면 상단에 안내, 복구되면 제거.
+ * 네트워크 실패로 화면이 조용히 비는 것을 방지한다.
+ * ------------------------------------------------------------ */
+(function () {
+  if (typeof window === "undefined" || typeof document === "undefined") return;
+  function paint(off) {
+    let el = document.getElementById("dt-offline");
+    if (off) {
+      if (el || !document.body) return;
+      el = document.createElement("div");
+      el.id = "dt-offline";
+      el.textContent = "인터넷 연결이 없어요 · 연결되면 자동으로 이어집니다";
+      el.style.cssText =
+        "position:fixed;left:12px;right:12px;top:calc(env(safe-area-inset-top,0px) + 8px);" +
+        "z-index:9999;background:#191919;color:#fff;font-size:12.5px;font-weight:700;" +
+        "text-align:center;padding:10px 14px;border-radius:12px;" +
+        "box-shadow:0 8px 24px rgba(0,0,0,0.25);pointer-events:none;";
+      document.body.appendChild(el);
+    } else if (el) {
+      el.remove();
+    }
+  }
+  window.addEventListener("offline", function () { paint(true); });
+  window.addEventListener("online", function () { paint(false); });
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", function () { if (navigator.onLine === false) paint(true); });
+  } else if (navigator.onLine === false) {
+    paint(true);
+  }
+})();

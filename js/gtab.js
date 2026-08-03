@@ -133,13 +133,14 @@
       const done = todos.filter((t) => t.done).length;
       const C = 188.5;
       const pct = n ? done / n : 0;
+      if (!n) { box.hidden = true; return; }   // 할 일이 없으면 0/0 카드 숨김
       document.getElementById("g-sum-frac").textContent = done + "/" + n;
       document.getElementById("g-sum-done").textContent = done + "개";
       document.getElementById("g-sum-left").textContent = n - done;
       document.getElementById("g-sum-imp").textContent = todos.filter((t) => t.important && !t.done).length;
       document.getElementById("g-sum-arc").style.strokeDashoffset = (C * (1 - pct)).toFixed(1);
       document.getElementById("g-sum-sub").textContent =
-        n && pct >= 1 ? "오늘 할 일을 전부 끝냈어요! 🎉"
+        pct >= 1 ? "오늘 할 일을 전부 끝냈어요! 🎉"
         : smartSub ? smartSub
         : pct >= 0.5 ? "절반 넘게 왔어요, 이 흐름 그대로!"
         : "작은 시작이 큰 변화를 만듭니다";
