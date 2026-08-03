@@ -5,6 +5,15 @@ Write-Host "[Pinlog ClipSync] Installing..."
 
 $dir = Join-Path $HOME "pinlog-clipsync"
 New-Item -ItemType Directory -Force -Path $dir | Out-Null
+
+# 이미 돌고 있는 구버전 에이전트 종료 (재설치/업데이트 시 중복 실행 방지)
+schtasks /End /TN "PinlogClipSync" 2>$null | Out-Null
+try {
+  Get-CimInstance Win32_Process -Filter "Name='powershell.exe'" |
+    Where-Object { $_.CommandLine -match "clipsync\.ps1" } |
+    ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
+} catch { }
+
 Invoke-WebRequest "https://www.pinlog.kr/clipsync/clipsync.ps1" -OutFile (Join-Path $dir "clipsync.ps1")
 
 $email = $env:PINLOG_EMAIL
