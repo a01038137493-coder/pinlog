@@ -46,10 +46,6 @@
         <span data-en="Notifications">알림</span>
         <span class="settings-row__chevron" aria-hidden="true">›</span>
       </a>
-      <a href="/clipboard.html" class="settings-row">
-        <span data-en="Clipboard">클립보드</span>
-        <span class="settings-row__chevron" aria-hidden="true">›</span>
-      </a>
       <a href="/guide.html" class="settings-row">
         <span data-en="How to use">사용법</span>
         <span class="settings-row__chevron" aria-hidden="true">›</span>
@@ -62,6 +58,35 @@
         <span data-en="Log out">로그아웃</span>
         <span class="settings-row__chevron" aria-hidden="true">›</span>
       </button>
+    </section>
+
+    <!-- 클립보드 동기화: 연결 암호 + 상시 프로그램 설치 -->
+    <section class="card clip__pc">
+      <button type="button" class="clip__pc-head" id="clip-pc-toggle">
+        <span>📋 <b data-en="Clipboard sync (Mac & Windows)">클립보드 동기화 (맥·윈도우)</b></span>
+        <span class="clip__pc-chev">›</span>
+      </button>
+      <div class="clip__pc-body" id="clip-pc-body" hidden>
+        <p class="clip__pc-desc" data-en="Install a tiny background program on each computer — copy on one (Ctrl+C), paste on the other (Ctrl+V). Text and images, with a confirmation alert.">각 컴퓨터에 작은 상시 프로그램을 설치하면, 한쪽에서 복사(⌘C/Ctrl+C)만 해도 다른 쪽에서 바로 붙여넣기(Ctrl+V)가 됩니다. 텍스트·이미지 지원, 동기화될 때마다 알림.</p>
+
+        <p class="clip__pc-step"><b>1.</b> <span data-en="Connect password (needed once — social accounts have no password)">연결 암호 (한 번만 — 소셜 로그인 계정은 비밀번호가 없어서 필요해요)</span></p>
+        <button type="button" class="clip__pc-btn" id="clip-pw-btn" data-en="Create connect password">연결 암호 만들기</button>
+        <div class="clip__pc-cred" id="clip-cred" hidden>
+          <div><em data-en="Email">이메일</em><b id="clip-cred-email"></b></div>
+          <div><em data-en="Connect password">연결 암호</em><b id="clip-cred-pw"></b><button type="button" id="clip-cred-copy" data-en="Copy">복사</button></div>
+          <p data-en="Visible on any device where you're logged in — enter these when the installer asks.">로그인된 내 기기 어디서든 보여요. 설치 중에 물어보면 입력하세요.</p>
+        </div>
+
+        <p class="clip__pc-step"><b>2.</b> <span data-en="Install on each computer">각 컴퓨터에 설치</span></p>
+        <div class="clip__pc-cmds">
+          <a class="clip__pc-btn" id="clip-dl-mac" href="/clipsync/PinlogClipSync.pkg" download> Mac <span data-en="— download installer (.pkg), double-click, log in via dialog">— 설치 파일 다운로드(.pkg) → 더블클릭 → 대화상자에 계정 입력</span></a>
+          <button type="button" class="clip__pc-btn" id="clip-dl-win" disabled>🪟 Windows <span data-en="— download installer, double-click, done (no typing)">— 설치 파일 다운로드 → 더블클릭이면 끝 (입력 없음)</span></button>
+        </div>
+        <p class="clip__pc-note">
+          <span data-en="Mac: needs Node.js (nodejs.org); if blocked on open, allow it in System Settings › Privacy & Security › 'Open Anyway'. Windows: activates after step 1; if SmartScreen appears click More info → Run anyway.">맥: Node.js(nodejs.org) 필요 · 열기가 차단되면 시스템 설정 → 개인정보 보호 및 보안 → "그래도 열기". 윈도우: 1번 후 활성화 · 'PC 보호' 창이 뜨면 [추가 정보 → 실행].</span>
+          <button type="button" class="clip__pc-alt" id="clip-cmd-mac" data-en="Mac: install via Terminal command instead (credentials auto-filled)">맥: 터미널 명령으로 설치 (계정 자동 입력)</button>
+        </p>
+      </div>
     </section>
 
     <!-- 위험 영역 -->
@@ -131,7 +156,7 @@
 
   <script src="/js/vendor/supabase.js"></script>
   <script src="/js/supabaseClient.js?v=mock19"></script>
-  <script src="/js/utils.js?v=47"></script>
+  <script src="/js/utils.js?v=48"></script>
   <script src="/js/notify.js?v=5"></script>
   <script>
     document.addEventListener("DOMContentLoaded", async () => {
@@ -185,6 +210,80 @@
 
       /* 알림 설정 메뉴 — 앱에서만 노출 (전용 페이지로 이동) */
       if (window.dtNotify && dtNotify.available) document.getElementById("ntf-link").hidden = false;
+
+      /* ---------- 클립보드 동기화 (연결 암호 + 설치) ---------- */
+      (() => {
+        const pwBtn = document.getElementById("clip-pw-btn");
+        const macBtn = document.getElementById("clip-cmd-mac");
+        const winBtn = document.getElementById("clip-dl-win");
+        let credPw = null;
+        document.getElementById("clip-pc-toggle").addEventListener("click", () => {
+          const b = document.getElementById("clip-pc-body");
+          b.hidden = !b.hidden;
+        });
+        function showCred(pw) {
+          credPw = pw;
+          document.getElementById("clip-cred-email").textContent = user.email;
+          document.getElementById("clip-cred-pw").textContent = pw;
+          document.getElementById("clip-cred").hidden = false;
+          pwBtn.textContent = dtT("연결 암호 다시 만들기", "Regenerate connect password");
+          winBtn.disabled = false;
+        }
+        (async () => {
+          try {
+            const { data: ck } = await supabaseClient.from("connect_keys")
+              .select("password").eq("user_id", user.id).maybeSingle();
+            if (ck && ck.password) showCred(ck.password);
+          } catch (e) {}
+        })();
+        pwBtn.addEventListener("click", async () => {
+          const has = !document.getElementById("clip-cred").hidden;
+          if (!confirm(has
+            ? dtT("연결 암호를 새로 만들면 기존 암호로 설치한 컴퓨터는 다시 설치해야 해요. 계속할까요?",
+                  "Regenerating invalidates the old password — installed computers must be set up again. Continue?")
+            : dtT("이 계정에 PC 연결용 비밀번호를 만듭니다. 계속할까요?",
+                  "This creates a connect password for this account. Continue?"))) return;
+          const pw = Array.from(crypto.getRandomValues(new Uint8Array(9)))
+            .map((b) => "abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789"[b % 56]).join("");
+          const { error } = await supabaseClient.auth.updateUser({ password: pw });
+          if (error) { showToast(dtT("암호를 만들지 못했어요", "Couldn't create password"), "error"); return; }
+          await supabaseClient.from("connect_keys").upsert({ user_id: user.id, password: pw, updated_at: new Date().toISOString() });
+          showCred(pw);
+          showToast(dtT("연결 암호를 만들었어요 — 다른 기기에서도 보여요", "Connect password created — visible on your other devices"), "success");
+        });
+        document.getElementById("clip-cred-copy").addEventListener("click", async () => {
+          try {
+            await navigator.clipboard.writeText(document.getElementById("clip-cred-pw").textContent);
+            showToast(dtT("복사했어요", "Copied"), "success");
+          } catch (e) {}
+        });
+        macBtn.addEventListener("click", async () => {
+          if (!credPw) { showToast(dtT("1번(연결 암호 만들기)을 먼저 해주세요", "Do step 1 (connect password) first"), "info"); return; }
+          const cmd = "PINLOG_EMAIL='" + user.email + "' PINLOG_PW='" + credPw + "' " +
+            'bash -c "$(curl -fsSL https://www.pinlog.kr/clipsync/setup-mac.sh)"';
+          try { await navigator.clipboard.writeText(cmd); showToast(dtT("설치 명령을 복사했어요 — 터미널에 붙여넣으세요", "Installer command copied — paste in Terminal"), "success"); }
+          catch (e) { prompt(dtT("아래 명령을 복사하세요", "Copy this command"), cmd); }
+        });
+        winBtn.addEventListener("click", () => {
+          if (!credPw) return;
+          const bat = [
+            "@echo off",
+            'set "PINLOG_EMAIL=' + user.email + '"',
+            'set "PINLOG_PW=' + credPw + '"',
+            'powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://www.pinlog.kr/clipsync/setup-win.ps1 | iex"',
+            "echo.",
+            "pause",
+            "",
+          ].join("\r\n");
+          const a = document.createElement("a");
+          a.href = URL.createObjectURL(new Blob([bat], { type: "application/octet-stream" }));
+          a.download = "pinlog-clipsync-setup.bat";
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          showToast(dtT("다운로드됨 — 파일을 더블클릭하면 설치돼요", "Downloaded — double-click the file to install"), "success");
+        });
+      })();
     });
   </script>
 </body>

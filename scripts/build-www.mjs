@@ -43,7 +43,6 @@ const COPY = [
   "my-history.html",
   "admin.html",
   "alerts.html",
-  "clipboard.html",
   "student-detail.html",
   "css",
   "js",
