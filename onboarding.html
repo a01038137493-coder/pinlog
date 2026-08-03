@@ -91,7 +91,9 @@
         }
         /* 라우터가 읽는 로컬 캐시를 즉시 갱신 — 온보딩 무한 반복 방지 */
         try { localStorage.setItem("dt_profile_cache", JSON.stringify(updated)); } catch (e) {}
-        window.location.replace("/index.html");
+        /* 웹에서 /index.html 은 랜딩으로 빠짐 → 앱은 index, 웹은 /app 으로 프로필 라우팅 */
+        const isNative = location.protocol === "capacitor:" || !!window.Capacitor;
+        window.location.replace(isNative ? "/index.html" : "/app");
       });
     });
   </script>
