@@ -38,6 +38,10 @@
         <span data-en="My records">내 기록</span>
         <span class="settings-row__chevron" aria-hidden="true">›</span>
       </a>
+      <a href="/done.html" class="settings-row" id="done-row">
+        <span data-en="Completed tasks">완료한 할 일</span>
+        <span class="settings-row__chevron" aria-hidden="true">›</span>
+      </a>
       <a href="/privacy.html" class="settings-row">
         <span data-en="Privacy Policy">개인정보처리방침</span>
         <span class="settings-row__chevron" aria-hidden="true">›</span>
@@ -181,8 +185,9 @@
         goalBox.hidden = picked !== "general";
       };
       paint();
-      // 일반 사용자는 '내 기록'(학습 통계) 숨김
+      // 일반 사용자는 '내 기록'(학습 통계) 숨김, 수험생은 '완료한 할 일'(일반 투두) 숨김
       if (picked === "general") document.getElementById("history-row").hidden = true;
+      else document.getElementById("done-row").hidden = true;
 
       document.getElementById("ut-goal-label").value = (profile && profile.goal_label) || "";
       document.getElementById("ut-goal-date").value = (profile && profile.goal_date) || "";

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
+  <title>완료한 할 일 · 핀로그</title>
+  <link rel="icon" type="image/png" href="/assets/logo.png" />
+  <link rel="apple-touch-icon" href="/assets/logo.png" />
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#f04438" />
+  <script>document.documentElement.classList.add(window.Capacitor ? "dt-app" : "dt-web");</script>
+  <link rel="stylesheet" href="/css/style.css?v=263" />
+  <style>
+    .donep { padding-bottom: 44px; }
+    .donep__sum { display: flex; padding: 16px 6px; }
+    .donep__sum > div { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+    .donep__sum > div + div { border-left: 1px solid var(--line); }
+    .donep__sum b { font-size: 1.35rem; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums; }
+    .donep__sum span { font-size: 0.74rem; font-weight: 600; color: var(--muted); }
+    .dnday { margin: 18px 6px 8px; font-size: 0.8rem; font-weight: 700; color: var(--muted); display: flex; justify-content: space-between; }
+    .dncard { padding: 4px 14px; }
+    .dnrow { display: flex; align-items: center; gap: 10px; padding: 11px 2px; font-size: 0.92rem; font-weight: 600; color: var(--text); }
+    .dnrow + .dnrow { border-top: 1px solid var(--bg); }
+    .dnrow i { flex: none; width: 18px; height: 18px; border-radius: 50%; background: var(--orange); color: #fff; font-style: normal; font-size: 0.62rem; font-weight: 800; display: flex; align-items: center; justify-content: center; }
+    .dnrow em { font-style: normal; color: #ff9f0a; flex: none; }
+    .dnrow span { min-width: 0; overflow-wrap: anywhere; }
+    .dn-more { display: block; margin: 18px auto 0; border: 1px solid var(--line); background: #fff; border-radius: 999px; padding: 10px 22px; font: inherit; font-size: 0.88rem; font-weight: 700; color: var(--text); }
+    .dn-empty { text-align: center; color: var(--muted-soft); font-weight: 600; padding: 60px 0; }
+    @media (min-width: 768px) and (min-height: 500px) {
+      main.container.donep, html.dt-web main.container.donep { margin-left: auto; margin-right: auto; }
+    }
+  </style>
+</head>
+<body class="app-bg">
+  <header class="topbar">
+    <a href="/settings.html" class="topbar__back" aria-label="뒤로 가기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></a>
+    <div class="topbar__brand" data-en="Completed tasks">완료한 할 일</div>
+    <span></span>
+  </header>
+
+  <main class="container donep">
+    <section class="card donep__sum">
+      <div><b id="dn-total">0</b><span data-en="Total">총 완료</span></div>
+      <div><b id="dn-month">0</b><span data-en="This month">이번 달</span></div>
+      <div><b id="dn-week">0</b><span data-en="This week">이번 주</span></div>
+    </section>
+
+    <div id="dn-list"></div>
+    <p class="dn-empty" id="dn-empty" hidden data-en="Nothing completed yet — check off your first task!">아직 완료한 할 일이 없어요 — 첫 할 일을 완료해보세요!</p>
+    <button type="button" class="dn-more" id="dn-more" hidden data-en="Load more">더 보기</button>
+  </main>
+
+  <script src="/js/vendor/supabase.js"></script>
+  <script src="/js/supabaseClient.js?v=mock19"></script>
+  <script src="/js/utils.js?v=50"></script>
+  <script>
+    (function () {
+      "use strict";
+      const PAGE = 300;
+      const pad = (n) => String(n).padStart(2, "0");
+      const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) =>
+        ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+      const WD_KO = ["일", "월", "화", "수", "목", "금", "토"];
+      const WD_EN = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+      const MO_EN = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+      function dayLabel(iso) {
+        const [y, m, d] = iso.split("-").map(Number);
+        const wd = new Date(y, m - 1, d).getDay();
+        const now = new Date();
+        const thisYear = y === now.getFullYear();
+        if (DT_EN) return MO_EN[m - 1] + " " + d + (thisYear ? "" : ", " + y) + " (" + WD_EN[wd] + ")";
+        return (thisYear ? "" : y + "년 ") + m + "월 " + d + "일 (" + WD_KO[wd] + ")";
+      }
+
+      document.addEventListener("DOMContentLoaded", async () => {
+        const profile = await requireRole(["student"]);
+        if (!profile) return;
+
+        const listEl = document.getElementById("dn-list");
+        const moreBtn = document.getElementById("dn-more");
+        const emptyEl = document.getElementById("dn-empty");
+        let offset = 0;
+
+        /* 요약 3종: 총 완료 · 이번 달 · 이번 주(월요일 시작) */
+        const now = new Date();
+        const monthStart = now.getFullYear() + "-" + pad(now.getMonth() + 1) + "-01";
+        const wk = new Date(now);
+        wk.setDate(now.getDate() - ((now.getDay() + 6) % 7));
+        const weekStart = wk.getFullYear() + "-" + pad(wk.getMonth() + 1) + "-" + pad(wk.getDate());
+        const base = () => supabaseClient.from("todos")
+          .select("id", { count: "exact", head: true })
+          .eq("student_id", profile.id).eq("done", true);
+        const [t, m, w] = await Promise.all([base(), base().gte("date", monthStart), base().gte("date", weekStart)]);
+        document.getElementById("dn-total").textContent = t.count || 0;
+        document.getElementById("dn-month").textContent = m.count || 0;
+        document.getElementById("dn-week").textContent = w.count || 0;
+
+        async function loadPage() {
+          moreBtn.hidden = true;
+          const { data } = await supabaseClient.from("todos")
+            .select("content,date,important")
+            .eq("student_id", profile.id).eq("done", true)
+            .order("date", { ascending: false }).order("created_at", { ascending: false })
+            .range(offset, offset + PAGE - 1);
+          const rows = data || [];
+          offset += rows.length;
+
+          /* 날짜별 그룹 렌더 — 이어 붙일 때 같은 날짜면 기존 카드에 합류 */
+          let curDate = listEl.dataset.lastDate || null;
+          let curCard = curDate ? listEl.lastElementChild : null;
+          rows.forEach((r) => {
+            if (r.date !== curDate) {
+              curDate = r.date;
+              const h = document.createElement("div");
+              h.className = "dnday";
+              h.innerHTML = "<span>" + dayLabel(r.date) + "</span><span data-count>0</span>";
+              listEl.appendChild(h);
+              curCard = document.createElement("section");
+              curCard.className = "card dncard";
+              listEl.appendChild(curCard);
+            }
+            const row = document.createElement("div");
+            row.className = "dnrow";
+            row.innerHTML = "<i>✓</i>" + (r.important ? "<em>★</em>" : "") + "<span>" + esc(r.content) + "</span>";
+            curCard.appendChild(row);
+            const cnt = curCard.previousElementSibling.querySelector("[data-count]");
+            cnt.textContent = curCard.children.length + dtT("개", "");
+          });
+          listEl.dataset.lastDate = curDate || "";
+          emptyEl.hidden = offset > 0;
+          moreBtn.hidden = rows.length < PAGE;
+        }
+        moreBtn.addEventListener("click", loadPage);
+        await loadPage();
+      });
+    })();
+  </script>
+</body>
+</html>
