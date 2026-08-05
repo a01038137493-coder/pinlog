@@ -2989,12 +2989,11 @@ body.home-edit .gtab-grid #gnote {
     grid-template-rows: auto minmax(0, 1fr);
     grid-template-areas: "cats search editor" "cats list editor";
     column-gap: 0; row-gap: 0;
-    max-width: 1380px; width: auto; margin: 0 auto; padding: 0;
+    max-width: 1380px; width: auto; margin: 0; padding: 0;   /* 사이드바에 딱 붙게 좌측 정렬 */
     height: calc(100dvh - 62px - env(safe-area-inset-top, 0px));
     background: #fff;
-    border-left: 1px solid var(--line); border-right: 1px solid var(--line);
+    border-left: none; border-right: 1px solid var(--line);
   }
-  :is(html.dt-web, html.dt-app) body.memo-page main.container { margin-left: auto; }
   :is(html.dt-web, html.dt-app) body.memo-page .memo-search { grid-area: search; width: auto; margin: 14px 14px 10px; }
   :is(html.dt-web, html.dt-app) body.memo-page main.container > .memo-cats,
   :is(html.dt-web, html.dt-app) body.memo-page main.container:has(> .memo-cats) > .memo-cats {
@@ -3015,6 +3014,39 @@ body.home-edit .gtab-grid #gnote {
   }
   :is(html.dt-web, html.dt-app) body.memo-page .memo-item.is-sel { border-color: var(--primary); }
   .mweb-editor__bar { display: flex; justify-content: flex-end; min-height: 20px; font-size: 0.8rem; color: var(--muted-soft); padding: 2px 0 6px; }
+}
+
+/* 웹 데스크톱 파일 워크스페이스 — 메모와 동일하게 사이드바에 딱 붙는 긴 패널 (폴더 | 검색+목록) */
+@media (min-width: 1100px) {
+  html.dt-web body.files-page { padding-bottom: 0; }
+  html.dt-web body.files-page main.container,
+  html.dt-web body.files-page main.container:has(> .memo-cats) {
+    display: grid;
+    grid-template-columns: 232px minmax(0, 1fr);
+    grid-template-rows: auto auto minmax(0, 1fr);
+    grid-template-areas: "cats search" "cats status" "cats list";
+    column-gap: 0; row-gap: 0;
+    max-width: 1024px; width: auto; margin: 0; padding: 0;
+    height: calc(100dvh - 62px - env(safe-area-inset-top, 0px));
+    background: #fff;
+    border-right: 1px solid var(--line);
+    align-items: stretch;   /* 태블릿 규칙의 start 해제 — 폴더 패널 세로 풀기 */
+  }
+  html.dt-web body.files-page .memo-search { grid-area: search; width: auto; margin: 14px 14px 10px; }
+  html.dt-web body.files-page .file-status { grid-area: status; margin: 0 14px 8px; }
+  html.dt-web body.files-page main.container > .memo-cats,
+  html.dt-web body.files-page main.container:has(> .memo-cats) > .memo-cats {
+    grid-area: cats;
+    position: static; border: none; border-right: 1px solid var(--line); border-radius: 0;
+    background: #f4f3f1; margin: 0; padding: 16px 10px; overflow-y: auto;
+    display: flex; flex-direction: column; gap: 2px; align-items: stretch;
+  }
+  html.dt-web body.files-page #file-list,
+  html.dt-web body.files-page main.container:has(> .memo-cats) #file-list {
+    grid-area: list; overflow-y: auto; padding: 0 14px 24px; margin: 0; min-width: 0;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  html.dt-web body.files-page #file-list .file-row { transform: none !important; width: 100%; box-sizing: border-box; }
 }
 
 /* 웹 데스크톱 홈 — 일정은 할 일 아래로, 오른쪽엔 업무 메모 패널 */
