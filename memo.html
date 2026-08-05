@@ -9,7 +9,7 @@
   <link rel="manifest" href="/manifest.json" />
   <meta name="theme-color" content="#f04438" />
   <script>document.documentElement.classList.add(window.Capacitor ? "dt-app" : "dt-web");</script>
-  <link rel="stylesheet" href="/css/style.css?v=266" />
+  <link rel="stylesheet" href="/css/style.css?v=269" />
 </head>
 <body class="app-bg has-tabbar memo-page">
   <header class="topbar">
@@ -37,7 +37,7 @@
           <span class="fmtbar__sep"></span>
           <button type="button" data-cmd="insertUnorderedList" aria-label="글머리 기호">• 목록</button>
         </div>
-        <button type="button" class="mw-cat" id="mw-cat" hidden>📁 미분류</button>
+        <button type="button" class="mw-cat" id="mw-cat" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg> 미분류</button>
         <button type="button" class="mw-cat mw-del" id="mw-del" hidden>삭제</button>
         <span id="mw-status"></span>
       </div>
@@ -48,7 +48,7 @@
     <!-- 데스크탑 웹 전용: 계정 보관함 (목록+에디터 자리에 내장) -->
     <div id="vault-panel" hidden>
       <div class="vault-head">
-        <b>🔐 계정 보관함</b>
+        <b><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg> 계정 보관함</b>
         <span data-en="IDs & passwords — visible only to you">아이디·비밀번호 — 내 계정에서만 보여요</span>
         <button type="button" class="vault-add" id="va-add" data-en="+ Add account">＋ 계정 추가</button>
       </div>
@@ -283,8 +283,8 @@
         }
         /* 계정 보관함: 데스크탑 웹은 워크스페이스 안에 내장, 모바일은 전용 페이지 */
         html += WEB_DESK()
-          ? `<button type="button" class="memo-cat${vaultOn ? " is-active" : ""}" data-cat="__vault">🔐 ${dtT("계정", "Accounts")}</button>`
-          : `<a class="memo-cat" href="/accounts.html">🔐 ${dtT("계정", "Accounts")}</a>`;
+          ? `<button type="button" class="memo-cat${vaultOn ? " is-active" : ""}" data-cat="__vault"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg> ${dtT("계정", "Accounts")}</button>`
+          : `<a class="memo-cat" href="/accounts.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg> ${dtT("계정", "Accounts")}</a>`;
         html += `<button type="button" class="memo-cat memo-cat--add" data-cat="__manage">폴더 관리</button>`;
         el.innerHTML = html;
 
@@ -425,7 +425,7 @@
         const m = memos.find((x) => x.id === mwId);
         mwCatBtn.hidden = !m;
         mwDelBtn.hidden = !m;
-        if (m) mwCatBtn.textContent = "📁 " + mwCatName(m.category_id);
+        if (m) mwCatBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg> ' + esc(mwCatName(m.category_id));
       }
 
       /* ---------- 웹 편집기: 현재 메모 삭제 ---------- */
@@ -600,7 +600,7 @@
         document.getElementById("va-empty").hidden = rows.length > 0;
         vaList.innerHTML = rows.map((r) => `
           <section class="card ac-card" data-id="${r.id}">
-            <div class="ac-card__title">🔐 ${esc(r.note || r.login_id || r.email || "계정")}</div>
+            <div class="ac-card__title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>${esc(r.note || r.login_id || r.email || "계정")}</div>
             ${r.login_id ? `<div class="ac-row"><em>아이디</em><b>${esc(r.login_id)}</b><button type="button" data-copy="login_id">복사</button></div>` : ""}
             ${r.password ? `<div class="ac-row"><em>비번</em><b>${esc(r.password)}</b><button type="button" data-copy="password">복사</button></div>` : ""}
             ${r.email ? `<div class="ac-row"><em>이메일</em><b>${esc(r.email)}</b><button type="button" data-copy="email">복사</button></div>` : ""}

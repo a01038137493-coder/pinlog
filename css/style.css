@@ -2124,6 +2124,13 @@ body.is-general .task-subject { display: none; }
 .memo-cats::-webkit-scrollbar { display: none; }
 .memo-cat { flex: none; padding: 7px 13px; border-radius: 999px; border: 1px solid var(--line); background: #fff; font: inherit; font-size: 0.82rem; font-weight: 700; color: var(--muted); cursor: pointer; -webkit-tap-highlight-color: transparent; -webkit-user-select: none; user-select: none; }
 a.memo-cat { text-decoration: none; display: inline-flex; align-items: center; box-sizing: border-box; }
+.memo-cat svg { width: 13px; height: 13px; vertical-align: -2px; margin-right: 4px; }
+.ac-card__title svg { width: 16px; height: 16px; flex: none; color: var(--navy); }
+.vault-head b { display: inline-flex; align-items: center; gap: 7px; }
+.vault-head b svg { width: 17px; height: 17px; color: var(--navy); }
+.file-item__icon svg { width: 1.15em; height: 1.15em; display: block; }
+.mw-cat svg { width: 13px; height: 13px; vertical-align: -2px; margin-right: 2px; }
+.clip__pc-head .clip-ico { width: 16px; height: 16px; vertical-align: -3px; margin-right: 2px; }
 
 /* 계정 보관함 카드 (accounts.html + 메모 워크스페이스 내장 공용) */
 .ac-card { padding: 14px 16px; margin-bottom: 10px; cursor: pointer; }

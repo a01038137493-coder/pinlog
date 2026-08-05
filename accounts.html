@@ -9,7 +9,7 @@
   <link rel="manifest" href="/manifest.json" />
   <meta name="theme-color" content="#f04438" />
   <script>document.documentElement.classList.add(window.Capacitor ? "dt-app" : "dt-web");</script>
-  <link rel="stylesheet" href="/css/style.css?v=267" />
+  <link rel="stylesheet" href="/css/style.css?v=269" />
   <style>
     .acp { padding-bottom: 100px; }
     .ac-hint { font-size: 0.78rem; font-weight: 600; color: var(--muted-soft); margin: 2px 6px 14px; }
@@ -104,7 +104,7 @@
           emptyEl.hidden = rows.length > 0;
           listEl.innerHTML = rows.map((r) => `
             <section class="card ac-card" data-id="${r.id}">
-              <div class="ac-card__title">🔐 ${esc(r.note || r.login_id || r.email || "계정")}</div>
+              <div class="ac-card__title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>${esc(r.note || r.login_id || r.email || "계정")}</div>
               ${r.login_id ? `<div class="ac-row"><em data-en="ID">아이디</em><b>${esc(r.login_id)}</b><button type="button" data-copy="login_id" data-en="Copy">복사</button></div>` : ""}
               ${r.password ? `<div class="ac-row"><em data-en="PW">비번</em><b>${esc(r.password)}</b><button type="button" data-copy="password" data-en="Copy">복사</button></div>` : ""}
               ${r.email ? `<div class="ac-row"><em data-en="Email">이메일</em><b>${esc(r.email)}</b><button type="button" data-copy="email" data-en="Copy">복사</button></div>` : ""}

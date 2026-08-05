@@ -9,7 +9,7 @@
   <link rel="manifest" href="/manifest.json" />
   <meta name="theme-color" content="#f04438" />
   <script>document.documentElement.classList.add(window.Capacitor ? "dt-app" : "dt-web");</script>
-  <link rel="stylesheet" href="/css/style.css?v=266" />
+  <link rel="stylesheet" href="/css/style.css?v=269" />
 </head>
 <body class="app-bg has-tabbar files-page" data-kbresize="none">
   <header class="topbar">
@@ -140,11 +140,15 @@
       };
       const icon = (mime, name) => {
         const ext = (name.split(".").pop() || "").toLowerCase();
-        if (String(mime).includes("pdf") || ext === "pdf") return "📕";
-        if (["doc", "docx", "hwp", "hwpx", "txt"].includes(ext)) return "📄";
-        if (["xls", "xlsx", "csv"].includes(ext)) return "📊";
-        if (["ppt", "pptx"].includes(ext)) return "📽";
-        return "📁";
+        const col =
+          (String(mime).includes("pdf") || ext === "pdf") ? "#f04438" :
+          ["doc", "docx", "hwp", "hwpx", "txt", "md"].includes(ext) ? "#2e90fa" :
+          ["xls", "xlsx", "csv"].includes(ext) ? "#12b76a" :
+          ["ppt", "pptx"].includes(ext) ? "#ff9f0a" :
+          ["zip", "7z", "rar"].includes(ext) ? "#8b5cf6" :
+          String(mime).startsWith("audio/") || String(mime).startsWith("video/") ? "#e04f9a" :
+          String(mime).startsWith("image/") ? "#12b76a" : "#98a2b3";
+        return `<svg viewBox="0 0 24 24" fill="none" stroke="${col}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h9l5 5v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M14 3v6h5"/></svg>`;
       };
       const status = (msg) => {
         if (!msg) { statusEl.hidden = true; return; }
