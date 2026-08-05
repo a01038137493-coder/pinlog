@@ -70,10 +70,7 @@
         <input type="text" id="va-id" class="field__input" autocomplete="off" autocapitalize="off" />
       </label>
       <label class="field ac-field"><span class="field__label" data-en="Password">비번</span>
-        <span class="ac-pwwrap">
-          <input type="password" id="va-pw" class="field__input" autocomplete="off" autocapitalize="off" />
-          <button type="button" class="ac-eye" id="va-eye">👁</button>
-        </span>
+        <input type="text" id="va-pw" class="field__input" autocomplete="off" autocapitalize="off" />
       </label>
       <label class="field ac-field"><span class="field__label" data-en="Email">이메일</span>
         <input type="text" id="va-email" class="field__input" autocomplete="off" autocapitalize="off" inputmode="email" />
@@ -605,7 +602,7 @@
           <section class="card ac-card" data-id="${r.id}">
             <div class="ac-card__title">🔐 ${esc(r.note || r.login_id || r.email || "계정")}</div>
             ${r.login_id ? `<div class="ac-row"><em>아이디</em><b>${esc(r.login_id)}</b><button type="button" data-copy="login_id">복사</button></div>` : ""}
-            ${r.password ? `<div class="ac-row"><em>비번</em><b>${vaShown.has(r.id) ? esc(r.password) : vaMask(r.password)}</b><button type="button" data-act="eye">${vaShown.has(r.id) ? "숨김" : "보기"}</button><button type="button" data-copy="password">복사</button></div>` : ""}
+            ${r.password ? `<div class="ac-row"><em>비번</em><b>${esc(r.password)}</b><button type="button" data-copy="password">복사</button></div>` : ""}
             ${r.email ? `<div class="ac-row"><em>이메일</em><b>${esc(r.email)}</b><button type="button" data-copy="email">복사</button></div>` : ""}
           </section>`).join("");
       }
@@ -623,11 +620,6 @@
           } catch (err) {}
           return;
         }
-        if (btn && btn.dataset.act === "eye") {
-          vaShown.has(row.id) ? vaShown.delete(row.id) : vaShown.add(row.id);
-          renderVault();
-          return;
-        }
         openVaultSheet(row);
       });
       function openVaultSheet(row) {
@@ -637,7 +629,6 @@
         vaPw.value = row ? row.password || "" : "";
         vaEmail.value = row ? row.email || "" : "";
         vaNote.value = row ? row.note || "" : "";
-        vaPw.type = "password";
         vaDel.hidden = !row;
         vaErr.textContent = "";
         vaSheet.hidden = false;
@@ -646,9 +637,6 @@
       document.getElementById("va-add").addEventListener("click", () => openVaultSheet(null));
       vaSheet.querySelectorAll("[data-va-close]").forEach((el) =>
         el.addEventListener("click", () => { vaSheet.hidden = true; }));
-      document.getElementById("va-eye").addEventListener("click", () => {
-        vaPw.type = vaPw.type === "password" ? "text" : "password";
-      });
       document.getElementById("va-save").addEventListener("click", async () => {
         vaErr.textContent = "";
         const patch = {

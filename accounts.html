@@ -59,10 +59,7 @@
         <input type="text" id="ac-id" class="field__input" autocomplete="off" autocapitalize="off" />
       </label>
       <label class="field ac-field"><span class="field__label" data-en="Password">비번</span>
-        <span class="ac-pwwrap">
-          <input type="password" id="ac-pw" class="field__input" autocomplete="off" autocapitalize="off" />
-          <button type="button" class="ac-eye" id="ac-eye">👁</button>
-        </span>
+        <input type="text" id="ac-pw" class="field__input" autocomplete="off" autocapitalize="off" />
       </label>
       <label class="field ac-field"><span class="field__label" data-en="Email">이메일</span>
         <input type="text" id="ac-email" class="field__input" autocomplete="off" autocapitalize="off" inputmode="email" />
@@ -109,7 +106,7 @@
             <section class="card ac-card" data-id="${r.id}">
               <div class="ac-card__title">🔐 ${esc(r.note || r.login_id || r.email || "계정")}</div>
               ${r.login_id ? `<div class="ac-row"><em data-en="ID">아이디</em><b>${esc(r.login_id)}</b><button type="button" data-copy="login_id" data-en="Copy">복사</button></div>` : ""}
-              ${r.password ? `<div class="ac-row"><em data-en="PW">비번</em><b>${shown.has(r.id) ? esc(r.password) : mask(r.password)}</b><button type="button" data-act="eye">${shown.has(r.id) ? dtT("숨김", "Hide") : dtT("보기", "Show")}</button><button type="button" data-copy="password" data-en="Copy">복사</button></div>` : ""}
+              ${r.password ? `<div class="ac-row"><em data-en="PW">비번</em><b>${esc(r.password)}</b><button type="button" data-copy="password" data-en="Copy">복사</button></div>` : ""}
               ${r.email ? `<div class="ac-row"><em data-en="Email">이메일</em><b>${esc(r.email)}</b><button type="button" data-copy="email" data-en="Copy">복사</button></div>` : ""}
             </section>`).join("");
         }
@@ -128,11 +125,6 @@
             } catch (err) {}
             return;
           }
-          if (btn && btn.dataset.act === "eye") {
-            shown.has(row.id) ? shown.delete(row.id) : shown.add(row.id);
-            render();
-            return;
-          }
           openSheet(row);
         });
 
@@ -144,7 +136,6 @@
           fPw.value = row ? row.password || "" : "";
           fEmail.value = row ? row.email || "" : "";
           fNote.value = row ? row.note || "" : "";
-          fPw.type = "password";
           delBtn.hidden = !row;
           errEl.textContent = "";
           sheet.hidden = false;
@@ -154,9 +145,6 @@
         document.getElementById("ac-add").addEventListener("click", () => openSheet(null));
         sheet.querySelectorAll("[data-ac-close]").forEach((el) =>
           el.addEventListener("click", () => { sheet.hidden = true; }));
-        document.getElementById("ac-eye").addEventListener("click", () => {
-          fPw.type = fPw.type === "password" ? "text" : "password";
-        });
 
         document.getElementById("ac-save").addEventListener("click", async () => {
           errEl.textContent = "";
