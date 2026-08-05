@@ -669,38 +669,6 @@ function dtSkeleton(el, rows) {
   }, { passive: true });
 })();
 
-/* 웹 데스크톱: 사이드바 상단 "새로 만들기" 버튼 + 빠른 생성 메뉴 — dt-sb-new */
-(function () {
-  try {
-    const native = window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform();
-    if (native) return;
-    const bar = document.querySelector(".tabbar");
-    if (!bar) return;
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "sb-new";
-    btn.innerHTML = "＋ 새로 만들기";
-    const menu = document.createElement("div");
-    menu.className = "sb-newmenu";
-    menu.hidden = true;
-    menu.innerHTML = [
-      '<a href="/general.html?newtodo=1">✓ 할 일 추가</a>',
-      '<a href="/calendar.html?new=1">🗓 일정 추가</a>',
-      '<a href="/memo-edit.html">✏️ 새 메모</a>',
-      '<a href="/files.html?upload=1">📁 파일 업로드</a>',
-    ].join("");
-    bar.appendChild(btn);      // 설정(마지막 메뉴) 아래
-    bar.appendChild(menu);
-    btn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      const r = btn.getBoundingClientRect();
-      menu.style.top = (r.bottom + 8) + "px";
-      menu.hidden = !menu.hidden;
-    });
-    document.addEventListener("click", () => { menu.hidden = true; });
-  } catch (e) {}
-})();
-
 /* 수험생 모드: 하단 탭의 캘린더를 타임박스로 교체 — dt-exam-tab */
 (function () {
   try {

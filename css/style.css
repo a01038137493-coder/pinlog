@@ -2778,29 +2778,6 @@ html { touch-action: manipulation; }
   }
 }
 
-/* 웹 사이드바 "새로 만들기" — 데스크톱에서만 표시 */
-.sb-new, .sb-newmenu { display: none; }
-@media (min-width: 900px) {
-  html.dt-web .sb-new {
-    display: block; margin: 16px 10px 0; padding: 12px 14px;
-    border: none; border-radius: 11px; background: var(--primary); color: #fff;
-    font: inherit; font-size: 0.93rem; font-weight: 800; text-align: center; cursor: pointer;
-    box-shadow: 0 6px 16px rgba(240, 68, 56, 0.28);
-  }
-  html.dt-web .sb-new:hover { filter: brightness(1.05); }
-  html.dt-web .sb-newmenu {
-    display: block; position: fixed; left: 14px; z-index: 300;
-    width: 204px; background: #fff; border: 1px solid var(--line); border-radius: 13px;
-    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.14); padding: 6px; box-sizing: border-box;
-  }
-  html.dt-web .sb-newmenu[hidden] { display: none; }
-  html.dt-web .sb-newmenu a {
-    display: block; padding: 10px 11px; border-radius: 8px;
-    font-size: 0.92rem; font-weight: 600; color: var(--text); text-decoration: none;
-  }
-  html.dt-web .sb-newmenu a:hover { background: rgba(15, 23, 42, 0.05); }
-}
-
 /* 웹 홈 커스터마이징 */
 .cfg-hidden { display: none !important; }
 .homecfg-btn { display: none; }
@@ -2946,29 +2923,6 @@ body.home-edit .gtab-grid #gnote {
   html.dt-web main.container:has(> .tbside) > #tb-editor {
     overflow-y: auto; min-height: 0; margin: 0;
   }
-}
-
-/* 웹 사이드바 "새로 만들기" — 데스크톱에서만 표시 */
-.sb-new, .sb-newmenu { display: none; }
-@media (min-width: 900px) {
-  html.dt-web .sb-new {
-    display: block; margin: 16px 10px 0; padding: 12px 14px;
-    border: none; border-radius: 11px; background: var(--primary); color: #fff;
-    font: inherit; font-size: 0.93rem; font-weight: 800; text-align: center; cursor: pointer;
-    box-shadow: 0 6px 16px rgba(240, 68, 56, 0.28);
-  }
-  html.dt-web .sb-new:hover { filter: brightness(1.05); }
-  html.dt-web .sb-newmenu {
-    display: block; position: fixed; left: 14px; z-index: 300;
-    width: 204px; background: #fff; border: 1px solid var(--line); border-radius: 13px;
-    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.14); padding: 6px; box-sizing: border-box;
-  }
-  html.dt-web .sb-newmenu[hidden] { display: none; }
-  html.dt-web .sb-newmenu a {
-    display: block; padding: 10px 11px; border-radius: 8px;
-    font-size: 0.92rem; font-weight: 600; color: var(--text); text-decoration: none;
-  }
-  html.dt-web .sb-newmenu a:hover { background: rgba(15, 23, 42, 0.05); }
 }
 
 /* 웹 홈 커스터마이징 */
