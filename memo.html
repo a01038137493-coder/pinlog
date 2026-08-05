@@ -44,7 +44,47 @@
       <div id="mw-body" class="memoedit__body" contenteditable="true" spellcheck="false"
            data-placeholder="메모를 선택하거나 새 메모를 작성하세요"></div>
     </section>
+
+    <!-- 데스크탑 웹 전용: 계정 보관함 (목록+에디터 자리에 내장) -->
+    <div id="vault-panel" hidden>
+      <div class="vault-head">
+        <b>🔐 계정 보관함</b>
+        <span data-en="IDs & passwords — visible only to you">아이디·비밀번호 — 내 계정에서만 보여요</span>
+        <button type="button" class="vault-add" id="va-add" data-en="+ Add account">＋ 계정 추가</button>
+      </div>
+      <div class="vault-grid" id="va-list"></div>
+      <p class="ac-empty" id="va-empty" hidden data-en="Nothing saved yet">아직 저장된 계정이 없어요 — 계정 추가를 눌러보세요</p>
+    </div>
   </main>
+
+  <!-- 계정 추가/수정 시트: 무조건 아이디 · 비번 · 이메일 · 비고 -->
+  <div class="evsheet" id="va-sheet" hidden>
+    <div class="evsheet__backdrop" data-va-close></div>
+    <div class="evsheet__panel">
+      <div class="evsheet__head">
+        <button type="button" class="evsheet__cancel" data-va-close data-en="Cancel">취소</button>
+        <span class="evsheet__title" id="va-sheet-title">계정 추가</span>
+        <button type="button" class="evsheet__save" id="va-save" data-en="Save">저장</button>
+      </div>
+      <label class="field ac-field"><span class="field__label" data-en="ID">아이디</span>
+        <input type="text" id="va-id" class="field__input" autocomplete="off" autocapitalize="off" />
+      </label>
+      <label class="field ac-field"><span class="field__label" data-en="Password">비번</span>
+        <span class="ac-pwwrap">
+          <input type="password" id="va-pw" class="field__input" autocomplete="off" autocapitalize="off" />
+          <button type="button" class="ac-eye" id="va-eye">👁</button>
+        </span>
+      </label>
+      <label class="field ac-field"><span class="field__label" data-en="Email">이메일</span>
+        <input type="text" id="va-email" class="field__input" autocomplete="off" autocapitalize="off" inputmode="email" />
+      </label>
+      <label class="field ac-field"><span class="field__label" data-en="Note">비고</span>
+        <input type="text" id="va-note" class="field__input" placeholder="예: 네이버, 회사 메일" data-en-ph="e.g. Naver, work email" autocomplete="off" />
+      </label>
+      <button type="button" class="ac-del" id="va-del" hidden data-en="Delete this account">이 계정 삭제</button>
+      <p class="evsheet__error" id="va-error" role="alert"></p>
+    </div>
+  </div>
 
   <!-- 폴더 관리 시트 -->
   <div class="evsheet" id="cat-sheet" hidden>
@@ -236,15 +276,18 @@
       function renderCats() {
         const el = document.getElementById("memo-cats");
         const uncategorized = memos.filter((m) => !m.category_id).length;
-        let html = `<button type="button" class="memo-cat${activeCat === "all" ? " is-active" : ""}" data-cat="all">전체 ${memos.length}</button>`;
+        let html = `<button type="button" class="memo-cat${!vaultOn && activeCat === "all" ? " is-active" : ""}" data-cat="all">전체 ${memos.length}</button>`;
         html += categories.map((c) => {
           const n = memos.filter((m) => m.category_id === c.id).length;
-          return `<button type="button" class="memo-cat${activeCat === c.id ? " is-active" : ""}" data-cat="${c.id}">${c.color ? `<i class="cat-dot" style="background:${c.color}"></i>` : ""}${esc(c.name)} ${n}</button>`;
+          return `<button type="button" class="memo-cat${!vaultOn && activeCat === c.id ? " is-active" : ""}" data-cat="${c.id}">${c.color ? `<i class="cat-dot" style="background:${c.color}"></i>` : ""}${esc(c.name)} ${n}</button>`;
         }).join("");
         if (uncategorized && categories.length) {
-          html += `<button type="button" class="memo-cat${activeCat === "none" ? " is-active" : ""}" data-cat="none">미분류 ${uncategorized}</button>`;
+          html += `<button type="button" class="memo-cat${!vaultOn && activeCat === "none" ? " is-active" : ""}" data-cat="none">미분류 ${uncategorized}</button>`;
         }
-        html += `<a class="memo-cat" href="/accounts.html">🔐 ${dtT("계정", "Accounts")}</a>`;
+        /* 계정 보관함: 데스크탑 웹은 워크스페이스 안에 내장, 모바일은 전용 페이지 */
+        html += WEB_DESK()
+          ? `<button type="button" class="memo-cat${vaultOn ? " is-active" : ""}" data-cat="__vault">🔐 ${dtT("계정", "Accounts")}</button>`
+          : `<a class="memo-cat" href="/accounts.html">🔐 ${dtT("계정", "Accounts")}</a>`;
         html += `<button type="button" class="memo-cat memo-cat--add" data-cat="__manage">폴더 관리</button>`;
         el.innerHTML = html;
 
@@ -252,6 +295,8 @@
           btn.addEventListener("click", () => {
             const id = btn.dataset.cat;
             if (id === "__manage") { openCatSheet(); return; }
+            if (id === "__vault") { showVault(true); return; }
+            if (vaultOn) showVault(false);
             activeCat = id;
             renderCats();
             renderList();
@@ -522,6 +567,118 @@
         if (WEB_DESK()) { mwSave(); mwOpen(null); return; }
         const cat = activeCat !== "all" && activeCat !== "none" ? "?cat=" + activeCat : "";
         window.location.href = "/memo-edit.html" + cat;
+      });
+
+      /* ---------- 계정 보관함 — 데스크탑 웹: 메모 자리에 내장 표시 ---------- */
+      let vaultOn = false;
+      let vaRows = null;                 // null = 아직 안 불러옴
+      const vaShown = new Set();
+      const vaPanel = document.getElementById("vault-panel");
+      const vaList = document.getElementById("va-list");
+      const vaSheet = document.getElementById("va-sheet");
+      const vaId = document.getElementById("va-id");
+      const vaPw = document.getElementById("va-pw");
+      const vaEmail = document.getElementById("va-email");
+      const vaNote = document.getElementById("va-note");
+      const vaErr = document.getElementById("va-error");
+      const vaDel = document.getElementById("va-del");
+      let vaEditId = null;
+      const vaMask = (s) => "•".repeat(Math.min(10, Math.max(6, String(s || "").length)));
+
+      function showVault(on) {
+        vaultOn = on;
+        vaPanel.hidden = !on;
+        document.body.classList.toggle("vault-on", on);
+        renderCats();
+        if (on) { vaRows === null ? loadVault() : renderVault(); }
+      }
+      async function loadVault() {
+        const { data } = await supabaseClient.from("credentials")
+          .select("*").eq("user_id", profile.id).order("created_at", { ascending: false });
+        vaRows = data || [];
+        renderVault();
+      }
+      function renderVault() {
+        const rows = vaRows || [];
+        document.getElementById("va-empty").hidden = rows.length > 0;
+        vaList.innerHTML = rows.map((r) => `
+          <section class="card ac-card" data-id="${r.id}">
+            <div class="ac-card__title">🔐 ${esc(r.note || r.login_id || r.email || "계정")}</div>
+            ${r.login_id ? `<div class="ac-row"><em>아이디</em><b>${esc(r.login_id)}</b><button type="button" data-copy="login_id">복사</button></div>` : ""}
+            ${r.password ? `<div class="ac-row"><em>비번</em><b>${vaShown.has(r.id) ? esc(r.password) : vaMask(r.password)}</b><button type="button" data-act="eye">${vaShown.has(r.id) ? "숨김" : "보기"}</button><button type="button" data-copy="password">복사</button></div>` : ""}
+            ${r.email ? `<div class="ac-row"><em>이메일</em><b>${esc(r.email)}</b><button type="button" data-copy="email">복사</button></div>` : ""}
+          </section>`).join("");
+      }
+      vaList.addEventListener("click", async (e) => {
+        const card = e.target.closest(".ac-card");
+        if (!card) return;
+        const row = (vaRows || []).find((r) => r.id === card.dataset.id);
+        if (!row) return;
+        const btn = e.target.closest("button");
+        if (btn && btn.dataset.copy) {
+          try {
+            await navigator.clipboard.writeText(row[btn.dataset.copy] || "");
+            btn.textContent = "복사됨 ✓";
+            setTimeout(() => { btn.textContent = "복사"; }, 1200);
+          } catch (err) {}
+          return;
+        }
+        if (btn && btn.dataset.act === "eye") {
+          vaShown.has(row.id) ? vaShown.delete(row.id) : vaShown.add(row.id);
+          renderVault();
+          return;
+        }
+        openVaultSheet(row);
+      });
+      function openVaultSheet(row) {
+        vaEditId = row ? row.id : null;
+        document.getElementById("va-sheet-title").textContent = row ? "계정 수정" : "계정 추가";
+        vaId.value = row ? row.login_id || "" : "";
+        vaPw.value = row ? row.password || "" : "";
+        vaEmail.value = row ? row.email || "" : "";
+        vaNote.value = row ? row.note || "" : "";
+        vaPw.type = "password";
+        vaDel.hidden = !row;
+        vaErr.textContent = "";
+        vaSheet.hidden = false;
+        if (!row) setTimeout(() => vaId.focus(), 100);
+      }
+      document.getElementById("va-add").addEventListener("click", () => openVaultSheet(null));
+      vaSheet.querySelectorAll("[data-va-close]").forEach((el) =>
+        el.addEventListener("click", () => { vaSheet.hidden = true; }));
+      document.getElementById("va-eye").addEventListener("click", () => {
+        vaPw.type = vaPw.type === "password" ? "text" : "password";
+      });
+      document.getElementById("va-save").addEventListener("click", async () => {
+        vaErr.textContent = "";
+        const patch = {
+          login_id: vaId.value.trim() || null,
+          password: vaPw.value || null,
+          email: vaEmail.value.trim() || null,
+          note: vaNote.value.trim() || null,
+          updated_at: new Date().toISOString(),
+        };
+        if (!patch.login_id && !patch.password && !patch.email) {
+          vaErr.textContent = "아이디나 비번을 입력해주세요";
+          return;
+        }
+        const q = vaEditId
+          ? supabaseClient.from("credentials").update(patch).eq("id", vaEditId).select().single()
+          : supabaseClient.from("credentials").insert({ user_id: profile.id, ...patch }).select().single();
+        const { data, error } = await q;
+        if (error) { vaErr.textContent = "저장하지 못했습니다"; return; }
+        if (vaEditId) vaRows = (vaRows || []).map((r) => (r.id === vaEditId ? data : r));
+        else vaRows = [data, ...(vaRows || [])];
+        vaSheet.hidden = true;
+        renderVault();
+      });
+      vaDel.addEventListener("click", async () => {
+        if (!vaEditId || !confirm("이 계정 정보를 삭제할까요?")) return;
+        const { error } = await supabaseClient.from("credentials").delete().eq("id", vaEditId);
+        if (error) { vaErr.textContent = "삭제하지 못했습니다"; return; }
+        vaRows = (vaRows || []).filter((r) => r.id !== vaEditId);
+        vaSheet.hidden = true;
+        renderVault();
       });
 
       const CACHE_KEY = "dtc_memos_" + profile.id;
