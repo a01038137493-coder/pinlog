@@ -18,8 +18,8 @@
     </div>
   </header>
 
-  <input type="file" id="file-input" hidden multiple
-         accept="image/*,application/pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.hwp,.hwpx" />
+  <!-- 형식 제한 없음 — 어떤 파일이든 업로드 가능 -->
+  <input type="file" id="file-input" hidden multiple />
 
   <main class="container">
     <input type="search" id="file-search" class="field__input memo-search" placeholder="파일 검색" autocomplete="off" />
@@ -145,8 +145,9 @@
         statusEl.hidden = false;
       };
 
-      async function signed(path, sec = 3600) {
-        const { data } = await supabaseClient.storage.from(BUCKET).createSignedUrl(path, sec);
+      async function signed(path, sec = 3600, downloadName = null) {
+        const { data } = await supabaseClient.storage.from(BUCKET)
+          .createSignedUrl(path, sec, downloadName ? { download: downloadName } : undefined);
         return data ? data.signedUrl : null;
       }
 
@@ -325,8 +326,10 @@
         for (const f of picked) {
           if (f.size > MAX_SIZE) { status(`${f.name} — 25MB를 넘어 건너뜁니다`); continue; }
           status(`올리는 중… ${++done}/${picked.length}`);
-          const safe = f.name.replace(/[^\w.\-가-힣 ]/g, "_");
-          const path = `${profile.id}/${Date.now()}-${safe}`;
+          /* 스토리지 키는 ASCII만 허용 — 한글·특수문자 파일명은 400 나므로
+             키는 난수로 만들고 원래 이름은 files.name 에 보관 */
+          const ext = (f.name.split(".").pop() || "").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 10);
+          const path = `${profile.id}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext ? "." + ext : ""}`;
           const up = await supabaseClient.storage.from(BUCKET).upload(path, f, {
             contentType: f.type || "application/octet-stream",
             upsert: false,
@@ -437,7 +440,10 @@
           if (moved) { moved = false; return; }
           if (row.classList.contains("is-open")) { closeOpen(); return; }
           status("여는 중…");
-          const url = await signed(card.dataset.open);
+          const f0 = files.find((x) => x.id === row.dataset.id);
+          const previewable = f0 && (isImage(f0.mime) || String(f0.mime).includes("pdf"));
+          /* 미리보기 불가 형식은 원래 파일명으로 다운로드되게 */
+          const url = await signed(card.dataset.open, 3600, previewable ? null : (f0 && f0.name));
           if (!url) { status(""); alert("파일을 열지 못했습니다."); return; }
 
           // 앱: iOS 내장 뷰어(QuickLook) — 이미지는 사진 뷰어, PDF는 PDF 뷰어
