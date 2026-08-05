@@ -44,6 +44,7 @@ const COPY = [
   "admin.html",
   "alerts.html",
   "done.html",
+  "accounts.html",
   "student-detail.html",
   "css",
   "js",

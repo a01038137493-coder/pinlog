@@ -79,6 +79,7 @@
           ${t.important ? `<span class="gtodo__star">★</span>` : ""}
           <span class="gtodo__text">${esc(t.content)}</span>
           ${tagHtml(t)}
+          ${t.remind_time || t.note ? `<span class="gtodo__flag">${t.remind_time ? "⏰" + fmtRemind(t.remind_time) : ""}${t.note ? (t.remind_time ? " " : "") + "📝" : ""}</span>` : ""}
         </button>
       </div>`;
 
@@ -238,11 +239,13 @@
       card.addEventListener("pointerup", finish);
       card.addEventListener("pointercancel", finish);
 
-      card.addEventListener("click", async () => {
+      card.addEventListener("click", async (e) => {
         if (moved) { moved = false; return; }
         if (row.classList.contains("is-open")) { closeOpen(); return; }
         const todo = findTodo(row.dataset.id);
         if (!todo) return;
+        /* 텍스트 탭 → 메모·알림 시트 (완료 토글은 체크·여백 탭) */
+        if (e.target.closest(".gtodo__text")) { openTodoSheet(todo); return; }
         todo.done = !todo.done;             // 낙관적 갱신
         renderAll();
         const { error } = await supabaseClient.from("todos")
@@ -378,9 +381,89 @@
       saveSheet();
     });
 
+    /* ---------- 할 일 메모·알림 시트 (텍스트 탭) ---------- */
+    function fmtRemind(t) {
+      const [h, m] = String(t).split(":").map(Number);
+      return (h < 12 ? dtT("오전", "AM ") : dtT("오후", "PM ")) + (h % 12 || 12) + ":" + String(m || 0).padStart(2, "0");
+    }
+    const tnSheet = document.getElementById("tn-sheet");
+    const tnTitle = document.getElementById("tn-title");
+    const tnNote = document.getElementById("tn-note");
+    const tnTime = document.getElementById("tn-time");
+    const tnClear = document.getElementById("tn-clear");
+    const tnHint = document.getElementById("tn-hint");
+    let tnId = null;
+    let tnTimer = null;
+
+    function openTodoSheet(todo) {
+      tnId = todo.id;
+      tnTitle.textContent = todo.content;
+      tnNote.value = todo.note || "";
+      tnHint.textContent = "";
+      document.getElementById("tn-remind").hidden = false;
+      if (todo.remind_time) {
+        tnTime.value = String(todo.remind_time).slice(0, 5);
+        tnClear.hidden = false;
+      } else {
+        /* 시간 선택은 현재 시간부터 시작 (다음 5분 단위) */
+        const n = new Date(Date.now() + 5 * 60000);
+        n.setMinutes(Math.ceil(n.getMinutes() / 5) * 5, 0, 0);
+        tnTime.value = pad(n.getHours()) + ":" + pad(n.getMinutes());
+        tnClear.hidden = true;
+      }
+      if (!(window.dtNotify && dtNotify.available))
+        tnHint.textContent = dtT("알림은 핀로그 앱(휴대폰)에서 울려요", "Reminders ring on the Pinlog app");
+      tnSheet.hidden = false;
+    }
+    async function tnSaveNote() {
+      const todo = findTodo(tnId);
+      if (!todo) return;
+      const v = tnNote.value.trim();
+      if (v === (todo.note || "")) return;
+      todo.note = v || null;
+      await supabaseClient.from("todos").update({ note: todo.note }).eq("id", tnId);
+    }
+    tnNote.addEventListener("input", () => {
+      clearTimeout(tnTimer);
+      tnTimer = setTimeout(tnSaveNote, 600);
+    });
+    tnTime.addEventListener("change", async () => {
+      const todo = findTodo(tnId);
+      if (!todo || !tnTime.value) return;
+      todo.remind_time = tnTime.value;
+      tnClear.hidden = false;
+      await supabaseClient.from("todos").update({ remind_time: todo.remind_time }).eq("id", tnId);
+      if (window.dtNotify && dtNotify.available) {
+        const ok = await dtNotify.resync(profile);
+        tnHint.textContent = ok
+          ? dtT("알림 설정됨 — ", "Reminder set — ") + fmtRemind(todo.remind_time)
+          : dtT("알림 권한을 허용해주세요 (설정 → 핀로그)", "Please allow notifications in Settings");
+      } else {
+        tnHint.textContent = dtT("저장됨 — 알림은 핀로그 앱(휴대폰)에서 울려요", "Saved — reminders ring on the Pinlog app");
+      }
+      render();
+    });
+    tnClear.addEventListener("click", async () => {
+      const todo = findTodo(tnId);
+      if (!todo) return;
+      todo.remind_time = null;
+      tnClear.hidden = true;
+      tnHint.textContent = dtT("알림 해제됨", "Reminder off");
+      await supabaseClient.from("todos").update({ remind_time: null }).eq("id", tnId);
+      if (window.dtNotify && dtNotify.available) dtNotify.resync(profile, { prompt: false });
+      render();
+    });
+    tnSheet.querySelectorAll("[data-tn-close]").forEach((el) => el.addEventListener("click", async () => {
+      clearTimeout(tnTimer);
+      await tnSaveNote();
+      tnSheet.hidden = true;
+      render();
+    }));
+
     /* ---------- 로드 + 어제 이월 ---------- */
+    const CACHE_KEY = "dtc_ghome_" + profile.id;
     async function load() {
-      const stopSkel = dtSkeleton(listEl, 2);
+      const stopSkel = todos.length ? () => {} : dtSkeleton(listEl, 2);
       const [{ data: cur }, { data: up }, { data: prev }, { data: tgs }] = await Promise.all([
         supabaseClient.from("todos")
           .select("*").eq("student_id", profile.id).eq("date", today)
@@ -397,6 +480,7 @@
       tags = tgs || [];
       todos = cur || [];
       upcoming = up || [];
+      try { sessionStorage.setItem(CACHE_KEY, JSON.stringify({ todos, upcoming, tags, d: today })); } catch (e) {}
       renderAll();
 
       carryover = prev || [];
@@ -420,6 +504,14 @@
       }
     });
 
+    /* 화면 전환 깜빡임 방지 — 직전 목록 즉시 표시 후 백그라운드 갱신 */
+    try {
+      const c = JSON.parse(sessionStorage.getItem(CACHE_KEY) || "null");
+      if (c && c.d === today && Array.isArray(c.todos)) {
+        todos = c.todos; upcoming = c.upcoming || []; tags = c.tags || [];
+        renderAll();
+      }
+    } catch (e) {}
     await load();
     if (window.hideAppLoader) hideAppLoader();
 

@@ -91,7 +91,7 @@
   <script src="/js/vendor/supabase.js"></script>
   <script src="/js/supabaseClient.js?v=mock19"></script>
   <script src="/js/utils.js?v=51"></script>
-  <script src="/js/notify.js?v=5"></script>
+  <script src="/js/notify.js?v=6"></script>
   <script src="/js/memofmt.js?v=1"></script>
   <script>
     /* 메모 목록 — 아이폰 메모장식: 검색 + 좌측 스와이프로 고정/삭제 */
@@ -244,6 +244,7 @@
         if (uncategorized && categories.length) {
           html += `<button type="button" class="memo-cat${activeCat === "none" ? " is-active" : ""}" data-cat="none">미분류 ${uncategorized}</button>`;
         }
+        html += `<a class="memo-cat" href="/accounts.html">🔐 ${dtT("계정", "Accounts")}</a>`;
         html += `<button type="button" class="memo-cat memo-cat--add" data-cat="__manage">폴더 관리</button>`;
         el.innerHTML = html;
 
@@ -523,8 +524,10 @@
         window.location.href = "/memo-edit.html" + cat;
       });
 
+      const CACHE_KEY = "dtc_memos_" + profile.id;
       async function load() {
-        const stopSkel = dtSkeleton(listEl, 4);
+        const cached = !!memos.length;
+        const stopSkel = cached ? () => {} : dtSkeleton(listEl, 4);
         const [memosRes, catsRes] = await Promise.all([
           supabaseClient.from("memos").select("*")
             .eq("student_id", profile.id).order("updated_at", { ascending: false }),
@@ -532,12 +535,21 @@
             .eq("student_id", profile.id).order("sort").order("created_at"),
         ]);
         stopSkel();
-        if (memosRes.error) { listEl.innerHTML = `<p class="muted">메모를 불러오지 못했습니다.</p>`; return; }
+        if (memosRes.error) { if (!cached) listEl.innerHTML = `<p class="muted">메모를 불러오지 못했습니다.</p>`; return; }
         memos = memosRes.data || [];
         categories = catsRes.data || [];
+        try { sessionStorage.setItem(CACHE_KEY, JSON.stringify({ memos, categories })); } catch (e) {}
         renderCats();
         renderList();
       }
+      /* 화면 전환 깜빡임 방지 — 직전 목록 즉시 표시 후 백그라운드 갱신 */
+      try {
+        const c = JSON.parse(sessionStorage.getItem(CACHE_KEY) || "null");
+        if (c && Array.isArray(c.memos)) {
+          memos = c.memos; categories = c.categories || [];
+          renderCats(); renderList();
+        }
+      } catch (e) {}
       await load();
       if (WEB_DESK()) {
         document.getElementById("mweb-editor").hidden = false;

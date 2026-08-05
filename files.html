@@ -23,6 +23,13 @@
 
   <main class="container">
     <input type="search" id="file-search" class="field__input memo-search" placeholder="파일 검색" autocomplete="off" />
+    <!-- 보기 방식 (데스크탑 웹): 미리보기 · 큰 아이콘 · 보통 아이콘 · 목록 -->
+    <div class="fview" id="fview">
+      <button type="button" data-view="preview" title="미리보기">🖼</button>
+      <button type="button" data-view="large" title="큰 아이콘">▦</button>
+      <button type="button" data-view="medium" title="보통 아이콘">▥</button>
+      <button type="button" data-view="list" title="목록">☰</button>
+    </div>
     <div class="memo-cats" id="fcats"></div>
     <p class="file-status" id="file-status" hidden></p>
     <div id="file-list"></div>
@@ -90,7 +97,7 @@
   <script src="/js/vendor/supabase.js"></script>
   <script src="/js/supabaseClient.js?v=mock19"></script>
   <script src="/js/utils.js?v=51"></script>
-  <script src="/js/notify.js?v=5"></script>
+  <script src="/js/notify.js?v=6"></script>
   <script>
     /* 파일 보관함 — Supabase Storage + files 테이블 + 폴더(file_categories)
      * 업로드: 보고 있는 폴더로 / 탭: 열기 / 스와이프: 이동·삭제 */
@@ -517,8 +524,10 @@
         render();
       }
 
+      const CACHE_KEY = "dtc_files_" + profile.id;
       async function load() {
-        const stopSkel = dtSkeleton(listEl, 4);
+        const cached = !!files.length;
+        const stopSkel = cached ? () => {} : dtSkeleton(listEl, 4);
         const [filesRes, catsRes] = await Promise.all([
           supabaseClient.from("files").select("*")
             .eq("student_id", profile.id).order("created_at", { ascending: false }),
@@ -526,13 +535,60 @@
             .eq("student_id", profile.id).order("sort").order("created_at"),
         ]);
         stopSkel();
-        if (filesRes.error) { listEl.innerHTML = `<p class="muted">파일을 불러오지 못했습니다.</p>`; return; }
+        if (filesRes.error) { if (!cached) listEl.innerHTML = `<p class="muted">파일을 불러오지 못했습니다.</p>`; return; }
         files = filesRes.data || [];
         categories = catsRes.data || [];
+        try { sessionStorage.setItem(CACHE_KEY, JSON.stringify({ files, categories })); } catch (e) {}
         renderCats();
         render();
         loadThumbs();
       }
+
+      /* 화면 전환 깜빡임 방지 — 직전 목록을 즉시 그리고 백그라운드로 갱신 */
+      try {
+        const c = JSON.parse(sessionStorage.getItem(CACHE_KEY) || "null");
+        if (c && Array.isArray(c.files)) {
+          files = c.files; categories = c.categories || [];
+          renderCats(); render();
+        }
+      } catch (e) {}
+
+      /* ---------- 보기 방식 (데스크탑 웹) ---------- */
+      const fview = document.getElementById("fview");
+      function applyView(v) {
+        listEl.className = "fv-" + v;
+        fview.querySelectorAll("button").forEach((b) => b.classList.toggle("is-on", b.dataset.view === v));
+        try { localStorage.setItem("dt_file_view", v); } catch (e) {}
+        if (v === "preview" || v === "large") loadThumbs();
+      }
+      fview.addEventListener("click", (e) => {
+        const b = e.target.closest("button[data-view]");
+        if (b) applyView(b.dataset.view);
+      });
+      applyView(localStorage.getItem("dt_file_view") || "list");
+
+      /* ---------- 드래그&드롭 업로드 (웹) ---------- */
+      const drop = document.createElement("div");
+      drop.className = "fdrop";
+      drop.innerHTML = "<div>📥 여기에 놓으면 업로드돼요</div>";
+      document.body.appendChild(drop);
+      let dragN = 0;
+      document.addEventListener("dragenter", (e) => {
+        if (e.dataTransfer && [...(e.dataTransfer.types || [])].includes("Files")) {
+          dragN++; drop.classList.add("is-on");
+        }
+      });
+      document.addEventListener("dragleave", () => {
+        dragN = Math.max(0, dragN - 1);
+        if (!dragN) drop.classList.remove("is-on");
+      });
+      document.addEventListener("dragover", (e) => e.preventDefault());
+      document.addEventListener("drop", async (e) => {
+        e.preventDefault();
+        dragN = 0; drop.classList.remove("is-on");
+        const fs = [...((e.dataTransfer && e.dataTransfer.files) || [])];
+        if (fs.length) await uploadPicked(fs);
+      });
 
       searchEl.addEventListener("input", () => { openRow = null; render(); });
       await load();

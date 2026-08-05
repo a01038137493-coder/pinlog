@@ -160,6 +160,33 @@
       } catch (e) {}
     }
 
+    /* 할 일 알림 (remind_time "HH:MM" 설정된 미완료 할 일 — 오늘~14일) */
+    if (p && p.id && window.supabaseClient) {
+      try {
+        const pad2 = (n) => String(n).padStart(2, "0");
+        const iso = (d) => d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate());
+        const in14 = new Date(Date.now() + 14 * 86400000);
+        const { data: tds } = await supabaseClient.from("todos")
+          .select("id,content,date,remind_time").eq("student_id", p.id)
+          .eq("done", false).not("remind_time", "is", null)
+          .gte("date", iso(new Date())).lte("date", iso(in14))
+          .order("date").limit(10);
+        let id = 4000;
+        for (const t of (tds || [])) {
+          const [h, m] = String(t.remind_time).split(":").map(Number);
+          const [y, mo, d] = String(t.date).split("-").map(Number);
+          const at = new Date(y, mo - 1, d, h || 0, m || 0);
+          if (at.getTime() <= Date.now()) continue;
+          list.push({
+            id: id++, badge: 1,
+            title: t.content,
+            body: "할 일 알림이에요 (" + t12(h || 0, m || 0) + ")",
+            schedule: { at, allowWhileIdle: true },
+          });
+        }
+      } catch (e) {}
+    }
+
     if (list.length) await LN.schedule({ notifications: list });
     return true;
   }
@@ -168,7 +195,8 @@
   if (LN) {
     LN.addListener("localNotificationActionPerformed", (a) => {
       const id = a && a.notification && a.notification.id;
-      if (id >= 3000 || id === 1003 || id === 1004) window.location.href = "/calendar.html";
+      if (id >= 4000) window.location.href = "/index.html";
+      else if (id >= 3000 || id === 1003 || id === 1004) window.location.href = "/calendar.html";
       else if (id >= 2000) window.location.href = "/timebox.html";
       else window.location.href = "/index.html";
     });

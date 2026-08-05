@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
+  <title>계정 보관함 · 핀로그</title>
+  <link rel="icon" type="image/png" href="/assets/logo.png" />
+  <link rel="apple-touch-icon" href="/assets/logo.png" />
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#f04438" />
+  <script>document.documentElement.classList.add(window.Capacitor ? "dt-app" : "dt-web");</script>
+  <link rel="stylesheet" href="/css/style.css?v=267" />
+  <style>
+    .acp { padding-bottom: 100px; }
+    .ac-hint { font-size: 0.78rem; font-weight: 600; color: var(--muted-soft); margin: 2px 6px 14px; }
+    .ac-card { padding: 14px 16px; margin-bottom: 10px; cursor: pointer; }
+    .ac-card__title { font-size: 0.95rem; font-weight: 800; margin-bottom: 8px; display: flex; align-items: center; gap: 7px; }
+    .ac-row { display: flex; align-items: center; gap: 8px; padding: 5px 0; font-size: 0.88rem; }
+    .ac-row em { font-style: normal; flex: none; width: 44px; font-size: 0.74rem; font-weight: 700; color: var(--muted-soft); }
+    .ac-row b { font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .ac-row button { flex: none; margin-left: auto; border: 1px solid var(--line); background: #fff; border-radius: 8px; padding: 4px 10px; font: inherit; font-size: 0.74rem; font-weight: 700; color: var(--muted); cursor: pointer; }
+    .ac-row button + button { margin-left: 6px; }
+    .ac-empty { text-align: center; color: var(--muted-soft); font-weight: 600; padding: 70px 0; }
+    .ac-field { margin-bottom: 12px; }
+    .ac-pwwrap { position: relative; }
+    .ac-pwwrap .field__input { padding-right: 52px; }
+    .ac-eye { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); border: none; background: none; font-size: 1.05rem; cursor: pointer; padding: 6px; }
+    .ac-del { display: block; width: 100%; margin-top: 14px; border: none; background: none; color: #ff3b30; font: inherit; font-size: 0.9rem; font-weight: 700; padding: 10px; cursor: pointer; }
+    @media (min-width: 768px) and (min-height: 500px) {
+      main.container.acp, html.dt-web main.container.acp { margin-left: auto; margin-right: auto; }
+    }
+  </style>
+</head>
+<body class="app-bg">
+  <header class="topbar">
+    <a href="/memo.html" class="topbar__back" aria-label="뒤로 가기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></a>
+    <div class="topbar__brand" data-en="Accounts">계정 보관함</div>
+    <span></span>
+  </header>
+
+  <main class="container acp">
+    <p class="ac-hint" data-en="Store IDs & passwords — visible only to you (tap a card to edit)">아이디·비밀번호를 안전하게 — 내 계정에서만 보여요 (카드를 탭하면 수정)</p>
+    <div id="ac-list"></div>
+    <p class="ac-empty" id="ac-empty" hidden data-en="Nothing saved yet — add one with +">아직 저장된 계정이 없어요 — ＋로 추가해보세요</p>
+  </main>
+
+  <button type="button" class="fab" id="ac-add" aria-label="계정 추가">＋</button>
+
+  <!-- 추가/수정 시트: 무조건 아이디 · 비번 · 이메일 · 비고 -->
+  <div class="evsheet" id="ac-sheet" hidden>
+    <div class="evsheet__backdrop" data-ac-close></div>
+    <div class="evsheet__panel">
+      <div class="evsheet__head">
+        <button type="button" class="evsheet__cancel" data-ac-close data-en="Cancel">취소</button>
+        <span class="evsheet__title" id="ac-sheet-title">계정 추가</span>
+        <button type="button" class="evsheet__save" id="ac-save" data-en="Save">저장</button>
+      </div>
+      <label class="field ac-field"><span class="field__label" data-en="ID">아이디</span>
+        <input type="text" id="ac-id" class="field__input" autocomplete="off" autocapitalize="off" />
+      </label>
+      <label class="field ac-field"><span class="field__label" data-en="Password">비번</span>
+        <span class="ac-pwwrap">
+          <input type="password" id="ac-pw" class="field__input" autocomplete="off" autocapitalize="off" />
+          <button type="button" class="ac-eye" id="ac-eye">👁</button>
+        </span>
+      </label>
+      <label class="field ac-field"><span class="field__label" data-en="Email">이메일</span>
+        <input type="text" id="ac-email" class="field__input" autocomplete="off" autocapitalize="off" inputmode="email" />
+      </label>
+      <label class="field ac-field"><span class="field__label" data-en="Note">비고</span>
+        <input type="text" id="ac-note" class="field__input" placeholder="예: 네이버, 회사 메일" data-en-ph="e.g. Naver, work email" autocomplete="off" />
+      </label>
+      <button type="button" class="ac-del" id="ac-del" hidden data-en="Delete this account">이 계정 삭제</button>
+      <p class="evsheet__error" id="ac-error" role="alert"></p>
+    </div>
+  </div>
+
+  <script src="/js/vendor/supabase.js"></script>
+  <script src="/js/supabaseClient.js?v=mock19"></script>
+  <script src="/js/utils.js?v=51"></script>
+  <script>
+    (function () {
+      "use strict";
+      const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) =>
+        ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+      document.addEventListener("DOMContentLoaded", async () => {
+        const profile = await requireRole(["student"]);
+        if (!profile) return;
+
+        const listEl = document.getElementById("ac-list");
+        const emptyEl = document.getElementById("ac-empty");
+        const sheet = document.getElementById("ac-sheet");
+        const fId = document.getElementById("ac-id");
+        const fPw = document.getElementById("ac-pw");
+        const fEmail = document.getElementById("ac-email");
+        const fNote = document.getElementById("ac-note");
+        const errEl = document.getElementById("ac-error");
+        const delBtn = document.getElementById("ac-del");
+        let rows = [];
+        let editId = null;
+        const shown = new Set();   // 비번 보이기 토글된 카드
+
+        const mask = (s) => "•".repeat(Math.min(10, Math.max(6, String(s || "").length)));
+
+        function render() {
+          emptyEl.hidden = rows.length > 0;
+          listEl.innerHTML = rows.map((r) => `
+            <section class="card ac-card" data-id="${r.id}">
+              <div class="ac-card__title">🔐 ${esc(r.note || r.login_id || r.email || "계정")}</div>
+              ${r.login_id ? `<div class="ac-row"><em data-en="ID">아이디</em><b>${esc(r.login_id)}</b><button type="button" data-copy="login_id" data-en="Copy">복사</button></div>` : ""}
+              ${r.password ? `<div class="ac-row"><em data-en="PW">비번</em><b>${shown.has(r.id) ? esc(r.password) : mask(r.password)}</b><button type="button" data-act="eye">${shown.has(r.id) ? dtT("숨김", "Hide") : dtT("보기", "Show")}</button><button type="button" data-copy="password" data-en="Copy">복사</button></div>` : ""}
+              ${r.email ? `<div class="ac-row"><em data-en="Email">이메일</em><b>${esc(r.email)}</b><button type="button" data-copy="email" data-en="Copy">복사</button></div>` : ""}
+            </section>`).join("");
+        }
+
+        listEl.addEventListener("click", async (e) => {
+          const card = e.target.closest(".ac-card");
+          if (!card) return;
+          const row = rows.find((r) => r.id === card.dataset.id);
+          if (!row) return;
+          const btn = e.target.closest("button");
+          if (btn && btn.dataset.copy) {
+            try {
+              await navigator.clipboard.writeText(row[btn.dataset.copy] || "");
+              btn.textContent = dtT("복사됨 ✓", "Copied ✓");
+              setTimeout(() => { btn.textContent = dtT("복사", "Copy"); }, 1200);
+            } catch (err) {}
+            return;
+          }
+          if (btn && btn.dataset.act === "eye") {
+            shown.has(row.id) ? shown.delete(row.id) : shown.add(row.id);
+            render();
+            return;
+          }
+          openSheet(row);
+        });
+
+        function openSheet(row) {
+          editId = row ? row.id : null;
+          document.getElementById("ac-sheet-title").textContent =
+            row ? dtT("계정 수정", "Edit account") : dtT("계정 추가", "Add account");
+          fId.value = row ? row.login_id || "" : "";
+          fPw.value = row ? row.password || "" : "";
+          fEmail.value = row ? row.email || "" : "";
+          fNote.value = row ? row.note || "" : "";
+          fPw.type = "password";
+          delBtn.hidden = !row;
+          errEl.textContent = "";
+          sheet.hidden = false;
+          if (!row) setTimeout(() => fId.focus(), 100);
+        }
+
+        document.getElementById("ac-add").addEventListener("click", () => openSheet(null));
+        sheet.querySelectorAll("[data-ac-close]").forEach((el) =>
+          el.addEventListener("click", () => { sheet.hidden = true; }));
+        document.getElementById("ac-eye").addEventListener("click", () => {
+          fPw.type = fPw.type === "password" ? "text" : "password";
+        });
+
+        document.getElementById("ac-save").addEventListener("click", async () => {
+          errEl.textContent = "";
+          const patch = {
+            login_id: fId.value.trim() || null,
+            password: fPw.value || null,
+            email: fEmail.value.trim() || null,
+            note: fNote.value.trim() || null,
+            updated_at: new Date().toISOString(),
+          };
+          if (!patch.login_id && !patch.password && !patch.email) {
+            errEl.textContent = dtT("아이디나 비번을 입력해주세요", "Enter an ID or password");
+            return;
+          }
+          const q = editId
+            ? supabaseClient.from("credentials").update(patch).eq("id", editId).select().single()
+            : supabaseClient.from("credentials").insert({ user_id: profile.id, ...patch }).select().single();
+          const { data, error } = await q;
+          if (error) { errEl.textContent = dtT("저장하지 못했습니다", "Could not save"); return; }
+          if (editId) rows = rows.map((r) => (r.id === editId ? data : r));
+          else rows.unshift(data);
+          sheet.hidden = true;
+          render();
+        });
+
+        delBtn.addEventListener("click", async () => {
+          if (!editId || !confirm(dtT("이 계정 정보를 삭제할까요?", "Delete this account?"))) return;
+          const { error } = await supabaseClient.from("credentials").delete().eq("id", editId);
+          if (error) { errEl.textContent = dtT("삭제하지 못했습니다", "Could not delete"); return; }
+          rows = rows.filter((r) => r.id !== editId);
+          sheet.hidden = true;
+          render();
+        });
+
+        const { data } = await supabaseClient.from("credentials")
+          .select("*").eq("user_id", profile.id).order("created_at", { ascending: false });
+        rows = data || [];
+        render();
+      });
+    })();
+  </script>
+</body>
+</html>
