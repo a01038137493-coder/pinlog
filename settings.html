@@ -34,11 +34,11 @@
         <span data-en="Mode">사용 유형</span>
         <span class="settings-row__value"><span id="utype-label">—</span> <span class="settings-row__chevron" aria-hidden="true">›</span></span>
       </button>
-      <a href="/my-history.html" class="settings-row" id="history-row">
+      <a href="/my-history.html" class="settings-row" id="history-row" hidden>
         <span data-en="My records">내 기록</span>
         <span class="settings-row__chevron" aria-hidden="true">›</span>
       </a>
-      <a href="/done.html" class="settings-row" id="done-row">
+      <a href="/done.html" class="settings-row" id="done-row" hidden>
         <span data-en="Completed tasks">완료한 할 일</span>
         <span class="settings-row__chevron" aria-hidden="true">›</span>
       </a>
@@ -163,6 +163,22 @@
   <script src="/js/utils.js?v=51"></script>
   <script src="/js/notify.js?v=6"></script>
   <script>
+    /* 서버 응답 전이라도 캐시된 사용 유형으로 메뉴를 먼저 확정 — 깜빡임 방지 */
+    function dtPaintTypeMenu(type) {
+      const isGeneral = type === "general";
+      const hist = document.getElementById("history-row");
+      const done = document.getElementById("done-row");
+      if (hist) hist.hidden = isGeneral;
+      if (done) done.hidden = !isGeneral;
+      const lb = document.getElementById("utype-label");
+      if (lb) lb.textContent = isGeneral ? "일반 사용자" : "수험생";
+    }
+    document.addEventListener("DOMContentLoaded", () => {
+      try {
+        const c = JSON.parse(localStorage.getItem("dt_profile_cache") || "null");
+        if (c && c.user_type) dtPaintTypeMenu(c.user_type);
+      } catch (e) {}
+    });
     document.addEventListener("DOMContentLoaded", async () => {
       const user = await requireAuth();
       if (!user) return;
@@ -185,9 +201,8 @@
         goalBox.hidden = picked !== "general";
       };
       paint();
-      // 일반 사용자는 '내 기록'(학습 통계) 숨김, 수험생은 '완료한 할 일'(일반 투두) 숨김
-      if (picked === "general") document.getElementById("history-row").hidden = true;
-      else document.getElementById("done-row").hidden = true;
+      // 일반 사용자는 '내 기록'(학습 통계), 수험생은 '완료한 할 일'(일반 투두)을 숨김
+      dtPaintTypeMenu(picked);
 
       document.getElementById("ut-goal-label").value = (profile && profile.goal_label) || "";
       document.getElementById("ut-goal-date").value = (profile && profile.goal_date) || "";

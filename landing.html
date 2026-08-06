@@ -313,6 +313,21 @@
       display: flex; align-items: flex-start; gap: 40px;
     }
     .stage__desk { width: 870px; flex: none; }
+    .simhold, .dskhold { position: relative; }
+    .simhold > .simwrap, .dskhold > .dskwin { transform-origin: top left; }
+
+    /* 모바일: 폰은 실제 크기로, 데스크톱 창은 폭에 맞춘 미리보기로 — 세로 스택 */
+    @media (max-width: 900px) {
+      .stage { margin-top: 26px; height: auto !important; }
+      .stage__in {
+        position: static; width: 100% !important; transform: none !important;
+        flex-direction: column; align-items: center; gap: 34px;
+      }
+      .stage__desk { width: 100%; }
+      .simhold, .dskhold { margin: 0 auto; }
+      .dskctl { margin-top: 14px; }
+      .dskwin { box-shadow: 0 16px 40px rgba(25, 25, 25, 0.14); }
+    }
 
     /* 폰 시뮬 */
     .simwrap { position: relative; }
@@ -323,6 +338,12 @@
       position: absolute; left: 3.295%; top: 1.173%; width: 93.79%; height: 97.654%;
       border-radius: 45px; overflow: hidden; background: #f4f4f5; z-index: 0;
       font-size: 14px; letter-spacing: -0.01em; line-height: 1.55; color: #141414;
+    }
+    /* 화면 아래 끝: 잘린 줄이 딱 끊기지 않고 자연스럽게 사라지게 */
+    .simscreen::after {
+      content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 92px; z-index: 15;
+      background: linear-gradient(to top, #f4f4f5 26%, rgba(244, 244, 245, 0));
+      pointer-events: none;
     }
     .simstatus { position: relative; z-index: 50; display: flex; align-items: center; justify-content: space-between; padding: 14px 26px 4px; font-size: 13px; font-weight: 700; color: #141414; }
     .simstatus.is-inv { color: #fff; }
@@ -634,6 +655,7 @@
 
       <div class="stage" id="demo-stage">
         <div class="stage__in" id="demo-stagein">
+          <div class="simhold" id="sim-hold">
           <div class="simwrap">
             <div class="simglow"></div>
             <div class="simphone">
@@ -655,8 +677,10 @@
             </div>
             <p class="simcap" id="sim-cap">오늘 할 일 — 탭하면 바로 완료</p>
           </div>
+          </div>
 
           <div class="stage__desk">
+            <div class="dskhold" id="dsk-hold">
             <div class="dskwin">
             <div class="dskbar"><i></i><i></i><i></i><span>핀로그</span><em></em></div>
             <div class="dskbody">
@@ -711,6 +735,7 @@
                   <div class="dskcard dsknote" id="dsk-note"></div>
                 </div>
               </div>
+            </div>
             </div>
             </div>
             <div class="dskctl">
@@ -842,7 +867,7 @@
 
   <script src="/js/vendor/supabase.js"></script>
   <script src="/js/supabaseClient.js?v=mock19"></script>
-  <script src="/js/landing-demo.js?v=2"></script>
+  <script src="/js/landing-demo.js?v=3"></script>
   <script>
     // 로그인 상태면 CTA를 "내 핀로그 열기"로, 비로그인이면 우상단 로그인 팝업 표시
     (async () => {

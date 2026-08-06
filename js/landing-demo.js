@@ -403,14 +403,47 @@
     /* 무대(폰+창 1240px)를 컨테이너 폭에 맞춰 통째로 축소 */
     var stage = document.getElementById("demo-stage");
     var stagein = document.getElementById("demo-stagein");
+    var simHold = document.getElementById("sim-hold");
+    var dskHold = document.getElementById("dsk-hold");
+    function scaleInto(hold, natW) {
+      /* 홀더 폭에 맞춰 내부를 축소하고, 축소된 크기만큼 홀더 박스를 줄인다 */
+      var el = hold && hold.firstElementChild;
+      if (!el) return;
+      hold.style.width = "";                       // 가용 폭은 부모 기준으로 다시 잰다
+      var avail = (hold.parentNode || hold).clientWidth;
+      var s = Math.min(1, avail / natW);
+      el.style.width = natW + "px";                // 홀더를 줄여도 내부는 원래 크기 유지(이중 축소 방지)
+      el.style.transform = s < 1 ? "scale(" + s + ")" : "";
+      hold.style.width = Math.round(natW * s) + "px";
+      hold.style.height = Math.round(el.offsetHeight * s) + "px";
+    }
     function fit() {
       if (!stage || !stagein) return;
+      if (window.matchMedia("(max-width: 900px)").matches) {
+        /* 모바일: 통짜 축소 대신 폰·데스크톱 창을 세로로 쌓고 각각 폭에 맞춤 */
+        stagein.style.transform = "none";
+        stage.style.height = "auto";
+        scaleInto(simHold, 336);
+        scaleInto(dskHold, 870);
+        return;
+      }
+      [simHold, dskHold].forEach(function (h) {
+        if (!h) return;
+        if (h.firstElementChild) {
+          h.firstElementChild.style.transform = "";
+          h.firstElementChild.style.width = "";
+        }
+        h.style.width = "";
+        h.style.height = "";
+      });
       var s = Math.min(1, stage.clientWidth / 1240);
       stagein.style.transform = "translateX(-50%) scale(" + s + ")";
       stage.style.height = Math.round(742 * s) + "px";
     }
     window.addEventListener("resize", fit);
+    window.addEventListener("load", fit);
     fit();
+    setTimeout(fit, 400);
 
     var started = false;
     function start() { if (!started) { started = true; run(0); } }
