@@ -390,6 +390,10 @@ async function pullRemote() {
     const buf = Buffer.from(await f.arrayBuffer());
     lastImgHash = sha1(buf);
     if (writeImage(buf)) {
+      /* 클립보드가 이미지를 재인코딩하면 바이트가 달라져 되돌아 올라갈 수 있어 실제 값으로 갱신 */
+      await sleep(250);
+      const back = readImage();
+      if (back) lastImgHash = sha1(back);
       log("수신(이미지) → 클립보드:", (row.device || "") + " · " + Math.round(buf.length / 1024) + "KB");
       notify((row.device || "다른 기기") + "에서 이미지가 도착했어요 — 바로 붙여넣기 하세요");
     }

@@ -39,6 +39,18 @@ function Show-Note($msg) {
   } catch { }
 }
 
+$LOG = Join-Path $HOME "pinlog-clipsync.log"
+function Log($m) {
+  try { "$(Get-Date -Format 'MM-dd HH:mm:ss') $m" | Out-File -FilePath $LOG -Append -Encoding utf8 } catch { }
+}
+
+function IsoUtc($v) {
+  # Invoke-RestMethod 는 JSON 의 날짜 문자열을 DateTime 객체로 바꿔버린다.
+  # 그대로 쓰면 URL 필터가 로캘 형식("2026-08-07 오전 3:28")이 되어 400 이 나고 수신이 멈춘다.
+  if ($v -is [datetime]) { return $v.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffZ") }
+  return [string]$v
+}
+
 function Login {
   $body = @{ email = $cfg.email; password = $cfg.password } | ConvertTo-Json
   $r = Invoke-RestMethod -Method Post -Uri "$URL/auth/v1/token?grant_type=password" `
@@ -108,7 +120,10 @@ function Insert-Row($obj) {
       -Headers @{ apikey = $KEY; Authorization = "Bearer $token"; Prefer = "return=representation" } `
       -ContentType "application/json; charset=utf-8" `
       -Body ([System.Text.Encoding]::UTF8.GetBytes(($obj | ConvertTo-Json)))
-    if ($res) { $script:lastRemoteAt = $res[0].created_at }
+    if ($res) {
+      $script:lastRemoteAt = IsoUtc $res[0].created_at
+      $script:lastRemoteId = "$($res[0].id)"
+    }
     return $true
   } catch { Login; return $false }
 }
@@ -121,6 +136,8 @@ if ($img0) { $lastImgHash = Get-Hash $img0 }
 $file0 = Get-ClipFilePaths
 if ($file0) { $lastFileHash = Get-CombinedHash @($file0 | ForEach-Object { , [System.IO.File]::ReadAllBytes($_) }) }
 $lastRemoteAt = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
+$lastRemoteId = ""
+Log "started (two-way: $twoWay) - $($cfg.email)"
 Write-Host "Watching clipboard - text, image & file (two-way: $twoWay)"
 
 while ($true) {
@@ -170,7 +187,7 @@ while ($true) {
     $lastText = $text
     if ($text.Length -gt 10000) { $text = $text.Substring(0, 10000) }
     if (Insert-Row @{ user_id = $uid; content = $text; kind = "text"; device = $DEVICE }) {
-      Write-Host "Uploaded(text): $($text.Substring(0, [Math]::Min(40, $text.Length)))"
+      Log "uploaded text"; Write-Host "Uploaded(text): $($text.Substring(0, [Math]::Min(40, $text.Length)))"
       Show-Note "복사한 내용을 다른 기기로 보냈어요 ✓"
     }
   }
@@ -199,11 +216,12 @@ while ($true) {
     try {
       $enc = [uri]::EscapeDataString($lastRemoteAt)
       $rows = Invoke-RestMethod -Method Get `
-        -Uri "$URL/rest/v1/clips?select=content,device,created_at,kind,file_path&user_id=eq.$uid&created_at=gt.$enc&device=neq.$DEVICE&order=created_at.desc&limit=1" `
+        -Uri "$URL/rest/v1/clips?select=id,content,device,created_at,kind,file_path&user_id=eq.$uid&created_at=gt.$enc&device=neq.$DEVICE&order=created_at.desc&limit=1" `
         -Headers @{ apikey = $KEY; Authorization = "Bearer $token" }
-      if ($rows -and $rows.Count -gt 0) {
+      if ($rows -and $rows.Count -gt 0 -and "$($rows[0].id)" -ne "$lastRemoteId") {
         $row = $rows[0]
-        $lastRemoteAt = $row.created_at
+        $lastRemoteAt = IsoUtc $row.created_at
+        $lastRemoteId = "$($row.id)"
         if ($row.kind -eq "file" -and $row.file_path) {
           if (!(Test-Path $RECVDIR)) { New-Item -ItemType Directory -Path $RECVDIR | Out-Null }
           # file_path: JSON [{p,n},...] (신) 또는 단일 스토리지 경로 (구)
@@ -225,6 +243,9 @@ while ($true) {
           }
           $lastFileHash = Get-CombinedHash $recvBufs
           [System.Windows.Forms.Clipboard]::SetFileDropList($sc)
+          Start-Sleep -Milliseconds 150
+          $afterF = Get-ClipFilePaths
+          if ($afterF) { $lastFileHash = Get-CombinedHash @($afterF | ForEach-Object { , [System.IO.File]::ReadAllBytes($_) }) }
           Write-Host "Received(file) -> clipboard: $($row.device) - $($row.content)"
           Show-Note "$($row.device)에서 파일이 도착했어요 - $($row.content) (바로 붙여넣기)"
         }
@@ -237,15 +258,24 @@ while ($true) {
           $recv = [System.Drawing.Image]::FromFile($tmp)
           [System.Windows.Forms.Clipboard]::SetImage($recv)
           $recv.Dispose()
+          Start-Sleep -Milliseconds 150
+          $afterI = Get-ClipImageBytes          # 클립보드가 재인코딩하므로 실제 값으로 갱신
+          if ($afterI) { $lastImgHash = Get-Hash $afterI }
           Write-Host "Received(image) -> clipboard: $($row.device)"
           Show-Note "$($row.device)에서 이미지가 도착했어요 — 바로 붙여넣기 하세요"
         } else {
-          $lastText = $row.content
           Set-Clipboard -Value $row.content
-          Write-Host "Received -> clipboard: $($row.device) - $($row.content.Substring(0, [Math]::Min(40, $row.content.Length)))"
+          Start-Sleep -Milliseconds 100
+          $lastText = Get-Clipboard -Raw       # 줄바꿈 처리 차이로 되돌아 올라가는 것 방지
+          if (-not $lastText) { $lastText = $row.content }
+          Log "received text"; Write-Host "Received -> clipboard: $($row.device) - $($row.content.Substring(0, [Math]::Min(40, $row.content.Length)))"
           Show-Note "$($row.device)에서 복사한 내용이 도착했어요 — 바로 붙여넣기 하세요"
         }
       }
-    } catch { }
+    } catch {
+      $msg = "$($_.Exception.Message)"
+      Log "pull error: $msg"
+      if ($msg -match "401|Unauthorized|권한") { Login }
+    }
   }
 }
