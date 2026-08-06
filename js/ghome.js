@@ -79,7 +79,7 @@
           ${t.important ? `<span class="gtodo__star">★</span>` : ""}
           <span class="gtodo__text">${esc(t.content)}</span>
           ${tagHtml(t)}
-          ${t.remind_time || t.note ? `<span class="gtodo__flag">${t.remind_time ? "⏰" + fmtRemind(t.remind_time) : ""}${t.note ? (t.remind_time ? " " : "") + "📝" : ""}</span>` : ""}
+          ${t.remind_time ? `<span class="gtodo__flag">⏰${fmtRemind(t.remind_time)}</span>` : ""}
         </button>
       </div>`;
 
@@ -388,17 +388,14 @@
     }
     const tnSheet = document.getElementById("tn-sheet");
     const tnTitle = document.getElementById("tn-title");
-    const tnNote = document.getElementById("tn-note");
     const tnTime = document.getElementById("tn-time");
     const tnClear = document.getElementById("tn-clear");
     const tnHint = document.getElementById("tn-hint");
     let tnId = null;
-    let tnTimer = null;
 
     function openTodoSheet(todo) {
       tnId = todo.id;
       tnTitle.textContent = todo.content;
-      tnNote.value = todo.note || "";
       tnHint.textContent = "";
       document.getElementById("tn-remind").hidden = false;
       if (todo.remind_time) {
@@ -415,18 +412,6 @@
         tnHint.textContent = dtT("알림은 핀로그 앱(휴대폰)에서 울려요", "Reminders ring on the Pinlog app");
       tnSheet.hidden = false;
     }
-    async function tnSaveNote() {
-      const todo = findTodo(tnId);
-      if (!todo) return;
-      const v = tnNote.value.trim();
-      if (v === (todo.note || "")) return;
-      todo.note = v || null;
-      await supabaseClient.from("todos").update({ note: todo.note }).eq("id", tnId);
-    }
-    tnNote.addEventListener("input", () => {
-      clearTimeout(tnTimer);
-      tnTimer = setTimeout(tnSaveNote, 600);
-    });
     tnTime.addEventListener("change", async () => {
       const todo = findTodo(tnId);
       if (!todo || !tnTime.value) return;
@@ -453,9 +438,7 @@
       if (window.dtNotify && dtNotify.available) dtNotify.resync(profile, { prompt: false });
       render();
     });
-    tnSheet.querySelectorAll("[data-tn-close]").forEach((el) => el.addEventListener("click", async () => {
-      clearTimeout(tnTimer);
-      await tnSaveNote();
+    tnSheet.querySelectorAll("[data-tn-close]").forEach((el) => el.addEventListener("click", () => {
       tnSheet.hidden = true;
       render();
     }));

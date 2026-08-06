@@ -478,7 +478,7 @@ h1, h2, h3 { margin: 0; letter-spacing: -0.02em; }
 .toast {
   position: fixed;
   left: 50%;
-  bottom: 30px;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 30px);
   transform: translate(-50%, 24px);
   background: var(--navy);
   color: #fff;
@@ -490,12 +490,17 @@ h1, h2, h3 { margin: 0; letter-spacing: -0.02em; }
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.24s ease, transform 0.24s cubic-bezier(0.2, 0.8, 0.2, 1);
-  z-index: 100;
+  z-index: 300;                     /* 하단 탭바(200)보다 위 */
   display: flex;
   align-items: center;
   gap: 8px;
 }
 .toast::before { content: ""; }
+/* 탭바가 있는 화면에서는 탭바 위로 */
+body.has-tabbar .toast { bottom: calc(env(safe-area-inset-bottom, 0px) + 92px); }
+@media (min-width: 900px) {
+  html.dt-web body.has-tabbar .toast { bottom: 30px; }   /* 웹은 탭바가 좌측 사이드바 */
+}
 .toast--show { opacity: 1; transform: translate(-50%, 0); }
 .toast--success { background: var(--green-strong); }
 .toast--success::before { content: "✓"; font-weight: 800; }
@@ -2319,7 +2324,12 @@ body.support-page { align-items: center; padding-top: 24px; }
 body.memoedit-page .topbar {
   background: none; box-shadow: none; border: none;
   backdrop-filter: none; -webkit-backdrop-filter: none;
-  color: var(--text); padding: 10px 14px;
+  color: var(--text);
+  padding: calc(10px + env(safe-area-inset-top, 0px)) 14px 10px;
+}
+/* 전역 규칙(:has)이 padding-top 을 덮어쓰지 않도록 같은 조건으로 재지정 */
+@supports selector(body:has(*)) {
+  body.memoedit-page:has(> .topbar) > .topbar { padding-top: calc(10px + env(safe-area-inset-top, 0px)); }
 }
 body.memoedit-page .topbar__back,
 body.memoedit-page .topbar__more {

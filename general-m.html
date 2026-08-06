@@ -9,7 +9,7 @@
   <link rel="manifest" href="/manifest.json" />
   <meta name="theme-color" content="#f04438" />
   <script>document.documentElement.classList.add(window.Capacitor ? "dt-app" : "dt-web");</script>
-  <link rel="stylesheet" href="/css/style.css?v=270" />
+  <link rel="stylesheet" href="/css/style.css?v=271" />
 </head>
 <body class="app-bg has-tabbar" data-kbresize="none">
   <!-- 일반 사용자 전용 모바일 홈 (수험생은 student-m.html) -->
@@ -123,7 +123,7 @@
     <div class="evsheet__panel">
       <div class="evsheet__head">
         <span></span>
-        <span class="evsheet__title" id="tn-title">할 일</span>
+        <span class="evsheet__title" id="tn-title">할 일 알림</span>
         <button type="button" class="evsheet__save" data-tn-close data-en="Done">완료</button>
       </div>
       <div class="tn-remind" id="tn-remind" hidden>
@@ -132,7 +132,6 @@
         <button type="button" class="tn-remind__clear" id="tn-clear" hidden data-en="Off">해제</button>
       </div>
       <p class="tn-hint" id="tn-hint"></p>
-      <textarea id="tn-note" class="tn-note" placeholder="이 할 일에 대한 메모를 적어보세요" data-en-ph="Add a note about this task"></textarea>
     </div>
   </div>
 
@@ -194,6 +193,6 @@
   <script src="/js/supabaseClient.js?v=mock19"></script>
   <script src="/js/utils.js?v=51"></script>
   <script src="/js/notify.js?v=6"></script>
-  <script src="/js/ghome.js?v=19"></script>
+  <script src="/js/ghome.js?v=20"></script>
 </body>
 </html>
