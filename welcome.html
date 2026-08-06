@@ -128,6 +128,25 @@
       margin: 14px 0 0;
       letter-spacing: 0.01em;
     }
+    /* 태블릿(아이패드): 폰 크기 그대로 뜨지 않도록 — 가운데 기둥 + 목업·글자 확대 */
+    @media (min-width: 768px) and (min-height: 700px) {
+      /* 슬라이드와 버튼을 한 덩어리로 묶어 화면 가운데에 */
+      body.welcome { max-width: 720px; margin: 0 auto; justify-content: center; }
+      .welcome__center { flex: 0 1 auto; }
+      .tour__slide { justify-content: center; padding: 12px 52px 0; min-height: 520px; }
+      .tour__art { flex: 0 0 auto; margin-bottom: 34px; }
+      .mock { width: 336px; border-radius: 22px; padding: 20px; }
+      .mock--tab { width: 420px; }
+      .mock__head { font-size: 1.05rem; }
+      .mock__row { font-size: 0.98rem; padding: 10px 0; }
+      .mock__row i { width: 20px; height: 20px; }
+      .tour__title { font-size: 1.6rem; margin-bottom: 12px; }
+      .tour__desc { font-size: 1.05rem; }
+      .tour__dots { margin-top: 6px; }
+      .welcome__actions { padding: 30px 26px 0; max-width: 420px; }
+      .welcome__btn, .welcome__actions .btn--lg { min-height: 56px; font-size: 1.08rem; }
+      .welcome__tagline { font-size: 1.2rem; }
+    }
   </style>
 </head>
 <body class="welcome">
