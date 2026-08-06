@@ -33,9 +33,12 @@
 | 카테고리 | 생산성 (2차: 유틸리티) |
 | 연령 등급 | 4+ |
 | 가격 | 무료 (앱 내 구입 없음) |
-| 지원 URL | https://www.pinlog.kr |
+| 지원 URL | https://www.pinlog.kr/support |
 | 마케팅 URL | https://www.pinlog.kr |
 | 개인정보처리방침 | https://www.pinlog.kr/privacy |
+| 버전 | 1.0.0 (업로드한 빌드와 동일하게) |
+| 저작권 | 2026 김기웅 |
+| 라우팅 앱 적용 범위 파일 | 사용 안 함 (비워둠 — 지도·길찾기 앱 전용) |
 
 ---
 
