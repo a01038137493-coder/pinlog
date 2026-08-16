@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
+  <title>큰 그림 · 핀로그</title>
+  <link rel="icon" type="image/png" href="/assets/logo.png" />
+  <link rel="apple-touch-icon" href="/assets/logo.png" />
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#f04438" />
+  <script>document.documentElement.classList.add(window.Capacitor ? "dt-app" : "dt-web");</script>
+  <link rel="stylesheet" href="/css/style.css?v=272" />
+  <style>
+    /* ── 큰 그림 보드: 무한 캔버스 + 드래그 카드 ───────────────────── */
+    body.board-page { overflow: hidden; height: 100dvh; }
+
+    .bd-top {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 30;
+      display: flex; align-items: center; gap: 10px;
+      padding: calc(10px + env(safe-area-inset-top, 0px)) 16px 10px;
+      background: rgba(255, 255, 255, 0.86);
+      -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--line);
+    }
+    .bd-back { width: 34px; height: 34px; border-radius: 50%; border: none; background: rgba(120,120,128,0.14); color: var(--navy); display: flex; align-items: center; justify-content: center; flex: none; text-decoration: none; }
+    .bd-back svg { width: 17px; height: 17px; }
+    .bd-title { font-size: 0.98rem; font-weight: 800; border: none; background: none; outline: none; min-width: 0; flex: 1; padding: 4px 2px; color: var(--text); }
+    .bd-status { font-size: 0.76rem; font-weight: 600; color: var(--muted-soft); flex: none; }
+    .bd-tools { display: flex; align-items: center; gap: 6px; flex: none; }
+    .bd-btn { border: 1px solid var(--line); background: #fff; border-radius: 9px; height: 34px; padding: 0 12px; font: inherit; font-size: 0.84rem; font-weight: 700; color: var(--text); cursor: pointer; display: inline-flex; align-items: center; gap: 5px; }
+    .bd-btn:hover { background: #f6f6f7; }
+    .bd-btn--go { background: var(--orange); border-color: var(--orange); color: #fff; }
+    .bd-btn--go:hover { filter: brightness(1.05); }
+    .bd-btn--ico { width: 34px; padding: 0; justify-content: center; font-size: 0.95rem; }
+
+    /* 캔버스 */
+    .bd-view {
+      position: fixed; inset: 0; top: 0;
+      background-color: #fafafa;
+      background-image: radial-gradient(circle, rgba(15,23,42,0.13) 1px, transparent 1px);
+      touch-action: none; overflow: hidden; cursor: grab;
+    }
+    .bd-view.is-panning { cursor: grabbing; }
+    .bd-stage { position: absolute; top: 0; left: 0; width: 0; height: 0; transform-origin: 0 0; }
+    .bd-links { position: absolute; top: 0; left: 0; overflow: visible; pointer-events: none; }
+    .bd-links path { fill: none; stroke: #c9ccd2; stroke-width: 2.5; }
+    .bd-links path.is-hot { stroke: var(--orange); }
+
+    /* 노드 카드 */
+    .bd-node {
+      position: absolute; width: 232px; box-sizing: border-box;
+      background: #fff; border: 1px solid var(--line); border-radius: 14px;
+      box-shadow: 0 6px 20px rgba(15, 23, 42, 0.09);
+      user-select: none;
+    }
+    .bd-node.is-sel { border-color: var(--orange); box-shadow: 0 0 0 2.5px rgba(240,68,56,0.18), 0 10px 26px rgba(15,23,42,0.13); }
+    .bd-node__head {
+      display: flex; align-items: center; gap: 8px;
+      padding: 11px 12px; border-radius: 13px 13px 0 0;
+      cursor: grab; border-bottom: 1px solid var(--bg);
+    }
+    .bd-node__head:active { cursor: grabbing; }
+    .bd-node__dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+    .bd-node__title {
+      flex: 1; min-width: 0; font-size: 0.95rem; font-weight: 800; color: var(--text);
+      border: none; background: none; outline: none; padding: 2px 0; font-family: inherit;
+      pointer-events: none;              /* 선택 전에는 카드 드래그가 우선 */
+    }
+    .bd-node.is-sel .bd-node__title { pointer-events: auto; }
+    .bd-node { cursor: grab; }
+    .bd-node:active { cursor: grabbing; }
+    .bd-node__menu { flex: none; width: 22px; height: 22px; border: none; background: none; color: var(--muted-soft); cursor: pointer; border-radius: 6px; font-size: 1rem; line-height: 1; padding: 0; }
+    .bd-node__menu:hover { background: var(--bg); color: var(--text); }
+    .bd-node__body { padding: 6px 8px 8px; }
+    .bd-item { display: flex; align-items: center; gap: 7px; border-radius: 8px; padding: 5px 6px; }
+    .bd-item:hover { background: var(--bg); }
+    .bd-item i { width: 5px; height: 5px; border-radius: 50%; background: var(--muted-soft); flex: none; }
+    .bd-item input {
+      flex: 1; min-width: 0; border: none; background: none; outline: none;
+      font: inherit; font-size: 0.86rem; font-weight: 600; color: var(--text); padding: 1px 0;
+    }
+    .bd-item button { flex: none; opacity: 0; border: none; background: none; color: var(--muted-soft); cursor: pointer; font-size: 0.9rem; line-height: 1; padding: 2px 4px; border-radius: 5px; }
+    .bd-item:hover button { opacity: 1; }
+    .bd-item button:hover { background: #fdeeec; color: #f04438; }
+    .bd-add {
+      width: 100%; border: none; background: none; text-align: left;
+      padding: 6px 8px; border-radius: 8px; cursor: pointer;
+      font: inherit; font-size: 0.82rem; font-weight: 700; color: var(--muted-soft);
+    }
+    .bd-add:hover { background: var(--bg); color: var(--text); }
+
+    /* 연결 손잡이 */
+    .bd-port {
+      position: absolute; top: 50%; width: 15px; height: 15px; margin-top: -7.5px;
+      border-radius: 50%; background: #fff; border: 2.5px solid var(--orange);
+      opacity: 0; transition: opacity 0.12s; cursor: crosshair; z-index: 2;
+    }
+    .bd-port--r { right: -8px; }
+    .bd-port--l { left: -8px; }
+    .bd-node:hover .bd-port, .bd-node.is-sel .bd-port { opacity: 1; }
+
+    /* 색상 팔레트 */
+    .bd-pal { position: absolute; z-index: 40; display: flex; gap: 6px; background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 8px; box-shadow: 0 12px 30px rgba(0,0,0,0.16); }
+    .bd-pal button { width: 22px; height: 22px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; padding: 0; }
+    .bd-pal button.is-on { border-color: var(--navy); }
+    .bd-pal .bd-pal__del { width: auto; border-radius: 8px; border: 1px solid var(--line); background: #fff; padding: 0 10px; font: inherit; font-size: 0.78rem; font-weight: 700; color: #f04438; }
+
+    /* 빈 상태 안내 */
+    .bd-empty {
+      position: fixed; left: 50%; top: 52%; transform: translate(-50%, -50%);
+      text-align: center; color: var(--muted-soft); pointer-events: none; z-index: 5;
+    }
+    .bd-empty b { display: block; font-size: 1.05rem; font-weight: 800; color: var(--muted); margin-bottom: 6px; }
+    .bd-empty span { font-size: 0.88rem; font-weight: 600; }
+
+    .bd-zoom { position: fixed; right: 18px; bottom: calc(env(safe-area-inset-bottom, 0px) + 20px); z-index: 30; display: flex; align-items: center; gap: 6px; background: #fff; border: 1px solid var(--line); border-radius: 999px; padding: 5px; box-shadow: 0 6px 18px rgba(0,0,0,0.1); }
+    .bd-zoom button { width: 30px; height: 30px; border: none; background: none; border-radius: 50%; cursor: pointer; font-size: 1rem; color: var(--text); }
+    .bd-zoom button:hover { background: var(--bg); }
+    .bd-zoom span { font-size: 0.78rem; font-weight: 700; color: var(--muted); min-width: 40px; text-align: center; }
+
+    @media (max-width: 700px) {
+      .bd-title { font-size: 0.9rem; }
+      .bd-tools .bd-btn span { display: none; }
+      .bd-btn { padding: 0 10px; }
+    }
+  </style>
+</head>
+<body class="app-bg board-page">
+  <div class="bd-view" id="bd-view">
+    <div class="bd-stage" id="bd-stage">
+      <svg class="bd-links" id="bd-links"></svg>
+    </div>
+  </div>
+
+  <div class="bd-empty" id="bd-empty" hidden>
+    <b data-en="Draw the big picture">큰 그림을 그려보세요</b>
+    <span data-en="Double-click anywhere to add a keyword">빈 곳을 더블클릭하면 키워드가 생겨요</span>
+  </div>
+
+  <header class="bd-top">
+    <a href="/settings.html" class="bd-back" aria-label="뒤로 가기"
+       onclick="if(history.length>1){event.preventDefault();history.back();}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+    </a>
+    <input type="text" class="bd-title" id="bd-title" value="큰 그림" maxlength="40" />
+    <span class="bd-status" id="bd-status"></span>
+    <div class="bd-tools">
+      <button type="button" class="bd-btn bd-btn--ico" id="bd-fit" title="전체 보기">⤢</button>
+      <button type="button" class="bd-btn bd-btn--go" id="bd-new">＋ <span data-en="Keyword">키워드</span></button>
+    </div>
+  </header>
+
+  <div class="bd-zoom">
+    <button type="button" id="bd-out" aria-label="축소">−</button>
+    <span id="bd-pct">100%</span>
+    <button type="button" id="bd-in" aria-label="확대">＋</button>
+  </div>
+
+  <script src="/js/vendor/supabase.js"></script>
+  <script src="/js/supabaseClient.js?v=mock19"></script>
+  <script src="/js/utils.js?v=52"></script>
+  <script>
+  (function () {
+    "use strict";
+    const COLORS = ["#f04438", "#2e90fa", "#12b76a", "#ff9f0a", "#8b5cf6", "#98a2b3"];
+    const NODE_W = 232;
+    const uid = () => Math.random().toString(36).slice(2, 10);
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      const profile = await requireRole(["student"]);
+      if (!profile) return;
+
+      const view = document.getElementById("bd-view");
+      const stage = document.getElementById("bd-stage");
+      const svg = document.getElementById("bd-links");
+      const statusEl = document.getElementById("bd-status");
+      const titleEl = document.getElementById("bd-title");
+      const emptyEl = document.getElementById("bd-empty");
+      const pctEl = document.getElementById("bd-pct");
+
+      let boardId = null;
+      let state = { nodes: [], links: [] };
+      let pan = { x: 0, y: 0 }, zoom = 1;
+      let selected = null;
+      const els = new Map();      // nodeId → DOM
+
+      /* ---------- 좌표 변환 ---------- */
+      const toWorld = (cx, cy) => ({ x: (cx - pan.x) / zoom, y: (cy - pan.y) / zoom });
+      function applyView() {
+        stage.style.transform = `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`;
+        view.style.backgroundSize = `${24 * zoom}px ${24 * zoom}px`;
+        view.style.backgroundPosition = `${pan.x}px ${pan.y}px`;
+        pctEl.textContent = Math.round(zoom * 100) + "%";
+      }
+
+      /* ---------- 저장 ---------- */
+      let saveTimer = null;
+      function markDirty() {
+        statusEl.textContent = dtT("저장 중…", "Saving…");
+        clearTimeout(saveTimer);
+        saveTimer = setTimeout(save, 700);
+      }
+      async function save() {
+        if (!boardId) return;
+        const { error } = await supabaseClient.from("boards")
+          .update({ title: titleEl.value.trim() || "큰 그림", data: state, updated_at: new Date().toISOString() })
+          .eq("id", boardId);
+        statusEl.textContent = error ? dtT("저장 실패", "Save failed") : dtT("저장됨", "Saved");
+        if (!error) setTimeout(() => { if (statusEl.textContent === dtT("저장됨", "Saved")) statusEl.textContent = ""; }, 1600);
+      }
+
+      /* ---------- 연결선 ---------- */
+      function nodeById(id) { return state.nodes.find((n) => n.id === id); }
+      function nodeH(id) { const el = els.get(id); return el ? el.offsetHeight : 90; }
+      function drawLinks(hotId) {
+        const parts = state.links.map((l) => {
+          const a = nodeById(l.from), b = nodeById(l.to);
+          if (!a || !b) return "";
+          const ax = a.x + NODE_W, ay = a.y + nodeH(a.id) / 2;
+          const bx = b.x, by = b.y + nodeH(b.id) / 2;
+          const dx = Math.max(40, Math.abs(bx - ax) * 0.5);
+          const hot = hotId && (l.from === hotId || l.to === hotId) ? ' class="is-hot"' : "";
+          return `<path${hot} d="M${ax},${ay} C${ax + dx},${ay} ${bx - dx},${by} ${bx},${by}" />`;
+        });
+        svg.innerHTML = parts.join("");
+      }
+
+      /* ---------- 렌더 ---------- */
+      function esc(s) { return String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+
+      function renderNode(n) {
+        let el = els.get(n.id);
+        if (!el) {
+          el = document.createElement("div");
+          el.className = "bd-node";
+          el.dataset.id = n.id;
+          stage.appendChild(el);
+          els.set(n.id, el);
+          wireNode(el, n);
+        }
+        el.style.left = n.x + "px";
+        el.style.top = n.y + "px";
+        el.classList.toggle("is-sel", selected === n.id);
+        el.innerHTML =
+          `<div class="bd-node__head" style="background:${n.color}14">
+             <span class="bd-node__dot" style="background:${n.color}"></span>
+             <input class="bd-node__title" value="${esc(n.title)}" placeholder="${dtT("큰 키워드", "Keyword")}" maxlength="40" />
+             <button type="button" class="bd-node__menu" title="${dtT("색상·삭제", "Color / delete")}">⋯</button>
+           </div>
+           <div class="bd-node__body">
+             ${(n.items || []).map((t, i) =>
+               `<div class="bd-item" data-i="${i}"><i></i><input value="${esc(t)}" placeholder="${dtT("하위 키워드", "Sub-keyword")}" maxlength="60" /><button type="button" title="${dtT("삭제", "Delete")}">×</button></div>`).join("")}
+             <button type="button" class="bd-add">＋ ${dtT("하위 키워드", "Sub-keyword")}</button>
+           </div>
+           <span class="bd-port bd-port--l" data-port="l"></span>
+           <span class="bd-port bd-port--r" data-port="r"></span>`;
+      }
+
+      function renderAll() {
+        for (const [id, el] of els) if (!nodeById(id)) { el.remove(); els.delete(id); }
+        state.nodes.forEach(renderNode);
+        drawLinks();
+        emptyEl.hidden = state.nodes.length > 0;
+      }
+
+      /* ---------- 노드 상호작용 ---------- */
+      function wireNode(el, n) {
+        /* 제목·항목 편집 (이벤트 위임) */
+        el.addEventListener("input", (e) => {
+          const node = nodeById(el.dataset.id);
+          if (!node) return;
+          if (e.target.classList.contains("bd-node__title")) { node.title = e.target.value; markDirty(); return; }
+          const row = e.target.closest(".bd-item");
+          if (row) { node.items[+row.dataset.i] = e.target.value; markDirty(); }
+        });
+        el.addEventListener("click", (e) => {
+          const node = nodeById(el.dataset.id);
+          if (!node) return;
+          select(node.id);
+          if (e.target.closest(".bd-add")) {
+            node.items = node.items || [];
+            node.items.push("");
+            renderNode(node); drawLinks(); markDirty();
+            const inputs = el.querySelectorAll(".bd-item input");
+            if (inputs.length) inputs[inputs.length - 1].focus();
+            return;
+          }
+          const del = e.target.closest(".bd-item button");
+          if (del) {
+            const row = del.closest(".bd-item");
+            node.items.splice(+row.dataset.i, 1);
+            renderNode(node); drawLinks(); markDirty();
+            return;
+          }
+          if (e.target.closest(".bd-node__menu")) { openPalette(node, e.target.getBoundingClientRect()); }
+        });
+
+        /* 카드 이동 + 연결선 만들기 */
+        el.addEventListener("pointerdown", (e) => {
+          const node = nodeById(el.dataset.id);
+          if (!node) return;
+          const port = e.target.closest(".bd-port");
+          if (port) { e.stopPropagation(); startLink(node, e); return; }
+          if (e.target.closest("input, button")) return;   // 편집 요소는 그대로 클릭
+          e.stopPropagation();
+          select(node.id);
+          const start = toWorld(e.clientX, e.clientY);
+          const from = { x: node.x, y: node.y };
+          let moved = false;
+          const move = (ev) => {
+            moved = true;
+            const w = toWorld(ev.clientX, ev.clientY);
+            node.x = Math.round(from.x + (w.x - start.x));
+            node.y = Math.round(from.y + (w.y - start.y));
+            el.style.left = node.x + "px";
+            el.style.top = node.y + "px";
+            drawLinks(node.id);
+          };
+          const up = () => {
+            window.removeEventListener("pointermove", move);
+            window.removeEventListener("pointerup", up);
+            drawLinks();
+            if (moved) markDirty();
+          };
+          window.addEventListener("pointermove", move);
+          window.addEventListener("pointerup", up);
+        });
+      }
+
+      /* 포트에서 끌어 다른 카드에 놓으면 연결 */
+      function startLink(from, e) {
+        const tmp = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        tmp.setAttribute("class", "is-hot");
+        svg.appendChild(tmp);
+        const ax = from.x + NODE_W, ay = from.y + nodeH(from.id) / 2;
+        const move = (ev) => {
+          const w = toWorld(ev.clientX, ev.clientY);
+          const dx = Math.max(40, Math.abs(w.x - ax) * 0.5);
+          tmp.setAttribute("d", `M${ax},${ay} C${ax + dx},${ay} ${w.x - dx},${w.y} ${w.x},${w.y}`);
+        };
+        const up = (ev) => {
+          window.removeEventListener("pointermove", move);
+          window.removeEventListener("pointerup", up);
+          tmp.remove();
+          const hit = document.elementFromPoint(ev.clientX, ev.clientY);
+          const card = hit && hit.closest(".bd-node");
+          const toId = card && card.dataset.id;
+          if (toId && toId !== from.id && !state.links.some((l) => l.from === from.id && l.to === toId)) {
+            state.links.push({ from: from.id, to: toId });
+            drawLinks(); markDirty();
+          }
+        };
+        window.addEventListener("pointermove", move);
+        window.addEventListener("pointerup", up);
+      }
+
+      function select(id) {
+        if (selected === id) return;
+        const prev = els.get(selected);
+        if (prev) prev.classList.remove("is-sel");
+        selected = id;
+        const cur = els.get(id);
+        if (cur) cur.classList.add("is-sel");
+      }
+
+      /* ---------- 색상·삭제 팔레트 ---------- */
+      let pal = null;
+      function closePalette() { if (pal) { pal.remove(); pal = null; } }
+      function openPalette(node, rect) {
+        closePalette();
+        pal = document.createElement("div");
+        pal.className = "bd-pal";
+        pal.innerHTML = COLORS.map((c) =>
+          `<button type="button" data-c="${c}" class="${c === node.color ? "is-on" : ""}" style="background:${c}"></button>`).join("") +
+          `<button type="button" class="bd-pal__del">${dtT("삭제", "Delete")}</button>`;
+        document.body.appendChild(pal);
+        pal.style.left = Math.min(window.innerWidth - 240, rect.left - 150) + "px";
+        pal.style.top = (rect.bottom + 8) + "px";
+        pal.addEventListener("click", (e) => {
+          const c = e.target.dataset && e.target.dataset.c;
+          if (c) { node.color = c; renderNode(node); markDirty(); closePalette(); return; }
+          if (e.target.classList.contains("bd-pal__del")) { removeNode(node.id); closePalette(); }
+        });
+        setTimeout(() => document.addEventListener("pointerdown", onDoc, true), 0);
+        function onDoc(ev) {
+          if (pal && !pal.contains(ev.target)) { closePalette(); document.removeEventListener("pointerdown", onDoc, true); }
+        }
+      }
+
+      function removeNode(id) {
+        state.nodes = state.nodes.filter((n) => n.id !== id);
+        state.links = state.links.filter((l) => l.from !== id && l.to !== id);
+        const el = els.get(id); if (el) { el.remove(); els.delete(id); }
+        if (selected === id) selected = null;
+        drawLinks(); markDirty();
+        emptyEl.hidden = state.nodes.length > 0;
+      }
+
+      /* ---------- 새 노드 ---------- */
+      function addNode(wx, wy) {
+        const n = {
+          id: uid(),
+          title: "",
+          items: [],
+          x: Math.round(wx - NODE_W / 2),
+          y: Math.round(wy - 30),
+          color: COLORS[state.nodes.length % COLORS.length],
+        };
+        state.nodes.push(n);
+        renderNode(n);
+        emptyEl.hidden = true;
+        select(n.id);
+        markDirty();
+        const t = els.get(n.id).querySelector(".bd-node__title");
+        if (t) t.focus();
+        return n;
+      }
+
+      /* ---------- 캔버스: 팬·줌 ---------- */
+      view.addEventListener("pointerdown", (e) => {
+        if (e.target.closest(".bd-node")) return;
+        select(null);
+        closePalette();
+        view.classList.add("is-panning");
+        const s = { x: e.clientX, y: e.clientY, px: pan.x, py: pan.y };
+        const move = (ev) => { pan.x = s.px + (ev.clientX - s.x); pan.y = s.py + (ev.clientY - s.y); applyView(); };
+        const up = () => {
+          view.classList.remove("is-panning");
+          window.removeEventListener("pointermove", move);
+          window.removeEventListener("pointerup", up);
+        };
+        window.addEventListener("pointermove", move);
+        window.addEventListener("pointerup", up);
+      });
+
+      view.addEventListener("dblclick", (e) => {
+        if (e.target.closest(".bd-node")) return;
+        const w = toWorld(e.clientX, e.clientY);
+        addNode(w.x, w.y);
+      });
+
+      view.addEventListener("wheel", (e) => {
+        e.preventDefault();
+        if (e.ctrlKey || e.metaKey) {
+          const before = toWorld(e.clientX, e.clientY);
+          zoom = Math.min(2.5, Math.max(0.25, zoom * (1 - e.deltaY * 0.0022)));
+          pan.x = e.clientX - before.x * zoom;
+          pan.y = e.clientY - before.y * zoom;
+        } else {
+          pan.x -= e.deltaX; pan.y -= e.deltaY;
+        }
+        applyView();
+      }, { passive: false });
+
+      function zoomBy(f) {
+        const cx = window.innerWidth / 2, cy = window.innerHeight / 2;
+        const before = toWorld(cx, cy);
+        zoom = Math.min(2.5, Math.max(0.25, zoom * f));
+        pan.x = cx - before.x * zoom;
+        pan.y = cy - before.y * zoom;
+        applyView();
+      }
+      document.getElementById("bd-in").addEventListener("click", () => zoomBy(1.2));
+      document.getElementById("bd-out").addEventListener("click", () => zoomBy(1 / 1.2));
+
+      function fit() {
+        if (!state.nodes.length) { pan = { x: window.innerWidth / 2, y: window.innerHeight / 2 }; zoom = 1; applyView(); return; }
+        let x1 = Infinity, y1 = Infinity, x2 = -Infinity, y2 = -Infinity;
+        state.nodes.forEach((n) => {
+          x1 = Math.min(x1, n.x); y1 = Math.min(y1, n.y);
+          x2 = Math.max(x2, n.x + NODE_W); y2 = Math.max(y2, n.y + nodeH(n.id));
+        });
+        const pad = 70, vw = window.innerWidth, vh = window.innerHeight - 120;
+        zoom = Math.min(1.2, Math.max(0.3, Math.min(vw / (x2 - x1 + pad * 2), vh / (y2 - y1 + pad * 2))));
+        pan.x = (vw - (x2 - x1) * zoom) / 2 - x1 * zoom;
+        pan.y = (vh - (y2 - y1) * zoom) / 2 - y1 * zoom + 70;
+        applyView();
+      }
+      document.getElementById("bd-fit").addEventListener("click", fit);
+      document.getElementById("bd-new").addEventListener("click", () => {
+        const c = toWorld(window.innerWidth / 2, window.innerHeight / 2);
+        addNode(c.x, c.y);
+      });
+      titleEl.addEventListener("input", markDirty);
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") { select(null); closePalette(); return; }
+        if ((e.key === "Delete" || e.key === "Backspace") && selected) {
+          if (document.activeElement && document.activeElement.tagName === "INPUT") return;
+          removeNode(selected);
+        }
+      });
+
+      /* ---------- 불러오기 ---------- */
+      const { data: rows } = await supabaseClient.from("boards")
+        .select("*").eq("user_id", profile.id).order("updated_at", { ascending: false }).limit(1);
+      if (rows && rows.length) {
+        boardId = rows[0].id;
+        titleEl.value = rows[0].title || "큰 그림";
+        const d = rows[0].data || {};
+        state = { nodes: Array.isArray(d.nodes) ? d.nodes : [], links: Array.isArray(d.links) ? d.links : [] };
+      } else {
+        const seed = {
+          nodes: [
+            { id: uid(), title: dtT("목표", "Goal"), items: [dtT("3개월 안에 달성", "Reach in 3 months")], x: -420, y: -60, color: COLORS[0] },
+            { id: uid(), title: dtT("해야 할 일", "To do"), items: [dtT("조사", "Research"), dtT("정리", "Organize")], x: -60, y: -140, color: COLORS[1] },
+            { id: uid(), title: dtT("아이디어", "Ideas"), items: [dtT("떠오르는 대로 적기", "Jot anything down")], x: -60, y: 60, color: COLORS[2] },
+          ],
+          links: [],
+        };
+        seed.links = [{ from: seed.nodes[0].id, to: seed.nodes[1].id }, { from: seed.nodes[0].id, to: seed.nodes[2].id }];
+        const { data: made } = await supabaseClient.from("boards")
+          .insert({ user_id: profile.id, title: "큰 그림", data: seed }).select().single();
+        if (made) { boardId = made.id; state = seed; }
+      }
+      renderAll();
+      requestAnimationFrame(fit);
+      if (window.hideAppLoader) hideAppLoader();
+    });
+  })();
+  </script>
+</body>
+</html>

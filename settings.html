@@ -9,7 +9,7 @@
   <link rel="manifest" href="/manifest.json" />
   <meta name="theme-color" content="#f04438" />
   <script>document.documentElement.classList.add(window.Capacitor ? "dt-app" : "dt-web");</script>
-  <link rel="stylesheet" href="/css/style.css?v=271" />
+  <link rel="stylesheet" href="/css/style.css?v=272" />
 </head>
 <body class="app-bg has-tabbar">
   <header class="topbar">
@@ -36,6 +36,10 @@
       </button>
       <a href="/my-history.html" class="settings-row" id="history-row" hidden>
         <span data-en="My records">내 기록</span>
+        <span class="settings-row__chevron" aria-hidden="true">›</span>
+      </a>
+      <a href="/board.html" class="settings-row">
+        <span data-en="Big picture board">큰 그림 보드</span>
         <span class="settings-row__chevron" aria-hidden="true">›</span>
       </a>
       <a href="/done.html" class="settings-row" id="done-row" hidden>
@@ -160,7 +164,7 @@
 
   <script src="/js/vendor/supabase.js"></script>
   <script src="/js/supabaseClient.js?v=mock19"></script>
-  <script src="/js/utils.js?v=51"></script>
+  <script src="/js/utils.js?v=52"></script>
   <script src="/js/notify.js?v=6"></script>
   <script>
     /* 서버 응답 전이라도 캐시된 사용 유형으로 메뉴를 먼저 확정 — 깜빡임 방지 */

@@ -80,3 +80,17 @@ begin
     update auth.users set encrypted_password = extensions.crypt(key, extensions.gen_salt('bf')) where id = u.id;
   end loop;
 end $$;
+
+-- 27. 큰 그림 보드 (board.html) — 캔버스 노드·연결선을 JSON 한 덩어리로 저장
+create table if not exists public.boards (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  title text not null default '큰 그림',
+  data jsonb not null default '{"nodes":[],"links":[]}'::jsonb,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index if not exists boards_user_idx on public.boards(user_id, updated_at desc);
+alter table public.boards enable row level security;
+create policy "own boards" on public.boards for all
+  using (auth.uid() = user_id) with check (auth.uid() = user_id);

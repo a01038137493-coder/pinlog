@@ -796,3 +796,20 @@ document.addEventListener("DOMContentLoaded", () => {
     if (NAV[s.textContent.trim()]) s.textContent = NAV[s.textContent.trim()];
   });
 });
+
+/* 웹 데스크톱 사이드바에 '큰 그림' 보드 항목 추가 — dt-bd-nav */
+(function () {
+  try {
+    const native = window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform();
+    if (native || !window.matchMedia("(min-width: 900px)").matches) return;
+    const bar = document.querySelector(".tabbar");
+    if (!bar || bar.querySelector('a[href="/board.html"]')) return;
+    const a = document.createElement("a");
+    a.href = "/board.html";
+    a.className = "tabbar__item" + (location.pathname === "/board.html" ? " is-active" : "");
+    a.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+      '<rect x="2.5" y="3" width="7" height="6" rx="1.5"/><rect x="14.5" y="8" width="7" height="6" rx="1.5"/><rect x="2.5" y="15" width="7" height="6" rx="1.5"/>' +
+      '<path d="M9.5 6h3a2 2 0 0 1 2 2v3M9.5 18h3a2 2 0 0 0 2-2v-2"/></svg><span>' + (typeof dtT === "function" ? dtT("큰 그림", "Big picture") : "큰 그림") + '</span>';
+    bar.appendChild(a);
+  } catch (e) {}
+})();
