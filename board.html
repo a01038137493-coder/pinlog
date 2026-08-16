@@ -89,6 +89,23 @@
     }
     .bd-add:hover { background: var(--bg); color: var(--text); }
 
+    /* 목표일 */
+    .bd-foot { display: flex; align-items: center; gap: 6px; }
+    .bd-foot .bd-add { width: auto; flex: 1; }
+    .bd-due {
+      position: relative; flex: none; display: inline-flex; align-items: center; gap: 4px;
+      border-radius: 8px; padding: 5px 8px; cursor: pointer;
+      font-size: 0.76rem; font-weight: 700; color: var(--muted-soft); white-space: nowrap;
+    }
+    .bd-due:hover { background: var(--bg); color: var(--text); }
+    .bd-due input { position: absolute; inset: 0; opacity: 0; cursor: pointer; border: none; padding: 0; }
+    .bd-due--set { background: var(--bg); color: var(--muted); }
+    .bd-due--soon { background: #fff4e6; color: #b25e02; }
+    .bd-due--over { background: #fdeeec; color: #d92d20; }
+    .bd-due b { font-weight: 800; }
+    .bd-due .bd-due__x { position: relative; z-index: 2; border: none; background: none; color: inherit; opacity: 0.55; cursor: pointer; font-size: 0.85rem; line-height: 1; padding: 0 1px; }
+    .bd-due .bd-due__x:hover { opacity: 1; }
+
     /* 연결 손잡이 */
     .bd-port {
       position: absolute; top: 50%; width: 15px; height: 15px; margin-top: -7.5px;
@@ -248,6 +265,24 @@
       /* ---------- 렌더 ---------- */
       function esc(s) { return String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
 
+      /* 목표일 칩 — 남은 날짜(D-n)와 상태 색 */
+      function dueHtml(n) {
+        const v = n.due || "";
+        if (!v) {
+          return `<label class="bd-due" title="${dtT("목표일", "Target date")}">📅
+                    <span>${dtT("목표일", "Due")}</span><input type="date" value="" /></label>`;
+        }
+        const [y, m, d] = v.split("-").map(Number);
+        const t = new Date(); t.setHours(0, 0, 0, 0);
+        const dd = Math.round((new Date(y, m - 1, d) - t) / 86400000);
+        const cls = dd < 0 ? "bd-due--over" : dd <= 3 ? "bd-due--soon" : "bd-due--set";
+        const label = dd === 0 ? "D-DAY" : dd > 0 ? "D-" + dd : "D+" + -dd;
+        return `<label class="bd-due ${cls}" title="${v}">${m}/${d} <b>${label}</b>
+                  <input type="date" value="${v}" />
+                  <button type="button" class="bd-due__x" data-due-clear="1" title="${dtT("해제", "Clear")}">×</button>
+                </label>`;
+      }
+
       function renderNode(n) {
         let el = els.get(n.id);
         if (!el) {
@@ -270,7 +305,10 @@
            <div class="bd-node__body">
              ${(n.items || []).map((t, i) =>
                `<div class="bd-item" data-i="${i}"><i></i><input value="${esc(t)}" placeholder="${dtT("하위 키워드", "Sub-keyword")}" maxlength="60" /><button type="button" title="${dtT("삭제", "Delete")}">×</button></div>`).join("")}
-             <button type="button" class="bd-add">＋ ${dtT("하위 키워드", "Sub-keyword")}</button>
+             <div class="bd-foot">
+               <button type="button" class="bd-add">＋ ${dtT("하위 키워드", "Sub-keyword")}</button>
+               ${dueHtml(n)}
+             </div>
            </div>
            <span class="bd-port bd-port--l" data-port="l"></span>
            <span class="bd-port bd-port--r" data-port="r"></span>`;
@@ -290,6 +328,7 @@
           const node = nodeById(el.dataset.id);
           if (!node) return;
           if (e.target.classList.contains("bd-node__title")) { node.title = e.target.value; markDirty(); return; }
+          if (e.target.type === "date") { node.due = e.target.value || null; renderNode(node); drawLinks(); markDirty(); return; }
           const row = e.target.closest(".bd-item");
           if (row) { node.items[+row.dataset.i] = e.target.value; markDirty(); }
         });
@@ -303,6 +342,11 @@
             renderNode(node); drawLinks(); markDirty();
             const inputs = el.querySelectorAll(".bd-item input");
             if (inputs.length) inputs[inputs.length - 1].focus();
+            return;
+          }
+          if (e.target.closest("[data-due-clear]")) {
+            e.preventDefault(); e.stopPropagation();
+            node.due = null; renderNode(node); drawLinks(); markDirty();
             return;
           }
           const del = e.target.closest(".bd-item button");
