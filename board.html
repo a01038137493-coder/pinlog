@@ -105,6 +105,23 @@
     .bd-pal button.is-on { border-color: var(--navy); }
     .bd-pal .bd-pal__del { width: auto; border-radius: 8px; border: 1px solid var(--line); background: #fff; padding: 0 10px; font: inherit; font-size: 0.78rem; font-weight: 700; color: #f04438; }
 
+    /* 페이지 목록 */
+    .bd-pages {
+      position: fixed; z-index: 45; width: 250px; max-height: 60vh; overflow-y: auto;
+      background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 6px;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.18);
+    }
+    .bd-pages__head { font-size: 0.74rem; font-weight: 800; color: var(--muted-soft); padding: 7px 10px 5px; }
+    .bd-page { display: flex; align-items: center; gap: 8px; width: 100%; border: none; background: none; text-align: left; padding: 9px 10px; border-radius: 9px; font: inherit; font-size: 0.88rem; font-weight: 600; color: var(--text); cursor: pointer; }
+    .bd-page:hover { background: var(--bg); }
+    .bd-page.is-on { background: var(--orange-bg); color: var(--orange-strong); font-weight: 800; }
+    .bd-page span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .bd-page em { font-style: normal; font-size: 0.72rem; color: var(--muted-soft); font-weight: 600; flex: none; }
+    .bd-page i { flex: none; opacity: 0; font-style: normal; color: var(--muted-soft); padding: 0 3px; border-radius: 5px; }
+    .bd-page:hover i { opacity: 1; }
+    .bd-page i:hover { background: #fdeeec; color: #f04438; }
+    .bd-page--new { border-top: 1px solid var(--line); border-radius: 0 0 9px 9px; margin-top: 4px; color: var(--muted); font-weight: 700; }
+
     /* 빈 상태 안내 */
     .bd-empty {
       position: fixed; left: 50%; top: 52%; transform: translate(-50%, -50%);
@@ -142,6 +159,7 @@
        onclick="if(history.length>1){event.preventDefault();history.back();}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
     </a>
+    <button type="button" class="bd-btn bd-btn--ico" id="bd-list" title="페이지 목록">☰</button>
     <input type="text" class="bd-title" id="bd-title" value="큰 그림" maxlength="40" />
     <span class="bd-status" id="bd-status"></span>
     <div class="bd-tools">
@@ -205,6 +223,8 @@
         const { error } = await supabaseClient.from("boards")
           .update({ title: titleEl.value.trim() || "큰 그림", data: state, updated_at: new Date().toISOString() })
           .eq("id", boardId);
+        const row = boards.find((b) => b.id === boardId);
+        if (row && !error) { row.data = JSON.parse(JSON.stringify(state)); row.title = titleEl.value.trim() || "큰 그림"; }
         statusEl.textContent = error ? dtT("저장 실패", "Save failed") : dtT("저장됨", "Saved");
         if (!error) setTimeout(() => { if (statusEl.textContent === dtT("저장됨", "Saved")) statusEl.textContent = ""; }, 1600);
       }
@@ -481,7 +501,11 @@
         const c = toWorld(window.innerWidth / 2, window.innerHeight / 2);
         addNode(c.x, c.y);
       });
-      titleEl.addEventListener("input", markDirty);
+      titleEl.addEventListener("input", () => {
+        const row = boards.find((b) => b.id === boardId);
+        if (row) row.title = titleEl.value;
+        markDirty();
+      });
 
       document.addEventListener("keydown", (e) => {
         if (e.key === "Escape") { select(null); closePalette(); return; }
@@ -491,15 +515,11 @@
         }
       });
 
-      /* ---------- 불러오기 ---------- */
-      const { data: rows } = await supabaseClient.from("boards")
-        .select("*").eq("user_id", profile.id).order("updated_at", { ascending: false }).limit(1);
-      if (rows && rows.length) {
-        boardId = rows[0].id;
-        titleEl.value = rows[0].title || "큰 그림";
-        const d = rows[0].data || {};
-        state = { nodes: Array.isArray(d.nodes) ? d.nodes : [], links: Array.isArray(d.links) ? d.links : [] };
-      } else {
+      /* ---------- 페이지(보드) 관리 ---------- */
+      let boards = [];
+      const LAST_KEY = "dt_board_last";
+
+      function seedData() {
         const seed = {
           nodes: [
             { id: uid(), title: dtT("목표", "Goal"), items: [dtT("3개월 안에 달성", "Reach in 3 months")], x: -420, y: -60, color: COLORS[0] },
@@ -509,12 +529,115 @@
           links: [],
         };
         seed.links = [{ from: seed.nodes[0].id, to: seed.nodes[1].id }, { from: seed.nodes[0].id, to: seed.nodes[2].id }];
+        return seed;
+      }
+
+      function openBoard(row) {
+        boardId = row.id;
+        titleEl.value = row.title || "큰 그림";
+        const d = row.data || {};
+        state = { nodes: Array.isArray(d.nodes) ? d.nodes : [], links: Array.isArray(d.links) ? d.links : [] };
+        selected = null;
+        try { localStorage.setItem(LAST_KEY, boardId); } catch (e) {}
+        for (const [, el] of els) el.remove();
+        els.clear();
+        renderAll();
+        requestAnimationFrame(fit);
+      }
+
+      async function switchBoard(id) {
+        if (id === boardId) return;
+        clearTimeout(saveTimer);
+        await save();
+        const row = boards.find((b) => b.id === id);
+        if (row) {
+          const { data } = await supabaseClient.from("boards").select("*").eq("id", id).single();
+          openBoard(data || row);
+        }
+      }
+
+      async function newBoard() {
+        clearTimeout(saveTimer);
+        await save();
+        const name = dtT("새 페이지", "New page") + " " + (boards.length + 1);
+        const { data: made, error } = await supabaseClient.from("boards")
+          .insert({ user_id: profile.id, title: name, data: { nodes: [], links: [] } }).select().single();
+        if (error || !made) { statusEl.textContent = dtT("만들지 못했습니다", "Could not create"); return; }
+        boards.unshift(made);
+        openBoard(made);
+        titleEl.focus();
+        titleEl.select();
+      }
+
+      async function deleteBoard(id) {
+        const row = boards.find((b) => b.id === id);
+        if (!row) return;
+        if (!confirm(dtT(`'${row.title}' 페이지를 삭제할까요?`, `Delete '${row.title}'?`))) return;
+        await supabaseClient.from("boards").delete().eq("id", id);
+        boards = boards.filter((b) => b.id !== id);
+        if (boardId === id) {
+          if (boards.length) {
+            const { data } = await supabaseClient.from("boards").select("*").eq("id", boards[0].id).single();
+            openBoard(data || boards[0]);
+          } else {
+            const seed = seedData();
+            const { data: made } = await supabaseClient.from("boards")
+              .insert({ user_id: profile.id, title: "큰 그림", data: seed }).select().single();
+            if (made) { boards = [made]; openBoard(made); }
+          }
+        }
+      }
+
+      /* 페이지 목록 드롭다운 */
+      let pagePanel = null;
+      function closePages() {
+        if (pagePanel) { pagePanel.remove(); pagePanel = null; document.removeEventListener("pointerdown", onPagesDoc, true); }
+      }
+      function onPagesDoc(ev) {
+        if (pagePanel && !pagePanel.contains(ev.target) && !ev.target.closest("#bd-list")) closePages();
+      }
+      function openPages() {
+        if (pagePanel) { closePages(); return; }
+        const btn = document.getElementById("bd-list");
+        pagePanel = document.createElement("div");
+        pagePanel.className = "bd-pages";
+        pagePanel.innerHTML =
+          `<div class="bd-pages__head">${dtT("페이지", "Pages")} ${boards.length}</div>` +
+          boards.map((b) =>
+            `<button type="button" class="bd-page${b.id === boardId ? " is-on" : ""}" data-id="${b.id}">
+               <span>${esc(b.title || "제목 없음")}</span>
+               <em>${(b.data && b.data.nodes ? b.data.nodes.length : 0)}</em>
+               <i data-del="${b.id}" title="${dtT("삭제", "Delete")}">×</i>
+             </button>`).join("") +
+          `<button type="button" class="bd-page bd-page--new">＋ ${dtT("새 페이지", "New page")}</button>`;
+        document.body.appendChild(pagePanel);
+        const r = btn.getBoundingClientRect();
+        pagePanel.style.left = Math.max(10, r.left) + "px";
+        pagePanel.style.top = (r.bottom + 8) + "px";
+        pagePanel.addEventListener("click", async (e) => {
+          const del = e.target.closest("[data-del]");
+          if (del) { e.stopPropagation(); closePages(); await deleteBoard(del.dataset.del); return; }
+          if (e.target.closest(".bd-page--new")) { closePages(); await newBoard(); return; }
+          const row = e.target.closest(".bd-page");
+          if (row && row.dataset.id) { closePages(); await switchBoard(row.dataset.id); }
+        });
+        setTimeout(() => document.addEventListener("pointerdown", onPagesDoc, true), 0);
+      }
+      document.getElementById("bd-list").addEventListener("click", openPages);
+
+      /* ---------- 첫 로드 ---------- */
+      const { data: rows } = await supabaseClient.from("boards")
+        .select("*").eq("user_id", profile.id).order("created_at", { ascending: false });
+      boards = rows || [];
+      if (!boards.length) {
+        const seed = seedData();
         const { data: made } = await supabaseClient.from("boards")
           .insert({ user_id: profile.id, title: "큰 그림", data: seed }).select().single();
-        if (made) { boardId = made.id; state = seed; }
+        if (made) boards = [made];
       }
-      renderAll();
-      requestAnimationFrame(fit);
+      let last = null;
+      try { last = localStorage.getItem(LAST_KEY); } catch (e) {}
+      openBoard(boards.find((b) => b.id === last) || boards[0]);
       if (window.hideAppLoader) hideAppLoader();
     });
   })();
